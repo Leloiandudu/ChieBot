@@ -34,7 +34,6 @@ class MediaWiki
         return Exec(
             new Dictionary<string, string>
             {
-                { "format", "json" },
                 { "action", "login" },
                 { "lgname", login },
                 { "lgpassword", password },
@@ -43,11 +42,19 @@ class MediaWiki
         );
     }
 
+    public string GetPage(string page)
+    {
+        return Query(new Dictionary<string, string>
+        {
+            { "prop", "revisions" },
+            { "rvprop", "content" },
+        }, page)[page].SelectToken("revisions[0].*").Value<string>();
+    }
+
     private IDictionary<string, JToken> Query(IDictionary<string, string> queryArgs, params string[] titles)
     {
         var args = new Dictionary<string, string>
         {
-            { "format", "json" },
             { "action", "query" },
             { "titles", JoinList(titles) },
         };
@@ -64,13 +71,12 @@ class MediaWiki
     {
         var args = new Dictionary<string, string>
             {
-                { "format", "json" },
                 { "action", "tokens" },
             };
         if (types.Any())
             args.Add("type", JoinList(types));
 
-        return JToken.Parse(_browser.Get(_apiUri.ToString(), args));
+        return Exec(args)["tokens"];
     }
 
     private string _editToken;
@@ -79,7 +85,7 @@ class MediaWiki
         if (_editToken == null)
         {
             var res = GetTokens();
-            _editToken = (string)res.SelectToken("tokens.edittoken");
+            _editToken = res.Value<string>("edittoken");
             if (_editToken == null)
                 throw new Exception(res.ToString());
         }
@@ -87,16 +93,16 @@ class MediaWiki
         return _editToken;
     }
 
-    public void Edit(string title, string contents, string summary)
+    public void Edit(string page, string contents, string summary, bool? append = null)
     {
-        var result = Exec(new Dictionary<string, string>
+        var result = ExecFake(new Dictionary<string, string>
         {
-            { "format", "json" },
             { "action", "edit" },
-            { "title", title },
-            { "text", contents },
+            { "title", page },
+            { !append.HasValue ? "text" : append.Value ? "appendtext" : "prependtext", contents },
             { "summary", summary },
             { "token", GetEditToken() },
+            { "bot", "" },
         });
 
         var code = result["edit"].Value<string>("result");
@@ -106,8 +112,21 @@ class MediaWiki
             throw new MediaWikiException(code);
     }
 
+    private JToken ExecFake(Dictionary<string, string> args)
+    {
+        System.Diagnostics.Debug.WriteLine("Edit:");
+        foreach (var arg in args)
+        {
+            System.Diagnostics.Debug.WriteLine("  {0} = {1}", arg.Key, arg.Value);
+        }
+        System.Diagnostics.Debug.WriteLine("");
+
+        return JObject.FromObject(new { edit = new { result = "Success" } });
+    }
+
     private JToken Exec(Dictionary<string, string> args)
     {
+        args.Add("format", "json");
         var result = JToken.Parse(_browser.Post(_apiUri.ToString(), args));
         if (result["error"] != null)
             throw new MediaWikiException(result["error"].Value<string>("info"));
