@@ -60,6 +60,93 @@ namespace ChieBot
             }
         }
 
+        class Drafts : IEnumerable<Draft>
+        {
+            private static readonly Regex DraftHeader = new Regex(@"^==\s*Выпуск\s+(?<date>\d+ \w+)", RegexOptions.Compiled);
+
+            private readonly string _prefix;
+            private readonly List<Draft> _drafts = new List<Draft>();
+
+            public Drafts(string fullText)
+            {
+                var matches = Heading2.Matches(fullText);
+                if (matches.Count == 0)
+                {
+                    _prefix = fullText;
+                    return;
+                }
+
+                _prefix = fullText.Substring(0, matches[0].Index);
+                
+                for(var i = 0; i < matches.Count; i++)
+                {
+                    var draft = new Draft();
+                    var match = matches[i];
+
+                    draft.Title = fullText.Substring(match.Index, match.Length);
+
+                    var index = match.Index + match.Length;
+                    if (i + 1 < matches.Count)
+                        draft.Text = fullText.Substring(match.Index + match.Length, matches[i + 1].Index - index);
+                    else
+                        draft.Text = fullText.Substring(index);
+
+                    var dateMatch = DraftHeader.Match(draft.Title);
+                    DateTime date;
+                    if (!dateMatch.Success || !DateTime.TryParseExact(dateMatch.Groups["date"].Value, "d MMMM", CultureInfo.GetCultureInfo("ru-RU"), DateTimeStyles.None, out date))
+                        throw new DidYouKnowException(string.Format("Не удалось распарсить дату выпуска `{0}`", draft.Title));
+                    if ((DateTime.Now - date).TotalDays > 30) // на случай анонсов для следующего года
+                        date = date.AddYears(1);
+                    draft.Date = date;
+
+                    _drafts.Add(draft);
+                }
+
+                System.Diagnostics.Debug.Assert(fullText == FullText);
+            }
+
+            public string FullText
+            {
+                get { return _prefix + string.Join("", _drafts.Select(d => d.Title + d.Text)); }
+            }
+
+            public Draft this[DateTime date]
+            {
+                get { return _drafts.SingleOrDefault(d => d.Date == date); }
+            }
+
+            public bool Remove(Draft draft)
+            {
+                return _drafts.Remove(draft);
+            }
+
+            public IEnumerator<Draft> GetEnumerator()
+            {
+                return _drafts.GetEnumerator();
+            }
+
+            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+        }
+
+        class Draft
+        {
+            public string Title { get; set; }
+            public DateTime Date { get; set; }
+            public string Text { get; set; }
+
+            public string GetIssueText()
+            {
+                var text = Text;
+                var small = LineStartedWithSmall.Match(text);
+                if (small.Index == 0)
+                    text = text.Substring(small.Length).TrimStart();
+                return text.Trim();
+            }
+        }
+
         public string GetCurrent()
         {
             return new Template(_wiki.GetPage(TemplateName)).IssueText;
@@ -89,28 +176,18 @@ namespace ChieBot
             );
         }
 
-        public string GetDraft()
+        public string PopDraft(DateTime date)
         {
-            var text = _wiki.GetPage(DraftName);
+            var drafts = new Drafts(_wiki.GetPage(DraftName));
+            var draft = drafts[date];
 
-            var first = Heading2.Match(text);
-            if (!first.Success)
-                throw new DidYouKnowException("Черновик не найден.");
-            var index = first.Index + first.Length;
+            if (draft == null)
+                throw new DidYouKnowException(string.Format("Черновик за {0} не найден.", date));
 
-            var second = Heading2.Match(text, index);
+            drafts.Remove(draft);
+            _wiki.Edit(DraftName, drafts.FullText, "Автоматическая публикация выпуска.");
 
-            if (second.Success)
-                text = text.Substring(index, second.Index - index);
-            else
-                text = text.Substring(index);
-            text = text.Trim();
-
-            var small = LineStartedWithSmall.Match(text);
-            if (small.Index == 0)
-                text = text.Substring(small.Length).TrimStart();
-
-            return text;
+            return draft.GetIssueText();
         }
 
         private string GetArchiveName(DateTime date)
