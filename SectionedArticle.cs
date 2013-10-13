@@ -55,7 +55,7 @@ namespace ChieBot
 
         public string FullText
         {
-            get { return _prefix + string.Join("", _sections.Select(s => s.Title + s.Text)); }
+            get { return _prefix + string.Join("", _sections.Select(s => s.FullText)); }
         }
 
         public bool Remove(TSection section)
@@ -78,5 +78,10 @@ namespace ChieBot
     {
         public string Title { get; set; }
         public string Text { get; set; }
+
+        public string FullText
+        {
+            get { return Title + Text; }
+        }
     }
 }
