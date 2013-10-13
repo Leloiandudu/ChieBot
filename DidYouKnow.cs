@@ -10,6 +10,8 @@ namespace ChieBot
     class DidYouKnow
     {
         private const string TemplateName = "Шаблон:Знаете ли вы";
+        private const string TemplateTalkName = "Обсуждение шаблона:Знаете ли вы";
+        private const string TemplateTalkArchiveName = "Обсуждение шаблона:Знаете ли вы/Архив/{0}";
         private const string ArchiveName = "Проект:Знаете ли вы/Архив рубрики/{0:yyyy-MM}";
         private const string DraftName = "Проект:Знаете ли вы/Черновик";
         private const string DraftTalkName = "Обсуждение проекта:Знаете ли вы/Черновик";
@@ -130,27 +132,34 @@ namespace ChieBot
             );
         }
 
-        public string PopDraft(DateTime date)
+        public bool ArchiveCurrentTalk(DateTime issueDate)
         {
-            return PopDraft(date, DraftName, true).GetIssueText();
+            var draft = PopDraft(issueDate, TemplateTalkName, false);
+            if (draft == null) return false;
+
+            _wiki.Edit(
+                GetTalkArchiveName(issueDate),
+                draft.FullText,
+                "Автоматическая архивация обсуждения прошлого выпуска.",
+                true
+            );
+            return true;
         }
 
-        private string PopDraftTalk(DateTime date)
+        public string PopDraft(DateTime issueDate)
         {
-            var draft = PopDraft(date, DraftTalkName, false);
-            if (draft == null) return null;
-            return draft.FullText;
+            return PopDraft(issueDate, DraftName, true).GetIssueText();
         }
 
-        private Draft PopDraft(DateTime date, string pageName, bool required)
+        private Draft PopDraft(DateTime issueDate, string pageName, bool required)
         {
             var drafts = new Drafts(_wiki.GetPage(pageName));
-            var draft = drafts[date];
+            var draft = drafts[issueDate];
 
             if (draft == null)
             {
                 if (required)
-                    throw new DidYouKnowException(string.Format("Черновик за {0} не найден.", date));
+                    throw new DidYouKnowException(string.Format("Черновик за {0} не найден.", issueDate));
                 else
                     return null;
             }
@@ -161,14 +170,14 @@ namespace ChieBot
             return draft;
         }
 
-        public bool ArchiveDraftTalk(DateTime date)
+        public bool ArchiveDraftTalk(DateTime issueDate)
         {
-            var draft = PopDraftTalk(date);
+            var draft = PopDraft(issueDate, DraftTalkName, false);
             if (draft == null) return false;
 
             _wiki.Edit(
-                GetDraftTalkArchiveName(date),
-                draft,
+                GetDraftTalkArchiveName(issueDate),
+                draft.FullText,
                 "Автоматическая архивация обсуждения прошлого выпуска.",
                 true
             );
@@ -178,6 +187,11 @@ namespace ChieBot
         private string GetArchiveName(DateTime date)
         {
             return string.Format(ArchiveName, date);
+        }
+
+        private string GetTalkArchiveName(DateTime date)
+        {
+            return string.Format(TemplateTalkArchiveName, date.Year - 2008);
         }
 
         private string GetDraftTalkArchiveName(DateTime date)
