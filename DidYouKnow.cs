@@ -13,7 +13,6 @@ namespace ChieBot
         private const string ArchiveName = "Проект:Знаете ли вы/Архив рубрики/{0:yyyy-MM}";
         private const string DraftName = "Проект:Знаете ли вы/Черновик";
 
-        private static readonly Regex Heading2 = new Regex(@"^==.*==\s*$\n?", RegexOptions.Compiled | RegexOptions.Multiline);
         private static readonly Regex Placeholder = new Regex(@"\s*<!-- BOT .*?-->\s*", RegexOptions.Compiled | RegexOptions.Multiline);
         private static readonly Regex LineStartedWithSmall = new Regex(@"^\s*<small\b.*$", RegexOptions.Compiled | RegexOptions.Multiline);
 
@@ -60,82 +59,35 @@ namespace ChieBot
             }
         }
 
-        class Drafts : IEnumerable<Draft>
+        class Drafts : SectionedArticle<Draft>
         {
             private static readonly Regex DraftHeader = new Regex(@"^==\s*Выпуск\s+(?<date>\d+ \w+)", RegexOptions.Compiled);
 
-            private readonly string _prefix;
-            private readonly List<Draft> _drafts = new List<Draft>();
-
             public Drafts(string fullText)
+                : base(fullText)
             {
-                var matches = Heading2.Matches(fullText);
-                if (matches.Count == 0)
-                {
-                    _prefix = fullText;
-                    return;
-                }
-
-                _prefix = fullText.Substring(0, matches[0].Index);
-                
-                for(var i = 0; i < matches.Count; i++)
-                {
-                    var draft = new Draft();
-                    var match = matches[i];
-
-                    draft.Title = fullText.Substring(match.Index, match.Length);
-
-                    var index = match.Index + match.Length;
-                    if (i + 1 < matches.Count)
-                        draft.Text = fullText.Substring(match.Index + match.Length, matches[i + 1].Index - index);
-                    else
-                        draft.Text = fullText.Substring(index);
-
-                    var dateMatch = DraftHeader.Match(draft.Title);
-                    DateTime date;
-                    if (!dateMatch.Success || !DateTime.TryParseExact(dateMatch.Groups["date"].Value, "d MMMM", CultureInfo.GetCultureInfo("ru-RU"), DateTimeStyles.None, out date))
-                        throw new DidYouKnowException(string.Format("Не удалось распарсить дату выпуска `{0}`", draft.Title));
-                    if ((DateTime.Now - date).TotalDays > 30) // на случай анонсов для следующего года
-                        date = date.AddYears(1);
-                    draft.Date = date;
-
-                    _drafts.Add(draft);
-                }
-
-                System.Diagnostics.Debug.Assert(fullText == FullText);
             }
 
-            public string FullText
+            protected override void InitSection(Draft draft)
             {
-                get { return _prefix + string.Join("", _drafts.Select(d => d.Title + d.Text)); }
+                var match = DraftHeader.Match(draft.Title);
+                DateTime date;
+                if (!match.Success || !DateTime.TryParseExact(match.Groups["date"].Value, "d MMMM", CultureInfo.GetCultureInfo("ru-RU"), DateTimeStyles.None, out date))
+                    throw new DidYouKnowException(string.Format("Не удалось распарсить дату выпуска `{0}`", draft.Title));
+                if ((DateTime.Now - date).TotalDays > 30) // на случай анонсов для следующего года
+                    date = date.AddYears(1);
+                draft.Date = date;
             }
 
             public Draft this[DateTime date]
             {
-                get { return _drafts.SingleOrDefault(d => d.Date == date); }
-            }
-
-            public bool Remove(Draft draft)
-            {
-                return _drafts.Remove(draft);
-            }
-
-            public IEnumerator<Draft> GetEnumerator()
-            {
-                return _drafts.GetEnumerator();
-            }
-
-            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
+                get { return _sections.SingleOrDefault(d => d.Date == date); }
             }
         }
 
-        class Draft
+        class Draft : Section
         {
-            public string Title { get; set; }
             public DateTime Date { get; set; }
-            public string Text { get; set; }
 
             public string GetIssueText()
             {
