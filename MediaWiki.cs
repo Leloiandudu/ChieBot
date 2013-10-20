@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json.Linq;
 
-class MediaWiki
+public class MediaWiki
 {
     private readonly Browser _browser;
     private readonly Uri _apiUri;

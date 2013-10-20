@@ -5,9 +5,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Globalization;
 
-namespace ChieBot
+namespace ChieBot.DYK
 {
-    class DidYouKnow
+    public class DidYouKnow
     {
         private const string TemplateName = "Шаблон:Знаете ли вы";
         private const string TemplateTalkName = "Обсуждение шаблона:Знаете ли вы";
@@ -17,90 +17,11 @@ namespace ChieBot
         private const string DraftTalkName = "Обсуждение проекта:Знаете ли вы/Черновик";
         private const string DraftTalkArchiveName = "Обсуждение проекта:Знаете ли вы/Черновик/{0}";
 
-        private static readonly Regex Placeholder = new Regex(@"\s*<!-- BOT .*?-->\s*", RegexOptions.Compiled | RegexOptions.Multiline);
-        private static readonly Regex LineStartedWithSmall = new Regex(@"^\s*<small\b.*$", RegexOptions.Compiled | RegexOptions.Multiline);
-
         private readonly MediaWiki _wiki;
 
         public DidYouKnow(MediaWiki wiki)
         {
             _wiki = wiki;
-        }
-
-        class Template
-        {
-            private readonly string _prefix;
-            private string _text;
-            private readonly string _postfix;
-
-            public Template(string fullText)
-            {
-                var first = Placeholder.Match(fullText);
-                if (!first.Success)
-                    throw new DidYouKnowException("Открывающий placeholder не найден.");
-                var index = first.Index + first.Length;
-
-                var second = Placeholder.Match(fullText, index);
-                if (!second.Success)
-                    throw new DidYouKnowException("Закрывающий placeholder не найден.");
-
-                _prefix = fullText.Substring(0, index);
-                _text = fullText.Substring(index, second.Index - index);
-                _postfix = fullText.Substring(second.Index);
-
-                System.Diagnostics.Debug.Assert(fullText == FullText);
-            }
-
-            public string IssueText
-            {
-                get { return _text; }
-                set { _text = value.Trim(); }
-            }
-
-            public string FullText
-            {
-                get { return _prefix + _text + _postfix; }
-            }
-        }
-
-        class Drafts : SectionedArticle<Draft>
-        {
-            private static readonly Regex DraftHeader = new Regex(@"^==\s*Выпуск\s+(?<date>\d+ \w+)", RegexOptions.Compiled);
-
-            public Drafts(string fullText)
-                : base(fullText)
-            {
-            }
-
-            protected override void InitSection(Draft draft)
-            {
-                var match = DraftHeader.Match(draft.Title);
-                DateTime date;
-                if (!match.Success || !DateTime.TryParseExact(match.Groups["date"].Value, "d MMMM", CultureInfo.GetCultureInfo("ru-RU"), DateTimeStyles.None, out date))
-                    throw new DidYouKnowException(string.Format("Не удалось распарсить дату выпуска `{0}`", draft.Title));
-                if ((DateTime.Now - date).TotalDays > 30) // на случай анонсов для следующего года
-                    date = date.AddYears(1);
-                draft.Date = date;
-            }
-
-            public Draft this[DateTime date]
-            {
-                get { return _sections.SingleOrDefault(d => d.Date == date); }
-            }
-        }
-
-        class Draft : Section
-        {
-            public DateTime Date { get; set; }
-
-            public string GetIssueText()
-            {
-                var text = Text;
-                var small = LineStartedWithSmall.Match(text);
-                if (small.Index == 0)
-                    text = text.Substring(small.Length).TrimStart();
-                return text.Trim();
-            }
         }
 
         public string GetCurrent()
@@ -198,17 +119,5 @@ namespace ChieBot
         {
             return string.Format(DraftTalkArchiveName, date.Year - 2011);
         }
-    }
-
-    [Serializable]
-    public class DidYouKnowException : Exception
-    {
-        public DidYouKnowException() { }
-        public DidYouKnowException(string message) : base(message) { }
-        public DidYouKnowException(string message, Exception inner) : base(message, inner) { }
-        protected DidYouKnowException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context)
-            : base(info, context) { }
     }
 }
