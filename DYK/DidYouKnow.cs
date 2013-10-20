@@ -15,7 +15,7 @@ namespace ChieBot.DYK
         private const string ArchiveName = "Проект:Знаете ли вы/Архив рубрики/{0:yyyy-MM}";
         private const string DraftName = "Проект:Знаете ли вы/Черновик";
         private const string DraftTalkName = "Обсуждение проекта:Знаете ли вы/Черновик";
-        private const string DraftTalkArchiveName = "Обсуждение проекта:Знаете ли вы/Черновик/{0}";
+        private const string DraftTalkArchiveName = "Обсуждение проекта:Знаете ли вы/Черновик/Архив/{0}";
         private const string NextIssueName = "Проект:Знаете ли вы/Подготовка следующего выпуска";
 
         private readonly MediaWiki _wiki;
