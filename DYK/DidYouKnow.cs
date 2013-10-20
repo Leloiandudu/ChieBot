@@ -17,6 +17,7 @@ namespace ChieBot.DYK
         private const string DraftTalkName = "Обсуждение проекта:Знаете ли вы/Черновик";
         private const string DraftTalkArchiveName = "Обсуждение проекта:Знаете ли вы/Черновик/Архив/{0}";
         private const string NextIssueName = "Проект:Знаете ли вы/Подготовка следующего выпуска";
+        private const string NextIssueNameHeader = "Проект:Знаете ли вы/Подготовка следующего выпуска/Шапка";
 
         private readonly MediaWiki _wiki;
 
@@ -112,6 +113,16 @@ namespace ChieBot.DYK
             foreach (var item in nip.Where(x => x.IssueDate == issueDate).ToList())
                 nip.Remove(item);
             _wiki.Edit(NextIssueName, nip.Text, "Автоматическое удаление использованных анонсов.");
+        }
+
+        public void RemoveFromPreparationTimetable(DateTime issueDate)
+        {
+            var niph = new NextIssuePreparationHeader(_wiki.GetPage(NextIssueNameHeader));
+            var item = niph.SingleOrDefault(x => x.Date == issueDate);
+            if (item == null)
+                throw new DidYouKnowException("Не удалось найти анонс в расписании обновлений.");
+            niph.Remove(item);
+            _wiki.Edit(NextIssueNameHeader, niph.Text, "Автоматическое удаление использованных анонсов.");
         }
 
         private string GetArchiveName(DateTime date)
