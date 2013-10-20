@@ -12,7 +12,7 @@ namespace ChieBot
     abstract class SectionedArticle<TSection> : IEnumerable<TSection>
         where TSection : Section, new()
     {
-        private static readonly Regex Heading2 = new Regex(@"^==.*==\s*$\n?", RegexOptions.Compiled | RegexOptions.Multiline);
+        private static readonly Regex Heading2 = new Regex(@"^==[^=].*==\s*$\n?", RegexOptions.Compiled | RegexOptions.Multiline);
 
         private readonly string _prefix;
         protected readonly List<TSection> _sections = new List<TSection>();
