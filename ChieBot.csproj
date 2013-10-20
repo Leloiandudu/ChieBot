@@ -52,8 +52,10 @@
     <Compile Include="Browser.cs" />
     <Compile Include="DYK\Draft.cs" />
     <Compile Include="DYK\DidYouKnowException.cs" />
+    <Compile Include="DYK\NextIssuePreparation.cs" />
     <Compile Include="DYK\Template.cs" />
     <Compile Include="DYK\DidYouKnow.cs" />
+    <Compile Include="DYK\Utils.cs" />
     <Compile Include="MediaWiki.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

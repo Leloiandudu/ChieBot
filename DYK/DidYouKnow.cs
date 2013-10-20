@@ -16,6 +16,7 @@ namespace ChieBot.DYK
         private const string DraftName = "Проект:Знаете ли вы/Черновик";
         private const string DraftTalkName = "Обсуждение проекта:Знаете ли вы/Черновик";
         private const string DraftTalkArchiveName = "Обсуждение проекта:Знаете ли вы/Черновик/{0}";
+        private const string NextIssueName = "Проект:Знаете ли вы/Подготовка следующего выпуска";
 
         private readonly MediaWiki _wiki;
 
@@ -103,6 +104,14 @@ namespace ChieBot.DYK
                 true
             );
             return true;
+        }
+
+        public void RemoveMarkedFromNextIssue(DateTime issueDate)
+        {
+            var nip = new NextIssuePreparation(_wiki.GetPage(NextIssueName));
+            foreach (var item in nip.Where(x => x.IssueDate == issueDate).ToList())
+                nip.Remove(item);
+            _wiki.Edit(NextIssueName, nip.Text, "Автоматическое удаление использованных анонсов.");
         }
 
         private string GetArchiveName(DateTime date)

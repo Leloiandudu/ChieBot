@@ -36,10 +36,8 @@ namespace ChieBot.DYK
         {
             var match = DraftHeader.Match(draft.Title);
             DateTime date;
-            if (!match.Success || !DateTime.TryParseExact(match.Groups["date"].Value, "d MMMM", CultureInfo.GetCultureInfo("ru-RU"), DateTimeStyles.None, out date))
+            if (!match.Success || !Utils.TryParseIssueDate(match.Groups["date"].Value, out date))
                 throw new DidYouKnowException(string.Format("Не удалось распарсить дату выпуска `{0}`", draft.Title));
-            if ((DateTime.Now - date).TotalDays > 30) // на случай анонсов для следующего года
-                date = date.AddYears(1);
             draft.Date = date;
         }
 
