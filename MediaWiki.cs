@@ -95,7 +95,7 @@ public class MediaWiki
 
     public void Edit(string page, string contents, string summary, bool? append = null)
     {
-        var result = ExecFake(new Dictionary<string, string>
+        var args = new Dictionary<string, string>
         {
             { "action", "edit" },
             { "title", page },
@@ -103,7 +103,9 @@ public class MediaWiki
             { "summary", summary },
             { "token", GetEditToken() },
             { "bot", "" },
-        });
+        };
+        Dump(args);
+        var result = Exec(args);
 
         var code = result["edit"].Value<string>("result");
         if (code == null)
@@ -114,14 +116,19 @@ public class MediaWiki
 
     private JToken ExecFake(Dictionary<string, string> args)
     {
+        Dump(args);
+        return JObject.FromObject(new { edit = new { result = "Success" } });
+    }
+
+    [System.Diagnostics.Conditional("DEBUG")]
+    private void Dump(Dictionary<string, string> args)
+    {
         System.Diagnostics.Debug.WriteLine("Edit:");
         foreach (var arg in args)
         {
             System.Diagnostics.Debug.WriteLine("  {0} = {1}", arg.Key, arg.Value);
         }
         System.Diagnostics.Debug.WriteLine("");
-
-        return JObject.FromObject(new { edit = new { result = "Success" } });
     }
 
     private JToken Exec(Dictionary<string, string> args)
