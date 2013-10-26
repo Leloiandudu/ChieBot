@@ -11,8 +11,6 @@ namespace ChieBot.DYK
     {
         private static readonly Regex MarkedListItems = new Regex(@"^(((\[\[(Файл|File|Изображение|Image))|(\{\{часть изображения\|)).*?\n)?\*[^:*].*?(\n(([*:]{2})|:).*?)*\n", RegexOptions.Compiled | RegexOptions.Multiline);
 
-        private readonly List<Tuple<string, Item>> _items = new List<Tuple<string, Item>>();
-
         public NextIssuePreparation(string text)
             : base(text, MarkedListItems, x => new Item(x.Value))
         {
