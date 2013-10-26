@@ -13,7 +13,10 @@ public class MediaWiki
     {
         _browser = new Browser { UserAgent = userAgent };
         _apiUri = apiUri;
+        ReadOnly = true;
     }
+
+    public bool ReadOnly { get; set; }
 
     private static string JoinList(IEnumerable<string> tokens)
     {
@@ -104,8 +107,17 @@ public class MediaWiki
             { "token", GetEditToken() },
             { "bot", "" },
         };
-        Dump(args);
-        var result = Exec(args);
+
+        JToken result;
+        if (ReadOnly)
+        {
+            result = ExecFake(args);
+        }
+        else
+        {
+            Dump(args);
+            result = Exec(args);
+        }
 
         var code = result["edit"].Value<string>("result");
         if (code == null)
