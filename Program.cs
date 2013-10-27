@@ -8,14 +8,25 @@ namespace ChieBot
 {
     class Program
     {
-        // because of mono we have to search timezone by city name
+        /// <summary>Moscow timezone.</summary>
+        /// <remarks>Because of mono we have to search timezone by city name.</remarks>
         private static readonly TimeZoneInfo TimeZone = TimeZoneInfo.GetSystemTimeZones().Single(tz => tz.DisplayName.Contains("Moscow"));
 
-        /// <summary>period between DYK (in days)</summary>
+        /// <summary>Next issue must be within this time span, unless "-force" is specified.</summary>
+        /// <remarks>Used to workaround cron inability to run every N days. Cron is instructed to run everyday instead.</remarks>
+        private static readonly TimeSpan MaxLeftTime = TimeSpan.FromDays(0.5);
+
+        /// <summary>Period between DYK (in days).</summary>
         const int DYKPeriod = 3;
 
         static void Main(string[] args)
         {
+            var nextIssueDate = GetNearestIssueDate();
+            var prevIssueDate = nextIssueDate.AddDays(-DYKPeriod);
+
+            if (!args.Contains("-force") && (Now() - nextIssueDate).Duration() > MaxLeftTime)
+                return;
+
             var ver = typeof(ChieBot.Program).Assembly.GetName().Version;
             var userAgent = string.Format("ChieBot/{0}.{1} (https://bitbucket.org/leloiandudu/chiebot; leloiandudu@gmail.com)", ver.Major, ver.Minor);
             var wiki = new MediaWiki(new Uri("https://ru.wikipedia.org/w/api.php"), userAgent);
@@ -26,9 +37,6 @@ namespace ChieBot
             var dir = new FileInfo(typeof(Program).Assembly.Location).DirectoryName;
             var creds = File.ReadAllLines(Path.Combine(dir, "credentials.txt"));
             wiki.Login(creds[0], creds[1]);
-
-            var nextIssueDate = GetNearestIssueDate();
-            var prevIssueDate = nextIssueDate.AddDays(-DYKPeriod);
 
             var draft = dyk.PopDraft(nextIssueDate);
             dyk.ArchiveDraftTalk(prevIssueDate);
@@ -47,11 +55,15 @@ namespace ChieBot
             // max time (in days) we could issue next DYK earlier
             const double threshold = 0.5;
 
-            var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZone);
-            var elapsed = (now - started).TotalDays;
+            var elapsed = (Now() - started).TotalDays;
             var rounded = Math.Floor((elapsed + threshold) / DYKPeriod) * DYKPeriod;
 
             return started.AddDays(rounded);
+        }
+
+        private static DateTime Now()
+        {
+            return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZone);
         }
     }
 }
