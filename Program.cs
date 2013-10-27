@@ -39,7 +39,7 @@ namespace ChieBot
             wiki.Login(creds[0], creds[1]);
 
             var draft = dyk.PopDraft(nextIssueDate);
-            dyk.ArchiveDraftTalk(prevIssueDate);
+            dyk.ArchiveDraftTalk(nextIssueDate);
             dyk.ArchiveCurrent(prevIssueDate, nextIssueDate);
             dyk.ArchiveCurrentTalk(prevIssueDate);
             dyk.SetCurrent(draft);
