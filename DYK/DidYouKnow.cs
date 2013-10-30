@@ -100,7 +100,7 @@ namespace ChieBot.DYK
 
             _wiki.Edit(
                 GetDraftTalkArchiveName(issueDate),
-                draft.FullText,
+                "\n\n" + draft.FullText,
                 "Автоматическая архивация обсуждения прошлого выпуска.",
                 true
             );
