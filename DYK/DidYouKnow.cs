@@ -47,7 +47,7 @@ namespace ChieBot.DYK
             _wiki.Edit(
                 GetArchiveName(archiveDate),
                 string.Format("== {0} ==\n\n{1}\n\n",
-                    string.Format(titleFormat, issueDate, archiveDate),
+                    string.Format(Utils.DateTimeFormat, titleFormat, issueDate, archiveDate),
                     GetCurrent()
                 ),
                 "Автоматическая архивация прошлого выпуска.",

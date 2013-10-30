@@ -9,30 +9,25 @@ namespace ChieBot.DYK
 {
     static class Utils
     {
-        // mono has incorrect russian months names :(
-        private static readonly string[] MonthNames = new[] { 
-            "января", "февраля", "марта", "апреля", "мая", "июня", 
-            "июля", "августа", "сентября", "октября", "ноября", "декабря" };
+        public static DateTimeFormatInfo DateTimeFormat { get; private set; }
 
-        private static readonly Regex DateRegex = new Regex(@"^(\d+) (\w+)$", RegexOptions.Compiled);
+        static Utils()
+        {
+            // mono uses nominative months names only :(
+            DateTimeFormat = (DateTimeFormatInfo)CultureInfo.GetCultureInfo("ru-RU").DateTimeFormat.Clone();
+            DateTimeFormat.MonthNames = new[] { 
+                "января", "февраля", "марта", "апреля", "мая", "июня", 
+                "июля", "августа", "сентября", "октября", "ноября", "декабря", "" };
+        }
 
         public static bool TryParseIssueDate(string text, out DateTime date)
         {
-            date = DateTime.MinValue;
-
-            var match = DateRegex.Match(text);
-            if (!match.Success)
+            if (!DateTime.TryParseExact(text, "d MMMM", DateTimeFormat, DateTimeStyles.None, out date))
                 return false;
-
-            var month = Array.IndexOf(MonthNames, match.Groups[2].Value);
-            if (month == -1)
-                return false;
-
-            date = new DateTime(DateTime.UtcNow.Year, month + 1, int.Parse(match.Groups[1].Value));
-
-            if ((DateTime.Now - date).TotalDays > 30) // in case of announces for next year 
+            if ((DateTime.Now - date).TotalDays > 30) // нin case of announces for next year
                 date = date.AddYears(1);
             return true;
+
         }
     }
 }
