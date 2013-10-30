@@ -46,8 +46,17 @@ class Browser
         return string.Join("&", (
             from p in args
             where p.Value != null
-            select string.Format("{0}={1}", Uri.EscapeDataString(p.Key), Uri.EscapeDataString(p.Value))
+            select string.Format("{0}={1}", Escape(p.Key), Escape(p.Value))
         ).ToArray());
+    }
+
+    public static string Escape(string str)
+    {
+        const int maxLength = 32766;
+        var sb = new StringBuilder();
+        for (int i = 0; i < str.Length; i += maxLength)
+            sb.Append(Uri.EscapeDataString(str.Substring(i, Math.Min(str.Length - i, i + maxLength))));
+        return sb.ToString();
     }
 
     private string GetStringResponse(HttpWebRequest request)
