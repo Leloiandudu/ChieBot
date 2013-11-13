@@ -18,7 +18,7 @@ namespace ChieBot.DYK
 
         public class Item
         {
-            private static readonly Regex CheckMark = new Regex(@"\{\{злвч\|.*?\|(?<date>\d+ \w+)\}\}", RegexOptions.Compiled);
+            private static readonly Regex CheckMark = new Regex(@"\{\{злвч\|.*?\|(?<date>\d+ \w+)\}\}", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
             public Item(String text)
             {
