@@ -57,13 +57,14 @@ namespace ChieBot.DYK
 
         public bool ArchiveCurrentTalk(DateTime issueDate)
         {
-            var draft = PopDraft(issueDate, TemplateTalkName, false);
+            const string summary = "Автоматическая архивация обсуждения прошлого выпуска.";
+            var draft = PopDraft(issueDate, TemplateTalkName, false, summary);
             if (draft == null) return false;
 
             _wiki.Edit(
                 GetTalkArchiveName(issueDate),
                 draft.FullText,
-                "Автоматическая архивация обсуждения прошлого выпуска.",
+                summary,
                 true
             );
             return true;
@@ -71,10 +72,10 @@ namespace ChieBot.DYK
 
         public string PopDraft(DateTime issueDate)
         {
-            return PopDraft(issueDate, DraftName, true).GetIssueText();
+            return PopDraft(issueDate, DraftName, true, "Автоматическая публикация выпуска.").GetIssueText();
         }
 
-        private Draft PopDraft(DateTime issueDate, string pageName, bool required)
+        private Draft PopDraft(DateTime issueDate, string pageName, bool required, string editSummary)
         {
             var drafts = new Drafts(_wiki.GetPage(pageName));
             var draft = drafts[issueDate];
@@ -88,20 +89,21 @@ namespace ChieBot.DYK
             }
 
             drafts.Remove(draft);
-            _wiki.Edit(pageName, drafts.FullText, "Автоматическая публикация выпуска.");
+            _wiki.Edit(pageName, drafts.FullText, editSummary);
 
             return draft;
         }
 
         public bool ArchiveDraftTalk(DateTime issueDate)
         {
-            var draft = PopDraft(issueDate, DraftTalkName, false);
+            const string summary = "Автоматическая архивация обсуждения прошлого выпуска.";
+            var draft = PopDraft(issueDate, DraftTalkName, false, summary);
             if (draft == null) return false;
 
             _wiki.Edit(
                 GetDraftTalkArchiveName(issueDate),
                 "\n\n" + draft.FullText,
-                "Автоматическая архивация обсуждения прошлого выпуска.",
+                summary,
                 true
             );
             return true;
