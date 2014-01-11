@@ -63,7 +63,7 @@ namespace ChieBot.DYK
 
             _wiki.Edit(
                 GetTalkArchiveName(issueDate),
-                draft.FullText,
+                "\r\n" + draft.FullText,
                 summary,
                 true
             );
