@@ -25,7 +25,7 @@ namespace ChieBot.DYK
 
     class Drafts : SectionedArticle<Draft>
     {
-        private static readonly Regex DraftHeader = new Regex(@"^==\s*Выпуск\s+(?<date>\d+ \w+)", RegexOptions.Compiled);
+        private static readonly Regex DraftHeader = new Regex(@"^==\s*Выпуск\s+(от\s+)?(?<date>\d+ \w+)", RegexOptions.Compiled);
 
         public Drafts(string fullText)
             : base(fullText)
