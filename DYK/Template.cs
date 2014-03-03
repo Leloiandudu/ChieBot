@@ -9,7 +9,7 @@ namespace ChieBot.DYK
 {
     class Template
     {
-        private static readonly Regex Placeholder = new Regex(@"\s*<!-- BOT .*?-->\s*", RegexOptions.Compiled | RegexOptions.Multiline);
+        private static readonly Regex Placeholder = new Regex(@"\s*<!--\s*BOT\s+.*?-->\s*", RegexOptions.Compiled | RegexOptions.Multiline);
 
         private readonly string _prefix;
         private string _text;
