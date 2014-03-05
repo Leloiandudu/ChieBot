@@ -50,12 +50,12 @@ class Browser
         ).ToArray());
     }
 
-    public static string Escape(string str)
+    private static string Escape(string str)
     {
         const int maxLength = 32766;
         var sb = new StringBuilder();
         for (int i = 0; i < str.Length; i += maxLength)
-            sb.Append(Uri.EscapeDataString(str.Substring(i, Math.Min(str.Length - i, i + maxLength))));
+            sb.Append(Uri.EscapeDataString(str.Substring(i, Math.Min(str.Length - i, maxLength))));
         return sb.ToString();
     }
 
