@@ -41,16 +41,14 @@ namespace ChieBot
                 else
                     section.Text = fullText.Substring(index);
 
-                InitSection(section);
-
-                _sections.Add(section);
+                if (InitSection(section))
+                    _sections.Add(section);
             }
-
-            System.Diagnostics.Debug.Assert(fullText == FullText);
         }
 
-        protected virtual void InitSection(TSection section)
+        protected virtual bool InitSection(TSection section)
         {
+            return true;
         }
 
         public string FullText
