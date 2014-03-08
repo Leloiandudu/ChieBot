@@ -32,13 +32,17 @@ namespace ChieBot.DYK
         {
         }
 
-        protected override void InitSection(Draft draft)
+        protected override bool InitSection(Draft draft)
         {
             var match = DraftHeader.Match(draft.Title);
             DateTime date;
             if (!match.Success || !Utils.TryParseIssueDate(match.Groups["date"].Value, out date))
-                throw new DidYouKnowException(string.Format("Не удалось распарсить дату выпуска `{0}`", draft.Title));
+            {
+                Console.WriteLine("Не удалось распарсить дату выпуска `{0}`", draft.Title);
+                return false;
+            }
             draft.Date = date;
+            return true;
         }
 
         public Draft this[DateTime date]
