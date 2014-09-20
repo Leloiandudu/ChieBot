@@ -10,8 +10,6 @@ namespace ChieBot.DYK
     public class DidYouKnow
     {
         private const string TemplateName = "Шаблон:Знаете ли вы";
-        private const string TemplateTalkName = "Обсуждение шаблона:Знаете ли вы";
-        private const string TemplateTalkArchiveName = "Обсуждение шаблона:Знаете ли вы/Архив/{0}";
         private const string ArchiveName = "Проект:Знаете ли вы/Архив рубрики/{0:yyyy-MM}";
         private const string DraftName = "Проект:Знаете ли вы/Черновик";
         private const string DraftTalkName = "Обсуждение проекта:Знаете ли вы/Черновик";
@@ -53,21 +51,6 @@ namespace ChieBot.DYK
                 "Автоматическая архивация прошлого выпуска.",
                 false
             );
-        }
-
-        public bool ArchiveCurrentTalk(DateTime issueDate)
-        {
-            const string summary = "Автоматическая архивация обсуждения прошлого выпуска.";
-            var draft = PopDraft(issueDate, TemplateTalkName, false, summary);
-            if (draft == null) return false;
-
-            _wiki.Edit(
-                GetTalkArchiveName(issueDate),
-                "\r\n" + draft.FullText,
-                summary,
-                true
-            );
-            return true;
         }
 
         public string PopDraft(DateTime issueDate)
@@ -130,11 +113,6 @@ namespace ChieBot.DYK
         private string GetArchiveName(DateTime date)
         {
             return string.Format(ArchiveName, date);
-        }
-
-        private string GetTalkArchiveName(DateTime date)
-        {
-            return string.Format(TemplateTalkArchiveName, date.Year - 2008);
         }
 
         private string GetDraftTalkArchiveName(DateTime date)
