@@ -41,7 +41,6 @@ namespace ChieBot
             var draft = dyk.PopDraft(nextIssueDate);
             dyk.ArchiveDraftTalk(nextIssueDate);
             dyk.ArchiveCurrent(prevIssueDate, nextIssueDate);
-            dyk.ArchiveCurrentTalk(prevIssueDate);
             dyk.SetCurrent(draft);
             dyk.RemoveMarkedFromNextIssue(nextIssueDate);
             dyk.RemoveFromPreparationTimetable(nextIssueDate);
