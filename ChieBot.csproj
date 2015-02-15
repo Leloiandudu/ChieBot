@@ -50,14 +50,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Browser.cs" />
+    <Compile Include="Credentials.cs" />
     <Compile Include="DYK\Draft.cs" />
     <Compile Include="DYK\DidYouKnowException.cs" />
+    <Compile Include="DYK\DYKModule.cs" />
     <Compile Include="DYK\NextIssuePreparation.cs" />
     <Compile Include="DYK\NextIssuePreparationHeader.cs" />
     <Compile Include="DYK\Template.cs" />
     <Compile Include="DYK\DidYouKnow.cs" />
     <Compile Include="DYK\Utils.cs" />
+    <Compile Include="Modules\IModule.cs" />
     <Compile Include="MediaWiki.cs" />
+    <Compile Include="Modules\Modules.cs" />
     <Compile Include="PartiallyParsedWikiText.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
