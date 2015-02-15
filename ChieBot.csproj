@@ -58,7 +58,8 @@
     <Compile Include="DYK\NextIssuePreparationHeader.cs" />
     <Compile Include="DYK\Template.cs" />
     <Compile Include="DYK\DidYouKnow.cs" />
-    <Compile Include="DYK\Utils.cs" />
+    <Compile Include="DYK\DYKUtils.cs" />
+    <Compile Include="Utils.cs" />
     <Compile Include="Modules\IModule.cs" />
     <Compile Include="MediaWiki.cs" />
     <Compile Include="Modules\Modules.cs" />

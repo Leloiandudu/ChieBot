@@ -26,7 +26,7 @@ namespace ChieBot.DYK
 
                 var match = CheckMark.Match(text);
                 DateTime date;
-                if (match.Success && Utils.TryParseIssueDate(match.Groups["date"].Value, out date))
+                if (match.Success && DYKUtils.TryParseIssueDate(match.Groups["date"].Value, out date))
                     IssueDate = date;
             }
 

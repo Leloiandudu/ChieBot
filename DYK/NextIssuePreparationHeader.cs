@@ -20,7 +20,7 @@ namespace ChieBot.DYK
             public Item(Match match)
             {
                 DateTime date;
-                if (!Utils.TryParseIssueDate(match.Groups["date"].Value, out date))
+                if (!DYKUtils.TryParseIssueDate(match.Groups["date"].Value, out date))
                     throw new DidYouKnowException(string.Format("Не удалось распарсить дату выпуска `{0}`", match.Groups["date"].Value));
                 Date = date;
             }
