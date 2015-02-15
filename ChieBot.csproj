@@ -49,6 +49,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Archiving\ArchiveModule.cs" />
+    <Compile Include="Archiving\Talk.cs" />
     <Compile Include="Browser.cs" />
     <Compile Include="Credentials.cs" />
     <Compile Include="DYK\Draft.cs" />

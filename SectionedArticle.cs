@@ -56,6 +56,11 @@ namespace ChieBot
             get { return _prefix + string.Join("", _sections.Select(s => s.FullText)); }
         }
 
+        public void Add(TSection section)
+        {
+            _sections.Add(section);
+        }
+
         public bool Remove(TSection section)
         {
             return _sections.Remove(section);
