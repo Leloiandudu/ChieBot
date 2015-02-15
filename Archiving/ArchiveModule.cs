@@ -14,7 +14,6 @@ namespace ChieBot.Archiving
 
         public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
         {
-            wiki.Login(credentials.Login, credentials.Password);
             
             var now = DateTime.UtcNow;
             var archiveName = GetArchiveName(now);
@@ -23,17 +22,23 @@ namespace ChieBot.Archiving
             var dayX = now.AddDays(-AgeLimitInDays);
             var removed = new Talks();
 
+            var found = false;
             foreach (var talk in talks.ToArray())
             {
                 if (talk.LastActivity.HasValue && talk.LastActivity < dayX)
                 {
                     talks.Remove(talk);
                     removed.Add(talk);
+                    found = true;
                 }
             }
 
+            if (!found)
+                return;
+
+            wiki.Login(credentials.Login, credentials.Password);
             wiki.Edit(TalkName, talks.FullText, EditSummary);
-            wiki.Edit(archiveName, removed.FullText, EditSummary, true);
+            wiki.Edit(archiveName, "\n\n" + removed.FullText, EditSummary, true);
         }
 
         private static string GetArchiveName(DateTime date)
