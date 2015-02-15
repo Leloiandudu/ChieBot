@@ -36,7 +36,7 @@ namespace ChieBot.DYK
         {
             var match = DraftHeader.Match(draft.Title);
             DateTime date;
-            if (!match.Success || !Utils.TryParseIssueDate(match.Groups["date"].Value, out date))
+            if (!match.Success || !DYKUtils.TryParseIssueDate(match.Groups["date"].Value, out date))
             {
                 Console.WriteLine("Не удалось распарсить дату выпуска `{0}`", draft.Title);
                 return false;
