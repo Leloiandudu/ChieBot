@@ -9,7 +9,7 @@ namespace ChieBot.DYK
         {
             if (!DateTime.TryParseExact(text, "d MMMM", Utils.DateTimeFormat, DateTimeStyles.None, out date))
                 return false;
-            if ((DateTime.Now - date).TotalDays > 30) // нin case of announces for next year
+            if ((DateTime.Now - date).TotalDays > 30) // in case of announces for next year
                 date = date.AddYears(1);
             return true;
         }

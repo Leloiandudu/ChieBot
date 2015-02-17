@@ -14,7 +14,6 @@ namespace ChieBot.Archiving
 
         public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
         {
-            
             var now = DateTime.UtcNow;
             var archiveName = GetArchiveName(now);
 
