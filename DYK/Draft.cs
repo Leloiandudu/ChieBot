@@ -39,9 +39,11 @@ namespace ChieBot.DYK
             if (!match.Success || !DYKUtils.TryParseIssueDate(match.Groups["date"].Value, out date))
             {
                 Console.Error.WriteLine("Не удалось распарсить дату выпуска `{0}`", draft.Title);
-                return false;
             }
-            draft.Date = date;
+            else
+            {
+                draft.Date = date;
+            }
             return true;
         }
 
