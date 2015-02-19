@@ -45,13 +45,14 @@ public class MediaWiki
         );
     }
 
-    public string GetPage(string page)
+    public string GetPage(string page, int? revId = null)
     {
         return Query(new Dictionary<string, string>
         {
             { "prop", "revisions" },
             { "rvprop", "content" },
-        }, page)[page].SelectToken("revisions[0].*").Value<string>();
+            { "rvstartid", Convert.ToString(revId) },
+        }, page)[page].SelectToken("revisions[0]").Value<string>("*");
     }
 
     private IDictionary<string, JToken> Query(IDictionary<string, string> queryArgs, params string[] titles)
