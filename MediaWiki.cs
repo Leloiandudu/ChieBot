@@ -51,7 +51,7 @@ public class MediaWiki
         {
             { "prop", "revisions" },
             { "rvprop", "content" },
-            { "rvstartid", Convert.ToString(revId) },
+            { "rvstartid", revId == null ? null : revId.ToString() },
         }, page)[page].SelectToken("revisions[0]").Value<string>("*");
     }
 
