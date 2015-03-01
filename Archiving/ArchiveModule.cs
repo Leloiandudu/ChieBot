@@ -7,8 +7,8 @@ namespace ChieBot.Archiving
 {
     class ArchiveModule : Modules.IModule
     {
-        private const string TalkName = "Обсуждение участника:Kf8";
-        private const string ArchiveName = "Обсуждение участника:Kf8/Архив{0}";
+        private const string TalkName = "Обсуждение участника:Ле Лой";
+        private const string ArchiveName = "Обсуждение участника:Ле Лой/Архив{0}";
         private const string EditSummary = "Автоматический аркайвинг";
         private const int AgeLimitInDays = 7;
 
