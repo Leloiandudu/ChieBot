@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 public class MediaWiki
@@ -47,36 +48,144 @@ public class MediaWiki
 
     public string GetPage(string page, int? revId = null)
     {
-        return Query(new Dictionary<string, string>
+        return QueryPages("revisions", new Dictionary<string, string>
         {
-            { "prop", "revisions" },
             { "rvprop", "content" },
             { "rvstartid", revId == null ? null : revId.ToString() },
-        }, page)[page].SelectToken("revisions[0]").Value<string>("*");
+        }, page)[page][0].Value<string>("*");
     }
 
-    private IDictionary<string, JToken> Query(IDictionary<string, string> queryArgs, params string[] titles)
+    public RevisionInfo[] GetHistory(string page, DateTimeOffset from)
     {
-        var args = new Dictionary<string, string>
+        var revisions = QueryPages("revisions", new Dictionary<string, string>
         {
-            { "action", "query" },
+            { "rvprop", "ids|timestamp|size|flags" },
+            { "rvlimit", "5000" },
+            { "rvdir", "newer" },
+            { "redirects", "" },
+            { "rvstart", from.UtcDateTime.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ssK") },
+        }, page)[page];
+
+        if (revisions == null)
+            return null;
+        return revisions.ToObject<RevisionInfo[]>();
+    }
+
+    public RevisionInfo GetRevisionInfo(int revId)
+    {
+        return QueryPages("revisions", new Dictionary<string, string> {
+            { "revids", revId.ToString() },
+            { "rvprop", "ids|timestamp|size" },
+            { "redirects", "" },
+        })["pages"].Values().Single()["revisions"].Single().ToObject<RevisionInfo>();
+    }
+
+    private IDictionary<string, JArray> QueryPages(string property, IDictionary<string, string> queryArgs, params string[] titles)
+    {
+        queryArgs = new Dictionary<string, string>(queryArgs)
+        {
             { "titles", JoinList(titles) },
         };
 
-        foreach (var arg in queryArgs)
-            args.Add(arg.Key, arg.Value);
+        var mergeSettings = new JsonMergeSettings { MergeArrayHandling = MergeArrayHandling.Concat };
+        var normalizations = new JObject(titles.Select(t => new JProperty(t, t)));
 
-        var res = Exec(args);
+        var result = QueryPages(property, queryArgs);
+        var norm = result.Value<JObject>("normalized");
+        if (norm != null)
+            normalizations.Merge(norm, mergeSettings);
 
-        return res["query"]["pages"].Values().ToDictionary(x => x.Value<string>("title"));
+        var reds = result.Value<JObject>("redirects");
+        if (reds != null)
+        {
+            foreach (var red in reds)
+            {
+                var n = normalizations.Property((string)red.Value);
+                if (n == null)
+                    continue;
+                n.Remove();
+                normalizations[red.Key] = n.Value;
+            }
+        }
+
+        return result["pages"].Values().ToDictionary(
+            x => normalizations.Value<string>(x.Value<string>("title")), 
+            x =>
+            {
+                var values = x.Value<JArray>(property);
+                if (values == null && x["missing"] == null)
+                    values = new JArray();
+                return values;
+            });
+    }
+
+    private JObject QueryPages(string property, IDictionary<string, string> queryArgs)
+    {
+        queryArgs = new Dictionary<string, string>(queryArgs)
+        {
+            { "prop", property },
+        }; 
+        
+        var mergeSettings = new JsonMergeSettings { MergeArrayHandling = MergeArrayHandling.Concat };
+        var result = new JObject();
+
+        foreach (var res in Query(queryArgs))
+        {
+            var resObject = new JObject()
+            {
+                res.Property("pages")
+            };
+
+            var normalized = res.Property("normalized");
+            if (normalized != null)
+                resObject.Add(normalized.Name, ReadNormalizations(normalized.Value.Value<JArray>()));
+
+            var redirects = res.Property("redirects");
+            if (redirects != null)
+                resObject.Add(redirects.Name, ReadNormalizations(redirects.Value.Value<JArray>()));
+
+            result.Merge(resObject, mergeSettings);
+        }
+
+        return result;
+    }
+
+    private static JObject ReadNormalizations(JArray normalized)
+    {
+        return new JObject(normalized.Select(n => new JProperty(n.Value<string>("to"), n.Value<string>("from"))));
+    }
+
+    private IEnumerable<JObject> Query(IDictionary<string, string> queryArgs)
+    {
+        queryArgs = new Dictionary<string, string>(queryArgs)
+        {
+            { "action", "query" },
+        };
+
+        var cont = new JObject(new JProperty("continue", ""));
+
+        for (; ; )
+        {
+            var args = new Dictionary<string, string>(queryArgs);
+            foreach (var p in cont.Properties())
+                args.Add(p.Name, p.Value.Value<string>());
+
+            var result = Exec(args);
+            yield return result.Value<JObject>("query");
+
+            cont = result.Value<JObject>("continue");
+            if (cont == null)
+                break;
+        }
     }
 
     private JToken GetTokens(params string[] types)
     {
         var args = new Dictionary<string, string>
-            {
-                { "action", "tokens" },
-            };
+        {
+            { "action", "tokens" },
+        };
+
         if (types.Any())
             args.Add("type", JoinList(types));
 
@@ -151,6 +260,19 @@ public class MediaWiki
         if (result["error"] != null)
             throw new MediaWikiException(result["error"].Value<string>("info"));
         return result;
+    }
+
+    [System.Diagnostics.DebuggerDisplay("{Size} {Timestamp}")]
+    public class RevisionInfo
+    {
+        [JsonProperty("revid")]
+        public int Id { get; set; }
+
+        public int ParentId { get; set; }
+
+        public DateTimeOffset Timestamp { get; set; }
+
+        public int Size { get; set; }
     }
 }
 
