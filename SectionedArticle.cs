@@ -12,14 +12,13 @@ namespace ChieBot
     abstract class SectionedArticle<TSection> : IEnumerable<TSection>
         where TSection : Section, new()
     {
-        private static readonly Regex Heading2 = new Regex(@"^==[^=].*==\s*$\n?", RegexOptions.Compiled | RegexOptions.Multiline);
-
         private readonly string _prefix;
         protected readonly List<TSection> _sections = new List<TSection>();
 
-        public SectionedArticle(string fullText)
+        public SectionedArticle(string fullText, int level = 2)
         {
-            var matches = Heading2.Matches(fullText);
+            var regex = "^" + new string('=', level) + @"[^=].*" + new string('=', level) + @"\s*$\n?";
+            var matches = new Regex(regex, RegexOptions.Multiline).Matches(fullText);
             if (matches.Count == 0)
             {
                 _prefix = fullText;

@@ -38,6 +38,12 @@ namespace ChieBot
             return _items.RemoveAll(x => x.Item2 == item) > 0;
         }
 
+        public void Update(T item, string text)
+        {
+            var index = _items.FindIndex(x => x.Item2 == item);
+            _items[index] = Tuple.Create(text, item);
+        }
+
         public string Text
         {
             get { return string.Join("", _items.Select(x => x.Item1)); }
