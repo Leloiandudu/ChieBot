@@ -48,11 +48,15 @@ public class MediaWiki
 
     public string GetPage(string page, int? revId = null)
     {
-        return QueryPages("revisions", new Dictionary<string, string>
+        var revisons = QueryPages("revisions", new Dictionary<string, string>
         {
             { "rvprop", "content" },
             { "rvstartid", revId == null ? null : revId.ToString() },
-        }, page)[page][0].Value<string>("*");
+        }, page)[page];
+
+        if (revisons == null)
+            return null;
+        return revisons[0].Value<string>("*");
     }
 
     public RevisionInfo[] GetHistory(string page, DateTimeOffset from)

@@ -56,6 +56,7 @@
     <Compile Include="Credentials.cs" />
     <Compile Include="DYK\Draft.cs" />
     <Compile Include="DYK\DidYouKnowException.cs" />
+    <Compile Include="DYK\DYKCheckerModule.cs" />
     <Compile Include="DYK\DYKModule.cs" />
     <Compile Include="DYK\NextIssuePreparation.cs" />
     <Compile Include="DYK\NextIssuePreparationHeader.cs" />
