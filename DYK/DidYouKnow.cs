@@ -95,9 +95,9 @@ namespace ChieBot.DYK
         public void RemoveMarkedFromNextIssue(DateTime issueDate)
         {
             var nip = new NextIssuePreparation(_wiki.GetPage(NextIssueName));
-            foreach (var item in nip.Where(x => x.IssueDate == issueDate).ToList())
+            foreach (var item in nip.Where(x => x.GetIssueDate() == issueDate).ToList())
                 nip.Remove(item);
-            _wiki.Edit(NextIssueName, nip.Text, "Автоматическое удаление использованных анонсов.");
+            _wiki.Edit(NextIssueName, nip.FullText, "Автоматическое удаление использованных анонсов.");
         }
 
         public void RemoveFromPreparationTimetable(DateTime issueDate)

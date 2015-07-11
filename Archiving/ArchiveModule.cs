@@ -14,6 +14,8 @@ namespace ChieBot.Archiving
 
         public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
         {
+            wiki.Login(credentials.Login, credentials.Password);
+
             var now = DateTime.UtcNow;
             var archiveName = GetArchiveName(now);
 
@@ -35,7 +37,6 @@ namespace ChieBot.Archiving
             if (!found)
                 return;
 
-            wiki.Login(credentials.Login, credentials.Password);
             wiki.Edit(TalkName, talks.FullText, EditSummary);
             wiki.Edit(archiveName, "\n\n" + removed.FullText, EditSummary, true);
         }

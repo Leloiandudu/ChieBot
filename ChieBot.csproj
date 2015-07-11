@@ -58,6 +58,7 @@
     <Compile Include="DYK\DidYouKnowException.cs" />
     <Compile Include="DYK\DYKCheckerModule.cs" />
     <Compile Include="DYK\DYKModule.cs" />
+    <Compile Include="DYK\DYKStatusTemplate.cs" />
     <Compile Include="DYK\NextIssuePreparation.cs" />
     <Compile Include="DYK\NextIssuePreparationHeader.cs" />
     <Compile Include="DYK\Template.cs" />
