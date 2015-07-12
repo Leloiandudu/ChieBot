@@ -49,7 +49,7 @@ namespace ChieBot.DYK
 
         public Draft this[DateTime date]
         {
-            get { return _sections.SingleOrDefault(d => d.Date == date); }
+            get { return this.SingleOrDefault(d => d.Date == date); }
         }
     }
 }

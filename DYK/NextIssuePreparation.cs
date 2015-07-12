@@ -1,31 +1,45 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Diagnostics;
 
 namespace ChieBot.DYK
 {
-    class NextIssuePreparation : SectionedArticle<NextIssuePreparation.Item>
+    class NextIssuePreparation
     {
         private static readonly Regex ArticleRegex = new Regex(@"(\{\{(?<status>" + Regex.Escape(DYKStatusTemplate.TemplateName) + @"\|[^}]+)\}\})?\s*\[\[(?<title>[^\]]+)\]\](,\s*)?", RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase);
 
-        public NextIssuePreparation(string text)
-            : base(text, 3)
-        {
-        }
+        private readonly SectionedArticle<Section> _page;
+        public SectionedArticle<NextIssuePreparation.Item> Sections { get; private set; }
 
-        protected override bool InitSection(Item section)
+        public NextIssuePreparation(string text)
         {
-            section.Articles = new PartiallyParsedWikiText<Article>(section.Title, ArticleRegex, m => new Article(m));
-            return true;
+            _page = new SectionedArticle<Section>(text, 2);
+            Sections = new Preparation(_page.Prefix);
         }
 
         public void Update()
         {
-            foreach (var item in this)
+            foreach (var item in Sections)
                 item.Update();
+            _page.Prefix = Sections.FullText;
+        }
+
+        public string FullText
+        {
+            get { return _page.FullText; }
+        }
+
+        class Preparation : SectionedArticle<NextIssuePreparation.Item>
+        {
+            public Preparation(string text)
+                : base(text, 3)
+            {
+            }
+
+            protected override bool InitSection(Item section)
+            {
+                section.Articles = new PartiallyParsedWikiText<Article>(section.Title, ArticleRegex, m => new Article(m));
+                return true;
+            }
         }
 
         public class Item : Section
