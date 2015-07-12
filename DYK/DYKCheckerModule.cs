@@ -7,6 +7,8 @@ namespace ChieBot.DYK
 {
     class DYKCheckerModule : Modules.IModule
     {
+        private const int MinArticleSize = 4 * 1024;
+
         public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
         {
             wiki.Login(credentials.Login, credentials.Password);
@@ -60,6 +62,8 @@ namespace ChieBot.DYK
                 return DYKStatusTemplate.ForDeletion();
             else if (NominatedRegex.IsMatch(text))
                 return DYKStatusTemplate.Nominated();
+            else if (text.Length < MinArticleSize)
+                return DYKStatusTemplate.Small();
             else
                 return null;
         }

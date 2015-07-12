@@ -11,6 +11,7 @@ namespace ChieBot.DYK
         private const string MissingArg = "отсутствует";
         private const string ForDeletionArg = "КУ";
         private const string NominatedArg = "номинирована";
+        private const string SmallArg = "размер";
         private const string MinDate = "0001-01-01T00:00:00";
 
         public DateTimeOffset? ValidThrough { get; private set; }
@@ -18,6 +19,7 @@ namespace ChieBot.DYK
         public bool IsMissing { get; private set; }
         public bool IsForDeletion { get; private set; }
         public bool IsNominated { get; private set; }
+        public bool IsSmall { get; private set; }
 
         private DYKStatusTemplate()
         {
@@ -59,6 +61,15 @@ namespace ChieBot.DYK
             };
         }
 
+        public static DYKStatusTemplate Small(string extra = null)
+        {
+            return new DYKStatusTemplate
+            {
+                IsSmall = true,
+                Extra = extra,
+            };
+        }
+
         public DYKStatusTemplate(string text)
         {
             var args = text.Split(new[] { '|' }, 3).Select(a => a.Trim()).ToArray();
@@ -88,6 +99,10 @@ namespace ChieBot.DYK
             else if (args[1].Equals(NominatedArg, StringComparison.OrdinalIgnoreCase))
             {
                 IsNominated = true;
+            }
+            else if (args[1].Equals(SmallArg, StringComparison.OrdinalIgnoreCase))
+            {
+                IsSmall = true;
             }
             else
             {
@@ -120,6 +135,8 @@ namespace ChieBot.DYK
                 return ForDeletionArg;
             else if (IsNominated)
                 return NominatedArg;
+            else if (IsSmall)
+                return SmallArg;
             else
                 return null;
         }
