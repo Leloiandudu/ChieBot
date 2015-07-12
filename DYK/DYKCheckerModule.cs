@@ -10,29 +10,41 @@ namespace ChieBot.DYK
         public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
         {
             wiki.Login(credentials.Login, credentials.Password);
-            CheckPreparation(wiki, commandLine.Contains("-onlyNew"));
+
+            var preparation = new NextIssuePreparation(wiki.GetPage(DidYouKnow.NextIssueName));
+            if (CheckPreparation(preparation, wiki, commandLine.Contains("-onlyNew")))
+                wiki.Edit(DidYouKnow.NextIssueName, preparation.FullText, "Автоматическое обновление страницы.");
         }
 
-        private void CheckPreparation(MediaWiki wiki, bool onlyNew)
+        private bool CheckPreparation(NextIssuePreparation preparation, MediaWiki wiki, bool onlyNew)
         {
-            var preparation = new NextIssuePreparation(wiki.GetPage(DidYouKnow.NextIssueName));
-
             var hasChanges = false;
-            foreach (var article in preparation.SelectMany(i => i.Articles.ToArray()))
+            var newIndex = 0;
+            foreach (var section in preparation.Sections.ToArray())
             {
-                if (onlyNew && article.Status != null)
-                    continue;
-                if (article.Status != null && article.Status.Extra != null)
-                    continue;
-                article.Status = CheckStatus(wiki, article.Title) ?? CheckValidness(wiki, article.Title);
-                hasChanges = true;
+                if (section.Articles.All(a => a.Status == null))
+                {
+                    preparation.Sections.Remove(section);
+                    preparation.Sections.Insert(newIndex++, section);
+                    hasChanges = true;
+                }
+
+                foreach (var article in section.Articles)
+                {
+                    if (onlyNew && article.Status != null)
+                        continue;
+                    if (article.Status != null && article.Status.Extra != null)
+                        continue;
+
+                    article.Status = CheckStatus(wiki, article.Title) ?? CheckValidness(wiki, article.Title);
+                    hasChanges = true;
+                }
             }
 
             if (hasChanges)
-            {
                 preparation.Update();
-                wiki.Edit(DidYouKnow.NextIssueName, preparation.FullText, "Автоматическое обновление страницы.");
-            }
+
+            return hasChanges;
         }
 
         private static readonly Regex ForDeletionRegex = CreateTemlateRegex("к удалению");

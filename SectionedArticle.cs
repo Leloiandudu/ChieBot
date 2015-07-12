@@ -9,11 +9,10 @@ namespace ChieBot
     /// <summary>
     /// Article divided in 2nd-level sections
     /// </summary>
-    abstract class SectionedArticle<TSection> : IEnumerable<TSection>
+    class SectionedArticle<TSection> : List<TSection>
         where TSection : Section, new()
     {
-        private readonly string _prefix;
-        protected readonly List<TSection> _sections = new List<TSection>();
+        public string Prefix { get; set; }
 
         public SectionedArticle(string fullText, int level = 2)
         {
@@ -21,11 +20,11 @@ namespace ChieBot
             var matches = new Regex(regex, RegexOptions.Multiline).Matches(fullText);
             if (matches.Count == 0)
             {
-                _prefix = fullText;
+                Prefix = fullText;
                 return;
             }
 
-            _prefix = fullText.Substring(0, matches[0].Index);
+            Prefix = fullText.Substring(0, matches[0].Index);
 
             for (var i = 0; i < matches.Count; i++)
             {
@@ -41,7 +40,7 @@ namespace ChieBot
                     section.Text = fullText.Substring(index);
 
                 if (InitSection(section))
-                    _sections.Add(section);
+                    Add(section);
             }
         }
 
@@ -52,27 +51,7 @@ namespace ChieBot
 
         public string FullText
         {
-            get { return _prefix + string.Join("", _sections.Select(s => s.FullText)); }
-        }
-
-        public void Add(TSection section)
-        {
-            _sections.Add(section);
-        }
-
-        public bool Remove(TSection section)
-        {
-            return _sections.Remove(section);
-        }
-
-        public IEnumerator<TSection> GetEnumerator()
-        {
-            return _sections.GetEnumerator();
-        }
-
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
+            get { return Prefix + string.Join("", this.Select(s => s.FullText)); }
         }
     }
 
