@@ -46,11 +46,12 @@ public class MediaWiki
         );
     }
 
-    public string GetPage(string page, int? revId = null)
+    public string GetPage(string page, int? revId = null, bool followRedirects = false)
     {
         var revisons = QueryPages("revisions", new Dictionary<string, string>
         {
             { "rvprop", "content" },
+            { "redirects", followRedirects ? "" : null },
             { "rvstartid", revId == null ? null : revId.ToString() },
         }, page)[page];
 
