@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace ChieBot.DYK
@@ -62,7 +63,7 @@ namespace ChieBot.DYK
                 return DYKStatusTemplate.ForDeletion();
             else if (NominatedRegex.IsMatch(text))
                 return DYKStatusTemplate.Nominated();
-            else if (text.Length < MinArticleSize)
+            else if (Encoding.UTF8.GetByteCount(text) < MinArticleSize)
                 return DYKStatusTemplate.Small();
             else
                 return null;
