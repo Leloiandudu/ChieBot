@@ -55,7 +55,7 @@ namespace ChieBot.DYK
 
         private DYKStatusTemplate CheckStatus(MediaWiki wiki, string title)
         {
-            var text = wiki.GetPage(title);
+            var text = wiki.GetPage(title, followRedirects: true);
 
             if (text == null)
                 return DYKStatusTemplate.Missing();
