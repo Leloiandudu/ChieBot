@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace ChieBot.DYK
@@ -9,11 +10,14 @@ namespace ChieBot.DYK
 
         private readonly SectionedArticle<Section> _page;
         public SectionedArticle<NextIssuePreparation.Item> Sections { get; private set; }
+        public SectionedArticle<NextIssuePreparation.Item> NewSections { get; private set; }
 
         public NextIssuePreparation(string text)
         {
             _page = new SectionedArticle<Section>(text, 2);
             Sections = new Preparation(_page.Prefix);
+            if (_page.Count > 1)
+                NewSections = new Preparation(_page.Last().Text);
         }
 
         public void Update()
@@ -21,6 +25,8 @@ namespace ChieBot.DYK
             foreach (var item in Sections)
                 item.Update();
             _page.Prefix = Sections.FullText;
+            if (NewSections != null)
+                _page.Last().Text = NewSections.FullText;
         }
 
         public string FullText

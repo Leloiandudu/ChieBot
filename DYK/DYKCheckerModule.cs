@@ -22,26 +22,23 @@ namespace ChieBot.DYK
         private bool CheckPreparation(NextIssuePreparation preparation, MediaWiki wiki, bool onlyNew)
         {
             var hasChanges = false;
-            var newIndex = 0;
-            foreach (var section in preparation.Sections.ToArray())
+
+            if (preparation.NewSections != null && preparation.NewSections.Count > 0)
             {
-                if (section.Articles.All(a => a.Status == null))
-                {
-                    preparation.Sections.Remove(section);
-                    preparation.Sections.Insert(newIndex++, section);
-                    hasChanges = true;
-                }
+                preparation.Sections.InsertRange(0, preparation.NewSections);
+                preparation.NewSections.Clear();
+                hasChanges = true;
+            }
 
-                foreach (var article in section.Articles)
-                {
-                    if (onlyNew && article.Status != null)
-                        continue;
-                    if (article.Status != null && article.Status.Extra != null)
-                        continue;
+            foreach (var article in preparation.Sections.SelectMany(s => s.Articles).ToArray())
+            {
+                if (onlyNew && article.Status != null)
+                    continue;
+                if (article.Status != null && article.Status.Extra != null)
+                    continue;
 
-                    article.Status = CheckStatus(wiki, article.Title) ?? CheckValidness(wiki, article.Title);
-                    hasChanges = true;
-                }
+                article.Status = CheckStatus(wiki, article.Title) ?? CheckValidness(wiki, article.Title);
+                hasChanges = true;
             }
 
             if (hasChanges)
