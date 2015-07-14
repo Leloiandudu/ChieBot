@@ -51,7 +51,7 @@ namespace ChieBot
 
         public string FullText
         {
-            get { return Prefix + string.Join("", this.Select(s => s.FullText)); }
+            get { return Prefix + string.Join(Environment.NewLine, this.Select(s => s.FullText.TrimEnd() + Environment.NewLine)); }
         }
     }
 
