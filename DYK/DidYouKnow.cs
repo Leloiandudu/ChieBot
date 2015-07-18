@@ -119,5 +119,36 @@ namespace ChieBot.DYK
         {
             return string.Format(DraftTalkArchiveName, date.Year - 2011);
         }
+
+        public void Stabilize(string draft, DateTimeOffset until)
+        {
+            foreach(var article in ParseAnnounce(draft))
+            {
+                DateTimeOffset? expiry;
+                if (_wiki.GetStabilizationExpiry(article, out expiry))
+                {
+                    if (expiry == null || expiry >= until)
+                        continue;
+                }
+
+                _wiki.Stabilize(article, "Автоматическая стабилизация: на заглавной до " + until.ToString("dd MMMM", Utils.DateTimeFormat), until.ToUniversalTime());
+            }
+        }
+
+        private static readonly Regex AnnounceRegex = new Regex(@"('''[^\[\]']+''')|('''.*?\[\[(?<link>[^|\]]+)(\|[^\]]+)?\]\].*?('''|$))|(\[\[(?<link>[^|\]]+)\|'''.*?'''\]\])", RegexOptions.ExplicitCapture);
+        private static readonly Regex UserRegex = new Regex(@"^(U|User|У|Участник)\:", RegexOptions.ExplicitCapture);
+        private static readonly Regex LinkHashRegex = new Regex(@"^(?<link>[^#]+)(#.*)?$", RegexOptions.ExplicitCapture);
+
+        private static string[] ParseAnnounce(string text)
+        {
+            return AnnounceRegex
+                .Matches(text).OfType<Match>()
+                .Select(m => m.Groups["link"])
+                .Where(g => g.Success)
+                .Select(g => g.Value)
+                .Where(l => !UserRegex.IsMatch(l))
+                .Select(l => LinkHashRegex.Match(l).Groups["link"].Value)
+                .ToArray();
+        }
     }
 }
