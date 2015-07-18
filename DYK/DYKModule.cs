@@ -35,6 +35,9 @@ namespace ChieBot.DYK
             dyk.SetCurrent(draft);
             dyk.RemoveMarkedFromNextIssue(nextIssueDate);
             dyk.RemoveFromPreparationTimetable(nextIssueDate);
+
+            var issueValidUntil = nextIssueDate.AddDays(DYKPeriod);
+            dyk.Stabilize(draft, new DateTimeOffset(issueValidUntil, TimeZone.GetUtcOffset(issueValidUntil)));
         }
 
         private static DateTime GetNearestIssueDate()

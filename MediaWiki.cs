@@ -85,6 +85,49 @@ public class MediaWiki
         })["pages"].Values().Single()["revisions"].Single().ToObject<RevisionInfo>();
     }
 
+    public void Stabilize(string page, string reason, DateTimeOffset? expiry, bool stabilize = true)
+    {
+        var args = new Dictionary<string, string>
+        {
+            { "action", "stabilize" },
+            { "title", page },
+            { "reason", reason },
+            { "expiry", expiry.HasValue ? expiry.Value.ToString("s") : "infinity" },
+            { "token", GetEditToken() },
+            { "default", stabilize ? "stable" : "latest" },
+        };
+
+        var result = ExecWrite(args);
+        if (result["stabilize"] == null)
+            throw new MediaWikiException("Invalid response: " + result);
+    }
+
+    public bool GetStabilizationExpiry(string title, out DateTimeOffset? expiry)
+    {
+        var result = Query(new Dictionary<string, string>
+        {
+            { "list", "logevents" },
+            { "letype", "stable" },
+            { "letitle", title },
+            { "lelimit", "1" },
+        }).First().Value<JArray>("logevents").SingleOrDefault();
+
+        expiry = null;
+        if (result == null || result.Value<string>("action") == "reset")
+            return false;
+
+        var pars = new JObject(
+            from par in result.Value<JObject>("params").Values()
+            let parts = par.Value<string>().Split(new[] { '=' }, 2)
+            select new JProperty(parts[0], parts[1])
+        );
+
+        var expiryString = pars.Value<string>("expiry");
+        if (expiryString != "infinity")
+            expiry = DateTimeOffset.ParseExact(expiryString, "yyyyMMddHHmmss", null, System.Globalization.DateTimeStyles.AssumeUniversal);
+        return true;
+    }
+
     private IDictionary<string, JArray> QueryPages(string property, IDictionary<string, string> queryArgs, params string[] titles)
     {
         queryArgs = new Dictionary<string, string>(queryArgs)
@@ -223,6 +266,17 @@ public class MediaWiki
             { "bot", "" },
         };
 
+        var result = ExecWrite(args);
+
+        var code = result["edit"].Value<string>("result");
+        if (code == null)
+            throw new MediaWikiException("Invalid response: " + result);
+        if (code != "Success")
+            throw new MediaWikiException(code);
+    }
+
+    private JToken ExecWrite(Dictionary<string, string> args)
+    {
         JToken result;
         if (ReadOnly)
         {
@@ -233,12 +287,7 @@ public class MediaWiki
             Dump(args);
             result = Exec(args);
         }
-
-        var code = result["edit"].Value<string>("result");
-        if (code == null)
-            throw new MediaWikiException("Invalid response: " + result);
-        if (code != "Success")
-            throw new MediaWikiException(code);
+        return result;
     }
 
     private JToken ExecFake(Dictionary<string, string> args)
