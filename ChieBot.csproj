@@ -64,6 +64,8 @@
     <Compile Include="DYK\Template.cs" />
     <Compile Include="DYK\DidYouKnow.cs" />
     <Compile Include="DYK\DYKUtils.cs" />
+    <Compile Include="StatusArticleStabilization\LastDateChecked.cs" />
+    <Compile Include="StatusArticleStabilization\SASModule.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="Modules\IModule.cs" />
     <Compile Include="MediaWiki.cs" />
