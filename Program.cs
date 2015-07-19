@@ -27,8 +27,7 @@ namespace ChieBot
 
         private static Credentials ReadCredentials()
         {
-            var dir = new FileInfo(typeof(Program).Assembly.Location).DirectoryName;
-            var creds = File.ReadAllLines(Path.Combine(dir, "credentials.txt"));
+            var creds = File.ReadAllLines(Path.Combine(Utils.GetProgramDir(), "credentials.txt"));
             return new Credentials { Login = creds[0], Password = creds[1] };
         }
     }
