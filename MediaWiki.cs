@@ -92,7 +92,7 @@ public class MediaWiki
             { "action", "stabilize" },
             { "title", page },
             { "reason", reason },
-            { "expiry", expiry.HasValue ? expiry.Value.ToString("s") : "infinity" },
+            { "expiry", expiry.HasValue ? expiry.Value.ToUniversalTime().ToString("s") : "infinity" },
             { "token", GetEditToken() },
             { "default", stabilize ? "stable" : "latest" },
         };
@@ -123,7 +123,7 @@ public class MediaWiki
         );
 
         var expiryString = pars.Value<string>("expiry");
-        if (expiryString != "infinity")
+        if (expiryString != "infinity" && expiryString != null)
             expiry = DateTimeOffset.ParseExact(expiryString, "yyyyMMddHHmmss", null, System.Globalization.DateTimeStyles.AssumeUniversal);
         return true;
     }

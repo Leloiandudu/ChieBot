@@ -9,7 +9,7 @@ namespace ChieBot.Archiving
 {
     class Talk : Section
     {
-        public DateTime? LastActivity { get; set; }
+        public DateTimeOffset? LastActivity { get; set; }
     }
 
     class Talks : SectionedArticle<Talk>
@@ -30,11 +30,11 @@ namespace ChieBot.Archiving
 
         private static readonly Regex DateRegex = new Regex(@"(\d{1,2}:\d{1,2}, \d+ \w+ \d+) \(UTC\)");
 
-        private static DateTime? TryParseDate(Match match)
+        private static DateTimeOffset? TryParseDate(Match match)
         {
             if (!match.Success)
                 return null;
-            return DateTime.Parse(match.Groups[1].Value, Utils.DateTimeFormat, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
+            return Utils.ParseDate(match.Groups[1].Value);
         }
     }
 }

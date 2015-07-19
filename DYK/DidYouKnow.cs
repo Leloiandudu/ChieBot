@@ -131,7 +131,7 @@ namespace ChieBot.DYK
                         continue;
                 }
 
-                _wiki.Stabilize(article, "Автоматическая стабилизация: на заглавной до " + until.ToString("dd MMMM", Utils.DateTimeFormat), until.ToUniversalTime());
+                _wiki.Stabilize(article, "Автоматическая стабилизация: на заглавной до " + until.ToString("dd MMMM", Utils.DateTimeFormat), until);
             }
         }
 

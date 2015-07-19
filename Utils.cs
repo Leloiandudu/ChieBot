@@ -37,5 +37,15 @@ namespace ChieBot
             }
             return value;
         }
+
+        public static string GetProgramDir()
+        {
+            return new System.IO.FileInfo(typeof(Program).Assembly.Location).DirectoryName;
+        }
+
+        public static DateTimeOffset ParseDate(string text)
+        {
+            return DateTimeOffset.Parse(text, Utils.DateTimeFormat, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
+        }
     }
 }

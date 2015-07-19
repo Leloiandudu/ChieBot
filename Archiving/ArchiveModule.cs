@@ -16,8 +16,8 @@ namespace ChieBot.Archiving
         {
             wiki.Login(credentials.Login, credentials.Password);
 
-            var now = DateTime.UtcNow;
-            var archiveName = GetArchiveName(now);
+            var now = DateTimeOffset.UtcNow;
+            var archiveName = GetArchiveName(now.Date);
 
             var talks = new Talks(wiki.GetPage(TalkName));
             var dayX = now.AddDays(-AgeLimitInDays);
