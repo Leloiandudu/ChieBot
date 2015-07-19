@@ -38,10 +38,11 @@ namespace ChieBot.StatusArticleStabilization
             return title.Replace('_', ' ');
         }
 
+        private static readonly Regex StatusTemplateRegex = new Regex(@"\{\{Хорошая статья[|}]", RegexOptions.IgnoreCase);
         private void StabilizeArticle(MediaWiki wiki, string page)
         {
             var text = wiki.GetPage(page);
-            if (text.IndexOf("{{Хорошая статья}}", StringComparison.InvariantCultureIgnoreCase) != -1)
+            if (text != null && StatusTemplateRegex.IsMatch(text))
             {
                 wiki.Stabilize(page, "Автоматическая стабилизация хорошей статьи.", null);
             }
