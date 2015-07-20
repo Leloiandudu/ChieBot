@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -124,7 +124,7 @@ public class MediaWiki
 
         var expiryString = pars.Value<string>("expiry");
         if (expiryString != "infinity" && expiryString != null)
-            expiry = DateTimeOffset.ParseExact(expiryString, "yyyyMMddHHmmss", null, System.Globalization.DateTimeStyles.AssumeUniversal);
+            expiry = new DateTimeOffset(DateTime.ParseExact(expiryString, "yyyyMMddHHmmss", null, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal)); // DateTimeParse.ParseExact is buggy in mono 3.x
         return true;
     }
 
@@ -293,7 +293,10 @@ public class MediaWiki
     private JToken ExecFake(Dictionary<string, string> args)
     {
         Dump(args);
-        return JObject.FromObject(new { edit = new { result = "Success" } });
+        return new JObject
+        { 
+            new JProperty(args["action"], "Success")
+        };
     }
 
     [System.Diagnostics.Conditional("DEBUG")]
