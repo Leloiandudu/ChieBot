@@ -48,7 +48,6 @@ namespace ChieBot.DYK
         }
 
         private static readonly Regex ForDeletionRegex = CreateTemlateRegex("к удалению");
-        private static readonly Regex NominatedRegex = CreateTemlateRegex("Кандидат в хорошие статьи", "Кандидат в избранные статьи");
 
         private DYKStatusTemplate CheckStatus(MediaWiki wiki, string title)
         {
@@ -58,8 +57,6 @@ namespace ChieBot.DYK
                 return DYKStatusTemplate.Missing();
             else if (ForDeletionRegex.IsMatch(text))
                 return DYKStatusTemplate.ForDeletion();
-            else if (NominatedRegex.IsMatch(text))
-                return DYKStatusTemplate.Nominated();
             else if (Encoding.UTF8.GetByteCount(text) < MinArticleSize)
                 return DYKStatusTemplate.Small();
             else
