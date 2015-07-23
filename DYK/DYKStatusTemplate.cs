@@ -10,7 +10,6 @@ namespace ChieBot.DYK
         private const string ValidThroughArg = "до=";
         private const string MissingArg = "отсутствует";
         private const string ForDeletionArg = "КУ";
-        private const string NominatedArg = "номинирована";
         private const string SmallArg = "размер";
         private const string MinDate = "0001-01-01T00:00:00";
 
@@ -18,7 +17,6 @@ namespace ChieBot.DYK
         public string Extra { get; private set; }
         public bool IsMissing { get; private set; }
         public bool IsForDeletion { get; private set; }
-        public bool IsNominated { get; private set; }
         public bool IsSmall { get; private set; }
 
         private DYKStatusTemplate()
@@ -48,15 +46,6 @@ namespace ChieBot.DYK
             return new DYKStatusTemplate
             {
                 IsForDeletion = true,
-                Extra = extra,
-            };
-        }
-
-        public static DYKStatusTemplate Nominated(string extra = null)
-        {
-            return new DYKStatusTemplate
-            {
-                IsNominated = true,
                 Extra = extra,
             };
         }
@@ -96,10 +85,6 @@ namespace ChieBot.DYK
             {
                 IsForDeletion = true;
             }
-            else if (args[1].Equals(NominatedArg, StringComparison.OrdinalIgnoreCase))
-            {
-                IsNominated = true;
-            }
             else if (args[1].Equals(SmallArg, StringComparison.OrdinalIgnoreCase))
             {
                 IsSmall = true;
@@ -133,8 +118,6 @@ namespace ChieBot.DYK
                 return MissingArg;
             else if (IsForDeletion)
                 return ForDeletionArg;
-            else if (IsNominated)
-                return NominatedArg;
             else if (IsSmall)
                 return SmallArg;
             else
