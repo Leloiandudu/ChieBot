@@ -97,6 +97,7 @@ namespace ChieBot.DYK
             var nip = new NextIssuePreparation(_wiki.GetPage(NextIssueName));
             foreach (var item in nip.Sections.Where(x => x.GetIssueDate() == issueDate).ToList())
                 nip.Sections.Remove(item);
+            nip.Update();
             _wiki.Edit(NextIssueName, nip.FullText, "Автоматическое удаление использованных анонсов.");
         }
 
