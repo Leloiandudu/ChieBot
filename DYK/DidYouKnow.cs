@@ -137,7 +137,7 @@ namespace ChieBot.DYK
         }
 
         private static readonly Regex AnnounceRegex = new Regex(@"('''[^\[\]']+''')|('''.*?\[\[(?<link>[^|\]]+)(\|[^\]]+)?\]\].*?('''|$))|(\[\[(?<link>[^|\]]+)\|'''.*?'''\]\])", RegexOptions.ExplicitCapture);
-        private static readonly Regex UserRegex = new Regex(@"^(U|User|У|Участник)\:", RegexOptions.ExplicitCapture);
+        private static readonly Regex NonArticleLinksRegex = new Regex(@"^(U|User|У|Участник|ВП|Википедия)\:", RegexOptions.ExplicitCapture);
         private static readonly Regex LinkHashRegex = new Regex(@"^(?<link>[^#]+)(#.*)?$", RegexOptions.ExplicitCapture);
 
         private static string[] ParseAnnounce(string text)
@@ -147,7 +147,7 @@ namespace ChieBot.DYK
                 .Select(m => m.Groups["link"])
                 .Where(g => g.Success)
                 .Select(g => g.Value)
-                .Where(l => !UserRegex.IsMatch(l))
+                .Where(l => !NonArticleLinksRegex.IsMatch(l))
                 .Select(l => LinkHashRegex.Match(l).Groups["link"].Value)
                 .ToArray();
         }
