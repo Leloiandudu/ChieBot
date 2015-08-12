@@ -53,6 +53,7 @@ public class MediaWiki
             { "rvprop", "content" },
             { "redirects", followRedirects ? "" : null },
             { "rvstartid", revId == null ? null : revId.ToString() },
+            { "rvendid", revId == null ? null : revId.ToString() },
         }, page)[page];
 
         if (revisons == null)
