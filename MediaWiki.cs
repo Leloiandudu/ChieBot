@@ -304,20 +304,52 @@ public class MediaWiki
     private void Dump(Dictionary<string, string> args)
     {
         System.Diagnostics.Debug.WriteLine("Edit:");
+        Dump(args, str => System.Diagnostics.Debug.WriteLine(str));
+    }
+
+    private static void Dump(IDictionary<string, string> args, Action<string> writeLine)
+    {
         foreach (var arg in args)
         {
-            System.Diagnostics.Debug.WriteLine("  {0} = {1}", arg.Key, arg.Value);
+            var value = arg.Value;
+            if (arg.Key.StartsWith("lg"))
+                value = "***";
+            writeLine(string.Format("  {0} = {1}", arg.Key, value));
         }
-        System.Diagnostics.Debug.WriteLine("");
+        writeLine("");
     }
 
     private JToken Exec(Dictionary<string, string> args)
     {
         args.Add("format", "json");
-        var result = JToken.Parse(_browser.Post(_apiUri.ToString(), args));
+        var result = JToken.Parse(Post(args));
         if (result["error"] != null)
             throw new MediaWikiException(result["error"].Value<string>("info"));
         return result;
+    }
+
+    private const int MaxRetries = 5;
+
+    private string Post(Dictionary<string, string> args)
+    {
+        for (int retries = 1; ; retries++)
+        {
+            try
+            {
+                return _browser.Post(_apiUri.AbsoluteUri, args);
+            }
+            catch (Exception ex)
+            {
+                if (retries == MaxRetries)
+                {
+                    Console.Error.WriteLine("After {0} retries: {1}", MaxRetries, ex);
+                    Console.Error.WriteLine("Query was:");
+                    Dump(args, Console.Error.WriteLine);
+                    throw;
+                }
+                System.Threading.Thread.Sleep(TimeSpan.FromSeconds(1));
+            }
+        }
     }
 
     [System.Diagnostics.DebuggerDisplay("{Size} {Timestamp}")]
