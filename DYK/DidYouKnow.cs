@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Globalization;
 
 namespace ChieBot.DYK
 {
@@ -123,7 +119,7 @@ namespace ChieBot.DYK
 
         public void Stabilize(string draft, DateTimeOffset until)
         {
-            foreach(var article in ParseAnnounce(draft))
+            foreach(var article in ParserUtils.FindBoldLinks(draft))
             {
                 DateTimeOffset? expiry;
                 if (_wiki.GetStabilizationExpiry(article, out expiry))
@@ -134,22 +130,6 @@ namespace ChieBot.DYK
 
                 _wiki.Stabilize(article, "Автоматическая стабилизация: на заглавной до " + until.ToString("dd MMMM", Utils.DateTimeFormat), until);
             }
-        }
-
-        private static readonly Regex AnnounceRegex = new Regex(@"('''[^\[\]']+''')|('''.*?\[\[(?<link>[^|\]]+)(\|[^\]]+)?\]\].*?('''|$))|(\[\[(?<link>[^|\]]+)\|'''.*?'''\]\])", RegexOptions.ExplicitCapture);
-        private static readonly Regex NonArticleLinksRegex = new Regex(@"^(U|User|У|Участник|ВП|Википедия)\:", RegexOptions.ExplicitCapture);
-        private static readonly Regex LinkHashRegex = new Regex(@"^(?<link>[^#]+)(#.*)?$", RegexOptions.ExplicitCapture);
-
-        private static string[] ParseAnnounce(string text)
-        {
-            return AnnounceRegex
-                .Matches(text).OfType<Match>()
-                .Select(m => m.Groups["link"])
-                .Where(g => g.Success)
-                .Select(g => g.Value)
-                .Where(l => !NonArticleLinksRegex.IsMatch(l))
-                .Select(l => LinkHashRegex.Match(l).Groups["link"].Value)
-                .ToArray();
         }
     }
 }

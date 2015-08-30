@@ -52,8 +52,10 @@
   <ItemGroup>
     <Compile Include="Archiving\ArchiveModule.cs" />
     <Compile Include="Archiving\Talk.cs" />
+    <Compile Include="ParserUtils.cs" />
     <Compile Include="Browser.cs" />
     <Compile Include="Credentials.cs" />
+    <Compile Include="InTheNewsStabilization\ITNSModule.cs" />
     <Compile Include="DYK\Draft.cs" />
     <Compile Include="DYK\DidYouKnowException.cs" />
     <Compile Include="DYK\DYKCheckerModule.cs" />

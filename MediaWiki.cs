@@ -77,6 +77,45 @@ public class MediaWiki
         return revisions.ToObject<RevisionInfo[]>();
     }
 
+    /// <summary>
+    /// Normalizes the page title and follows redirects
+    /// </summary>
+    public IDictionary<string, string> Normalize(params string[] pages)
+    {
+        var res = QueryPages("revisions", new Dictionary<string, string>
+        {
+            { "titles", JoinList(pages) },
+            { "rvprop", "ids" },
+            { "rvlimit", pages.Length == 1 ? "1" : null },
+            { "redirects", "" },
+        }, 1);
+
+        var dic = new Dictionary<string, string>();
+
+        foreach (var page in pages)
+        {
+            var title = page;
+            foreach (var norm in new[] { "normalized", "redirects" }.Select(k => res.Value<JObject>(k)))
+            {
+                if (norm == null)
+                    continue;
+
+                foreach (JProperty prop in norm.Properties())
+                {
+                    if (prop.Value.Value<string>() == title)
+                        title = prop.Name;
+                }
+            }
+
+            if (res.Value<JObject>("pages").Values().Single(p => p.Value<string>("title") == title)["missing"] != null)
+                continue;
+
+            dic.Add(page, title);
+        }
+
+        return dic;
+    }
+
     public RevisionInfo GetRevisionInfo(int revId)
     {
         return QueryPages("revisions", new Dictionary<string, string> {
@@ -168,7 +207,7 @@ public class MediaWiki
             });
     }
 
-    private JObject QueryPages(string property, IDictionary<string, string> queryArgs)
+    private JObject QueryPages(string property, IDictionary<string, string> queryArgs, int? limit = null)
     {
         queryArgs = new Dictionary<string, string>(queryArgs)
         {
@@ -178,7 +217,11 @@ public class MediaWiki
         var mergeSettings = new JsonMergeSettings { MergeArrayHandling = MergeArrayHandling.Concat };
         var result = new JObject();
 
-        foreach (var res in Query(queryArgs))
+        var query = Query(queryArgs);
+        if (limit.HasValue)
+            query = query.Take(limit.Value);
+
+        foreach (var res in query)
         {
             var resObject = new JObject()
             {
