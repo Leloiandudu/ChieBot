@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="Archiving\ArchiveModule.cs" />
     <Compile Include="Archiving\Talk.cs" />
+    <Compile Include="FeaturedListStabilization\FLSModule.cs" />
     <Compile Include="ParserUtils.cs" />
     <Compile Include="Browser.cs" />
     <Compile Include="Credentials.cs" />
