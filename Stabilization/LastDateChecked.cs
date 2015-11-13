@@ -2,17 +2,22 @@
 using System.Globalization;
 using System.IO;
 
-namespace ChieBot.StatusArticleStabilization
+namespace ChieBot.Stabilization
 {
     class LastDateChecked
     {
-        private static readonly string Filename = Path.Combine(Utils.GetProgramDir(), "sas-lastrev");
+        private readonly string _filename;
+
+        public LastDateChecked(string name)
+        {
+            _filename = Path.Combine(Utils.GetProgramDir(), name);
+        }
 
         public DateTimeOffset? Get()
         {
             try
             {
-                var text = File.ReadAllText(Filename);
+                var text = File.ReadAllText(_filename);
                 long ticks;
                 if (long.TryParse(text, out ticks))
                     return new DateTimeOffset(ticks, TimeSpan.Zero);
@@ -26,7 +31,7 @@ namespace ChieBot.StatusArticleStabilization
 
         public void Set(DateTimeOffset value)
         {
-            File.WriteAllText(Filename, value.ToUniversalTime().Ticks.ToString(CultureInfo.InvariantCulture));
+            File.WriteAllText(_filename, value.ToUniversalTime().Ticks.ToString(CultureInfo.InvariantCulture));
         }
     }
 }

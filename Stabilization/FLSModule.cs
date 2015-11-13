@@ -5,8 +5,11 @@ using System.Text;
 using System.Text.RegularExpressions;
 using ChieBot.Modules;
 
-namespace ChieBot.FeaturedListStabilization
+namespace ChieBot.Stabilization
 {
+    /// <summary>
+    /// Featured list stabilisation
+    /// </summary>
     class FLSModule : IModule
     {
         private static readonly Regex LinkRegex = new Regex(@"\[\[(?!(User|У|Участник|User talk|ОУ|Обсуждение участника|File|Image|Файл):)(?<link>[^|#\]]+)(#[^|\]]*)?(\|[^\]]*)?\]\]", RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
