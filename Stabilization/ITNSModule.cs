@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace ChieBot.CurrentEventsStabilization
+namespace ChieBot.Stabilization
 {
+    /// <summary>
+    /// Current events stabilisation ("In The News")
+    /// </summary>
     class ITNSModule : Modules.IModule
     {
         public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)

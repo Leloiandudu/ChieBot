@@ -52,11 +52,11 @@
   <ItemGroup>
     <Compile Include="Archiving\ArchiveModule.cs" />
     <Compile Include="Archiving\Talk.cs" />
-    <Compile Include="FeaturedListStabilization\FLSModule.cs" />
+    <Compile Include="Stabilization\FLSModule.cs" />
     <Compile Include="ParserUtils.cs" />
     <Compile Include="Browser.cs" />
     <Compile Include="Credentials.cs" />
-    <Compile Include="InTheNewsStabilization\ITNSModule.cs" />
+    <Compile Include="Stabilization\ITNSModule.cs" />
     <Compile Include="DYK\Draft.cs" />
     <Compile Include="DYK\DidYouKnowException.cs" />
     <Compile Include="DYK\DYKCheckerModule.cs" />
@@ -67,8 +67,8 @@
     <Compile Include="DYK\Template.cs" />
     <Compile Include="DYK\DidYouKnow.cs" />
     <Compile Include="DYK\DYKUtils.cs" />
-    <Compile Include="StatusArticleStabilization\LastDateChecked.cs" />
-    <Compile Include="StatusArticleStabilization\SASModule.cs" />
+    <Compile Include="Stabilization\LastDateChecked.cs" />
+    <Compile Include="Stabilization\SASModule.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="Modules\IModule.cs" />
     <Compile Include="MediaWiki.cs" />

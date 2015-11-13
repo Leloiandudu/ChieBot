@@ -2,14 +2,17 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace ChieBot.StatusArticleStabilization
+namespace ChieBot.Stabilization
 {
+    /// <summary>
+    /// Status article stabilisation
+    /// </summary>
     class SASModule : Modules.IModule
     {
         public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
         {
             wiki.Login(credentials.Login, credentials.Password);
-            Stabilize(wiki, "Википедия:Кандидаты в хорошие статьи/Журнал избраний", new LastDateChecked());
+            Stabilize(wiki, "Википедия:Кандидаты в хорошие статьи/Журнал избраний", new LastDateChecked("sas-lastrev"));
         }
 
         private void Stabilize(MediaWiki wiki, string logTitle, LastDateChecked last)
