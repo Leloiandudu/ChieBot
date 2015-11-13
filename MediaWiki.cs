@@ -339,7 +339,7 @@ public class MediaWiki
         Dump(args);
         return new JObject
         { 
-            new JProperty(args["action"], "Success")
+            new JProperty(args["action"], new JObject(new JProperty("result", "Success")))
         };
     }
 
