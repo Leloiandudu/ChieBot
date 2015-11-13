@@ -7,57 +7,106 @@ namespace ChieBot.Archiving
 {
     class ArchiveModule : Modules.IModule
     {
-        private const string TalkName = "Обсуждение участника:Ле Лой";
-        private const string ArchiveName = "Обсуждение участника:Ле Лой/Архив{0}";
         private const string EditSummary = "Автоматический аркайвинг";
-        private const int AgeLimitInDays = 7;
+
+        private readonly IDictionary<string, IArchiveRules> _rules = new IArchiveRules[]
+        {
+            new LeLoiArchiveRules(),
+            new AnimusVoxArchiveRules(),
+        }.ToDictionary(x => x.UserName);
 
         public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
         {
             wiki.Login(credentials.Login, credentials.Password);
 
-            var now = DateTimeOffset.UtcNow;
-            var archiveName = GetArchiveName(now.Date);
+            if (commandLine.Length != 1)
+                throw new Exception("specify user name as a single parameter");
+            
+            var rules = _rules[commandLine.Single()];
+            var talkName = string.Format("Обсуждение участника:{0}", rules.UserName);
 
-            var talks = new Talks(wiki.GetPage(TalkName));
-            var dayX = now.AddDays(-AgeLimitInDays);
+            var now = DateTimeOffset.UtcNow;
+            var archiveName = string.Format("{0}/{1}", talkName, rules.GetArchiveName(now.Date));
+
+            var talks = new Talks(wiki.GetPage(talkName));
+            var dayX = now.AddDays(-rules.AgeLimitInDays);
             var removed = new Talks();
 
-            var found = false;
             foreach (var talk in talks.ToArray())
             {
                 if (talk.LastActivity.HasValue && talk.LastActivity < dayX)
                 {
                     talks.Remove(talk);
                     removed.Add(talk);
-                    found = true;
                 }
             }
 
-            if (!found)
+            if (!removed.Any())
                 return;
 
-            wiki.Edit(TalkName, talks.FullText, EditSummary);
+            wiki.Edit(talkName, talks.FullText, EditSummary);
             wiki.Edit(archiveName, "\n\n" + removed.FullText, EditSummary, true);
         }
 
-        private static string GetArchiveName(DateTime date)
+        interface IArchiveRules
         {
-            return string.Format(ArchiveName, GetArchiveNamePrefix(date));
+            string UserName { get; }
+            string GetArchiveName(DateTime date);
+            int AgeLimitInDays { get; }
         }
 
-        private static int? GetArchiveNamePrefix(DateTime date)
+        class LeLoiArchiveRules : IArchiveRules
         {
-            if (date.Year <= 2012)
-                return null;
+            private const string ArchiveName = "Архив{0}";
 
-            if (date.Year == 2013)
-                return 2;
+            public string UserName
+            {
+                get { return "Ле Лой"; }
+            }
 
-            if (date.Year == 2014)
-                return date.Month <= 6 ? 3 : 4;
+            public string GetArchiveName(DateTime date)
+            {
+                return string.Format(ArchiveName, GetArchiveNamePrefix(date));
+            }
 
-            return 5 + (date.Year - 2015) * 4 + (date.Month - 1) / 3;
+            private static int? GetArchiveNamePrefix(DateTime date)
+            {
+                if (date.Year <= 2012)
+                    return null;
+
+                if (date.Year == 2013)
+                    return 2;
+
+                if (date.Year == 2014)
+                    return date.Month <= 6 ? 3 : 4;
+
+                return 5 + (date.Year - 2015) * 4 + (date.Month - 1) / 3;
+            }
+
+            public int AgeLimitInDays
+            {
+                get { return 7; }
+            }
+        }
+
+        class AnimusVoxArchiveRules : IArchiveRules
+        {
+            private const string ArchiveName = "Архив/{0}";
+
+            public string UserName
+            {
+                get { return "AnimusVox"; }
+            }
+
+            public string GetArchiveName(DateTime date)
+            {
+                return string.Format(ArchiveName, date.Year);
+            }
+
+            public int AgeLimitInDays
+            {
+                get { return 14; }
+            }
         }
     }
 }
