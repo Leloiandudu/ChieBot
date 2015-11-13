@@ -10,8 +10,11 @@ namespace ChieBot
     {
         static void Main(string[] args)
         {
+            var moduleArgs = args.SkipWhile(a => a.StartsWith("-")).Skip(1).ToArray();
+            var globalArgs = args.Take(args.Length - moduleArgs.Length).ToArray();
+
             var modules = new Modules.Modules(typeof(Program).Assembly);
-            var moduleName = args.Last();
+            var moduleName = globalArgs.Last();
             var module = modules.Get(moduleName);
             if (module == null)
                 throw new Exception(string.Format("Module `{0}` not found", moduleName));
@@ -20,9 +23,9 @@ namespace ChieBot
             var userAgent = string.Format("ChieBot/{0}.{1} (https://bitbucket.org/leloiandudu/chiebot; leloiandudu@gmail.com)", ver.Major, ver.Minor);
             
             var wiki = new MediaWiki(new Uri("http://ru.wikipedia.org/w/api.php"), userAgent);
-            wiki.ReadOnly = !args.Contains("-live");
+            wiki.ReadOnly = !globalArgs.Contains("-live");
 
-            module(wiki, args, ReadCredentials());
+            module(wiki, moduleArgs, ReadCredentials());
         }
 
         private static Credentials ReadCredentials()
