@@ -18,7 +18,7 @@ namespace ChieBot.Stabilization
 
         private void Stabilize(MediaWiki wiki, string templateTitle, DateTimeOffset? expiry)
         {
-            var links = ParserUtils.FindBoldLinks(wiki.GetPage(templateTitle));
+            var links = ParserUtils.FindLinks(wiki.GetPage(templateTitle));
             var normalized = wiki.Normalize(links);
 
             foreach(var article in links.Select(x => normalized.TryGetValue(x)).Where(x => x != null).Distinct())

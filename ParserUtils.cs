@@ -5,8 +5,9 @@ namespace ChieBot
 {
     static class ParserUtils
     {
+        private static readonly Regex LinkWithoutNamespaceRegex = new Regex(@"\[\[(?<link>[^|\]]+)(\|[^\]]+)?\]\]", RegexOptions.ExplicitCapture);
         private static readonly Regex BoldLinkRegex = new Regex(@"('''[^\[\]']+''')|('''.*?\[\[(?<link>[^|\]]+)(\|[^\]]+)?\]\].*?('''|$))|(\[\[(?<link>[^|\]]+)\|'''.*?'''\]\])", RegexOptions.ExplicitCapture);
-        private static readonly Regex NonArticleLinksRegex = new Regex(@"^(User|У|Участник|User talk|ОУ|Обсуждение участника|ВП|Википедия)\:", RegexOptions.ExplicitCapture);
+        private static readonly Regex NonArticleLinksRegex = new Regex(@"^(User|У|Участник|User talk|ОУ|Обсуждение участника|ВП|Википедия|File|Image|Файл|Category|Категория|К|Template|Шаблон|Ш)\:", RegexOptions.ExplicitCapture);
         private static readonly Regex LinkHashRegex = new Regex(@"^(?<link>[^#]+)(#.*)?$", RegexOptions.ExplicitCapture);
 
         /// <summary>
@@ -14,8 +15,20 @@ namespace ChieBot
         /// </summary>
         public static string[] FindBoldLinks(string text)
         {
-            return BoldLinkRegex
-                .Matches(text).OfType<Match>()
+            return GetLinks(BoldLinkRegex.Matches(text));
+        }
+
+        /// <summary>
+        /// Returns names of all articles from main namespace, linked in the specified <paramref name="text" />.
+        /// </summary>
+        public static string[] FindLinks(string text)
+        {
+            return GetLinks(LinkWithoutNamespaceRegex.Matches(text));
+        }
+
+        private static string[] GetLinks(MatchCollection matches)
+        {
+            return matches.OfType<Match>()
                 .Select(m => m.Groups["link"])
                 .Where(g => g.Success)
                 .Select(g => g.Value)

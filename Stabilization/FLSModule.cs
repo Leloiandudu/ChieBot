@@ -12,8 +12,6 @@ namespace ChieBot.Stabilization
     /// </summary>
     class FLSModule : IModule
     {
-        private static readonly Regex LinkRegex = new Regex(@"\[\[(?!(User|У|Участник|User talk|ОУ|Обсуждение участника|File|Image|Файл):)(?<link>[^|#\]]+)(#[^|\]]*)?(\|[^\]]*)?\]\]", RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
-
         public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
         {
             wiki.Login(credentials.Login, credentials.Password);
@@ -23,11 +21,11 @@ namespace ChieBot.Stabilization
         private void Stabilize(MediaWiki wiki, string currentTemplateTitle)
         {
             var text = wiki.GetPage(currentTemplateTitle);
-            var link = LinkRegex.Match(text);
-            if (!link.Success)
+            var link = ParserUtils.FindLinks(text).FirstOrDefault();
+            if (link == null)
                 throw new Exception("Current featured list link not found.");
 
-            wiki.Stabilize(link.Groups["link"].Value, "Автоматическая стабилизация избранного списка.", null);
+            wiki.Stabilize(link, "Автоматическая стабилизация избранного списка.", null);
         }
     }
 }
