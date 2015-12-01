@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -57,6 +58,13 @@ namespace ChieBot.CUE
     class ArticlesList : Section
     {
         private static readonly Regex RowRegex = new Regex(@"\|-\s*\n\s*\|\s*\[\[\s*(?<Title>.+?)\s*\]\]\s*\|\|\s*\{\{u\|(?<User>.*?)\}\}\s*\|\|\s*(?<M1>\d*)\s*\|\|\s*(?<M2>\d*)\s*\|\|\s*(?<M3>\d*)\s*\|\|\s*(?<M4>\d*)\s*\|\|.+?\|\|(?<Data>.+?(?=\|-|\|\}))", RegexOptions.ExplicitCapture | RegexOptions.Singleline);
+        private static readonly NumberFormatInfo NumberFormat = new NumberFormatInfo { NumberDecimalSeparator = "," };
+
+        static ArticlesList()
+        {
+            NumberFormat = (NumberFormatInfo)CultureInfo.InvariantCulture.NumberFormat.Clone();
+            NumberFormat.NumberDecimalSeparator = ",";
+        }
 
         private PartiallyParsedWikiText<Row> _rows;
 
@@ -81,7 +89,7 @@ namespace ChieBot.CUE
         {
             foreach (var row in Rows.ToArray())
             {
-                _rows.Update(row, string.Format("|-\n| [[{0}]] || {{{{u|{1}}}}} || {2} || {3} || {4} || {5} || ''' {6:F2}''' ||{7}",
+                _rows.Update(row, string.Format(NumberFormat, "|-\n| [[{0}]] || {{{{u|{1}}}}} || {2} || {3} || {4} || {5} || ''' {6:F2}''' ||{7}",
                     row.Title, row.User, row.Marks[0], row.Marks[1], row.Marks[2], row.Marks[3], row.Marks.Average(), row.Data));
             }
             Text = _rows.Text;
