@@ -18,6 +18,8 @@ namespace ChieBot.CUE
 
         public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
         {
+            wiki.Login(credentials.Login, credentials.Password);
+
             var page = new SectionedArticle<ArticlesList>(wiki.GetPage(PageName));
             if (page.Count != 1)
                 throw new Exception("More than one section.");
