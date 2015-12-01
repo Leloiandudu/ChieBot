@@ -21,7 +21,7 @@ namespace ChieBot.Stabilization
 
             var lastDate = last.Get() ?? DateTimeOffset.MinValue;
             // checking for logDate >= lastDate because log date has minute resolution
-            foreach(var page in lines.Where(l => l.Date >= lastDate).SelectMany(l => l.Titles).Select(Normalize).Distinct())
+            foreach(var page in lines.Where(l => l.Date >= lastDate).SelectMany(l => l.Titles).Select(MediaWiki.UnscapeTitle).Distinct())
             {
                 StabilizeArticle(wiki, page);
             }
@@ -34,11 +34,6 @@ namespace ChieBot.Stabilization
                 nextDate = nextDate.AddMinutes(1);
 
             last.Set(nextDate);
-        }
-
-        private string Normalize(string title)
-        {
-            return title.Replace('_', ' ');
         }
 
         private static readonly Regex StatusTemplateRegex = new Regex(@"\{\{Хорошая статья[|}]", RegexOptions.IgnoreCase);

@@ -44,6 +44,12 @@ namespace ChieBot
             _items[index] = Tuple.Create(text, item);
         }
 
+        public void InsertAfter(T item, T after)
+        {
+            var index = _items.FindIndex(x => x.Item2 == after);
+            _items.Insert(index + 1, Tuple.Create("", item));
+        }
+
         public string Text
         {
             get { return string.Join("", _items.Select(x => x.Item1)); }
