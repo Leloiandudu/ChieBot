@@ -61,6 +61,15 @@ public class MediaWiki
         return revisons[0].Value<string>("*");
     }
 
+    public IDictionary<string, string> GetPages(string[] pages)
+    {
+        return QueryPages("revisions", new Dictionary<string, string>
+        {
+            { "rvprop", "content" },
+            { "redirects", "" },
+        }, pages).ToDictionary(x => x.Key, x => x.Value[0].Value<string>("*"));
+    }
+
     public RevisionInfo[] GetHistory(string page, DateTimeOffset from)
     {
         var revisions = QueryPages("revisions", new Dictionary<string, string>
@@ -69,7 +78,6 @@ public class MediaWiki
             { "rvlimit", "5000" },
             { "rvdir", "newer" },
             { "redirects", "" },
-            { "rvstart", from.UtcDateTime.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ssK") },
         }, page)[page];
 
         if (revisions == null)
@@ -166,6 +174,22 @@ public class MediaWiki
         if (expiryString != "infinity" && expiryString != null)
             expiry = new DateTimeOffset(DateTime.ParseExact(expiryString, "yyyyMMddHHmmss", null, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal)); // DateTimeParse.ParseExact is buggy in mono 3.x
         return true;
+    }
+
+    public string[] GetPagesInCategory(string categoryName, int pageNamespace = -1)
+    {
+        return Query(new Dictionary<string, string>
+        {
+            { "list", "categorymembers" },
+            { "cmtitle", "Category:" + categoryName },
+            { "cmprop", "title" },
+            { "cmnamespace", pageNamespace != -1 ? pageNamespace.ToString() : null },
+            { "cmtype", "page" },
+            { "cmlimit", "5000" },
+            { "redirects", "" },
+        }).SelectMany(x => x.Value<JArray>("categorymembers"))
+            .Select(x => x.Value<string>("title"))
+            .ToArray();
     }
 
     private IDictionary<string, JArray> QueryPages(string property, IDictionary<string, string> queryArgs, params string[] titles)
@@ -406,6 +430,24 @@ public class MediaWiki
         public DateTimeOffset Timestamp { get; set; }
 
         public int Size { get; set; }
+    }
+
+    public static string EscapeTitle(string title)
+    {
+        return title.Replace(' ', '_');
+    }
+
+    public static string UnscapeTitle(string title)
+    {
+        return title.Replace('_', ' ');
+    }
+
+    public static bool TitlesEqual(string title1, string title2)
+    {
+        if (title1 == "" || title2 == "")
+            return title1 == title2;
+        return char.ToUpperInvariant(title1[0]) == char.ToUpperInvariant(title2[0]) 
+            && string.Equals(UnscapeTitle(title1.Substring(1)), UnscapeTitle(title2.Substring(1)), StringComparison.OrdinalIgnoreCase);
     }
 }
 
