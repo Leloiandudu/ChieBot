@@ -77,6 +77,7 @@ public class MediaWiki
             { "rvprop", "ids|timestamp|size|flags" },
             { "rvlimit", "5000" },
             { "rvdir", "newer" },
+            { "rvstart", from.ToUniversalTime().ToString("s") },
             { "redirects", "" },
         }, page)[page];
 
