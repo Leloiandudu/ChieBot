@@ -12,7 +12,8 @@ namespace ChieBot.Archiving
         private readonly IDictionary<string, IArchiveRules> _rules = new IArchiveRules[]
         {
             new LeLoiArchiveRules(),
-            new AnimusVoxArchiveRules(),
+            new GeneralArchiveRules("AnimusVox"),
+            new GeneralArchiveRules("Milez189"),
         }.ToDictionary(x => x.UserName);
 
         public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
@@ -89,13 +90,20 @@ namespace ChieBot.Archiving
             }
         }
 
-        class AnimusVoxArchiveRules : IArchiveRules
+        class GeneralArchiveRules : IArchiveRules
         {
+            private readonly string _userName;
+
+            public GeneralArchiveRules(string userName)
+            {
+                _userName = userName;
+            }
+
             private const string ArchiveName = "Архив/{0}";
 
             public string UserName
             {
-                get { return "AnimusVox"; }
+                get { return _userName; }
             }
 
             public string GetArchiveName(DateTime date)
