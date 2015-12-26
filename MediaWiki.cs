@@ -448,7 +448,7 @@ public class MediaWiki
         if (title1 == "" || title2 == "")
             return title1 == title2;
         return char.ToUpperInvariant(title1[0]) == char.ToUpperInvariant(title2[0]) 
-            && string.Equals(UnscapeTitle(title1.Substring(1)), UnscapeTitle(title2.Substring(1)), StringComparison.OrdinalIgnoreCase);
+            && string.Equals(UnscapeTitle(title1.Substring(1)), UnscapeTitle(title2.Substring(1)), StringComparison.Ordinal);
     }
 }
 
