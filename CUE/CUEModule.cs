@@ -27,7 +27,7 @@ namespace ChieBot.CUE
             var list = page[0];
             list.Parse();
 
-            var articles = wiki.GetPages(wiki.GetPagesInCategory("Статьи проекта:КУЛ", 1));
+            var articles = wiki.GetPages(wiki.GetPagesInCategory("Статьи проекта:КУЛ", 1), true);
 
             foreach (var article in articles)
             {
@@ -43,7 +43,7 @@ namespace ChieBot.CUE
                     list.Rows.InsertAfter(row, list.Rows.LastOrDefault());
                 }
 
-                var match = TemplateRegex.Match(article.Value);
+                var match = TemplateRegex.Match(article.Value.Text);
                 if (!match.Success)
                     continue;
                 row.User = match.Success ? match.Groups["User"].Value : "???";

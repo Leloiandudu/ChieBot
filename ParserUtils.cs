@@ -5,8 +5,8 @@ namespace ChieBot
 {
     static class ParserUtils
     {
-        private static readonly Regex LinkWithoutNamespaceRegex = new Regex(@"\[\[(?<link>[^|\]]+)(\|[^\]]+)?\]\]", RegexOptions.ExplicitCapture);
-        private static readonly Regex BoldLinkRegex = new Regex(@"('''[^\[\]']+''')|('''.*?\[\[(?<link>[^|\]]+)(\|[^\]]+)?\]\].*?('''|$))|(\[\[(?<link>[^|\]]+)\|'''.*?'''\]\])", RegexOptions.ExplicitCapture);
+        private static readonly Regex LinkRegex = new Regex(@"\[\[:?(?<link>[^|\]]+)(\|[^\]]+)?\]\]", RegexOptions.ExplicitCapture);
+        private static readonly Regex BoldLinkRegex = new Regex(@"('''[^\[\]']+''')|('''.*?\[\[:?(?<link>[^|\]]+)(\|[^\]]+)?\]\].*?('''|$))|(\[\[:?(?<link>[^|\]]+)\|'''.*?'''\]\])", RegexOptions.ExplicitCapture);
         private static readonly Regex NonArticleLinksRegex = new Regex(@"^(User|У|Участник|User talk|ОУ|Обсуждение участника|ВП|Википедия|File|Image|Файл|Category|Категория|К|Template|Шаблон|Ш)\:", RegexOptions.ExplicitCapture);
         private static readonly Regex LinkHashRegex = new Regex(@"^(?<link>[^#]+)(#.*)?$", RegexOptions.ExplicitCapture);
 
@@ -23,12 +23,19 @@ namespace ChieBot
         /// </summary>
         public static string[] FindLinks(string text)
         {
-            return GetLinks(LinkWithoutNamespaceRegex.Matches(text));
+            return GetLinks(LinkRegex.Matches(text));
+        }
+
+        public static string[] FindAnyLinks(string text)
+        {
+            return LinkRegex.Matches(text).Cast<Match>()
+                .Select(m => m.Groups["link"].Value)
+                .ToArray();
         }
 
         private static string[] GetLinks(MatchCollection matches)
         {
-            return matches.OfType<Match>()
+            return matches.Cast<Match>()
                 .Select(m => m.Groups["link"])
                 .Where(g => g.Success)
                 .Select(g => g.Value)
