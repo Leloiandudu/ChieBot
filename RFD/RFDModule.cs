@@ -12,10 +12,10 @@ namespace ChieBot.RFD
     /// </summary>
     class RFDModule : IModule
     {
-        private const string CUTitle = "Википедия:К удалению/{0:d MMMM yyyy}";
+        private const string RfdTitle = "Википедия:К удалению/{0:d MMMM yyyy}";
         private const string EditSummary = "Автоматическая простановка шаблона КУ.";
         private static Regex NoIncludeRegex = new Regex(@"<(/)?noinclude(?:\s.*?)?>", RegexOptions.IgnoreCase);
-        private static Regex CUTemplateRegex = new Regex(@"\{\{К удалению\|.*?\}\}", RegexOptions.IgnoreCase);
+        private static Regex RfdTemplateRegex = new Regex(@"\{\{(К удалению|КУ)\|.*?\}\}", RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
         private static Regex HeadingRegex = new Regex(@"^(={2,})(?<text>.*)\1", RegexOptions.Multiline);
 
         public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
@@ -23,10 +23,10 @@ namespace ChieBot.RFD
             wiki.Login(credentials.Login, credentials.Password);
 
             var date = DateTime.UtcNow;
-            var cuPage = wiki.GetPage(string.Format(Utils.DateTimeFormat, CUTitle, date));
+            var rfdPage = wiki.GetPage(string.Format(Utils.DateTimeFormat, RfdTitle, date));
 
             var links = (
-                from match in HeadingRegex.Matches(cuPage).Cast<Match>()
+                from match in HeadingRegex.Matches(rfdPage).Cast<Match>()
                 select match.Groups["text"].Value into text
                 from link in ParserUtils.FindAnyLinks(text)
                 select link
@@ -34,7 +34,7 @@ namespace ChieBot.RFD
 
             foreach (var page in wiki.GetPages(links, true).Values.Where(page => page != null))
             {
-                var match = CUTemplateRegex.Match(page.Text);
+                var match = RfdTemplateRegex.Match(page.Text);
                 if (!match.Success)
                 {
                     wiki.Edit(page.Title, string.Format("<noinclude>{{{{К удалению|{0:yyyy-MM-dd}}}}}</noinclude>\n", date), EditSummary, false);
