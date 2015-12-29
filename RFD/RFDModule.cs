@@ -14,9 +14,9 @@ namespace ChieBot.RFD
     {
         private const string RfdTitle = "Википедия:К удалению/{0:d MMMM yyyy}";
         private const string EditSummary = "Автоматическая простановка шаблона КУ.";
-        private static Regex NoIncludeRegex = new Regex(@"<(/)?noinclude(?:\s.*?)?>", RegexOptions.IgnoreCase);
-        private static Regex RfdTemplateRegex = new Regex(@"\{\{(К удалению|КУ)\|.*?\}\}", RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
-        private static Regex HeadingRegex = new Regex(@"^(={2,})(?<text>.*)\1", RegexOptions.Multiline);
+        private static readonly Regex NoIncludeRegex = new Regex(@"<(/)?noinclude(?:\s.*?)?>", RegexOptions.IgnoreCase);
+        private static readonly Regex RfdTemplateRegex = new Regex(@"\{\{(К удалению|КУ)\|.*?\}\}", RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
+        private static readonly string[] ResultTitles = { "Итог", "Автоитог" };
 
         public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
         {
@@ -24,13 +24,7 @@ namespace ChieBot.RFD
 
             var date = DateTime.UtcNow;
             var rfdPage = wiki.GetPage(string.Format(Utils.DateTimeFormat, RfdTitle, date));
-
-            var links = (
-                from match in HeadingRegex.Matches(rfdPage).Cast<Match>()
-                select match.Groups["text"].Value into text
-                from link in ParserUtils.FindAnyLinks(text)
-                select link
-            ).Distinct().ToArray();
+            var links = GetArticles(rfdPage).Distinct().ToArray();
 
             foreach (var page in wiki.GetPages(links, true).Values.Where(page => page != null))
             {
@@ -52,6 +46,31 @@ namespace ChieBot.RFD
                 var text = page.Text.Substring(0, match.Index) + "<noinclude>" + match.Value + "</noinclude>" + page.Text.Substring(match.Index + match.Length);
                 wiki.Edit(page.Title, text, EditSummary, null);
             }
+        }
+
+        private static IEnumerable<string> GetArticles(string text)
+        {
+            return GetArticles(new SectionedArticle<Section>(text));
+        }
+
+        private static IEnumerable<string> GetArticles(SectionedArticle<Section> sections)
+        {
+            foreach (var section in sections)
+            {
+                var subSections = new SectionedArticle<Section>(section.Text, sections.Level + 1);
+                if (subSections.Select(s => s.Title.TrimEnd().Trim('=').Trim()).Any(title => ResultTitles.Contains(title, StringComparer.InvariantCultureIgnoreCase)))
+                    continue;
+
+                foreach(var link in ParserUtils.FindAnyLinks(section.Title))
+                    yield return link;
+
+                if (sections.Level < 3)
+                {
+                    foreach (var article in GetArticles(subSections))
+                        yield return article;
+                }
+            }
+
         }
     }
 }

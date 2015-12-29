@@ -12,10 +12,12 @@ namespace ChieBot
     class SectionedArticle<TSection> : List<TSection>
         where TSection : Section, new()
     {
+        public int Level { get; private set; }
         public string Prefix { get; set; }
 
         public SectionedArticle(string fullText, int level = 2)
         {
+            Level = level;
             var regex = "^" + new string('=', level) + @"[^=].*" + new string('=', level) + @"\s*$\n?";
             var matches = new Regex(regex, RegexOptions.Multiline).Matches(fullText);
             if (matches.Count == 0)
