@@ -58,16 +58,24 @@ public class MediaWiki
 
         if (revisons == null)
             return null;
-        return revisons[0].Value<string>("*");
+        return revisons.Item2[0].Value<string>("*");
     }
 
-    public IDictionary<string, string> GetPages(string[] pages)
+    public IDictionary<string, Page> GetPages(string[] pages, bool followRedirects = false)
     {
         return QueryPages("revisions", new Dictionary<string, string>
         {
             { "rvprop", "content" },
-            { "redirects", "" },
-        }, pages).ToDictionary(x => x.Key, x => x.Value[0].Value<string>("*"));
+            { "redirects", followRedirects ? "" : null },
+        }, pages).ToDictionary(x => x.Key, x => {
+            if (x.Value == null)
+                return null;
+            return new Page
+            {
+                Title = x.Value.Item1,
+                Text = x.Value.Item2[0].Value<string>("*"),
+            };
+        });
     }
 
     public RevisionInfo[] GetHistory(string page, DateTimeOffset from)
@@ -83,7 +91,7 @@ public class MediaWiki
 
         if (revisions == null)
             return null;
-        return revisions.ToObject<RevisionInfo[]>();
+        return revisions.Item2.ToObject<RevisionInfo[]>();
     }
 
     /// <summary>
@@ -193,7 +201,7 @@ public class MediaWiki
             .ToArray();
     }
 
-    private IDictionary<string, JArray> QueryPages(string property, IDictionary<string, string> queryArgs, params string[] titles)
+    private IDictionary<string, Tuple<string, JArray>> QueryPages(string property, IDictionary<string, string> queryArgs, params string[] titles)
     {
         queryArgs = new Dictionary<string, string>(queryArgs)
         {
@@ -225,10 +233,13 @@ public class MediaWiki
             x => normalizations.Value<string>(x.Value<string>("title")), 
             x =>
             {
-                var values = x.Value<JArray>(property);
-                if (values == null && x["missing"] == null)
-                    values = new JArray();
-                return values;
+                if (x["missing"] != null)
+                    return null;
+
+                return Tuple.Create(
+                    x.Value<string>("title"), 
+                    x.Value<JArray>(property) ?? new JArray()
+                );
             });
     }
 
@@ -431,6 +442,12 @@ public class MediaWiki
         public DateTimeOffset Timestamp { get; set; }
 
         public int Size { get; set; }
+    }
+
+    public class Page
+    {
+        public string Title { get; set; }
+        public string Text { get; set; }
     }
 
     public static string EscapeTitle(string title)
