@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using ChieBot.Modules;
 
@@ -23,6 +23,9 @@ namespace ChieBot.RFD
             wiki.Login(credentials.Login, credentials.Password);
 
             var date = DateTime.UtcNow;
+            if (commandLine.Length == 1)
+                date = DateTime.Parse(commandLine[0], Utils.DateTimeFormat, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal);
+
             var rfdPage = wiki.GetPage(string.Format(Utils.DateTimeFormat, RfdTitle, date));
             var links = GetArticles(rfdPage).Distinct().ToArray();
 
