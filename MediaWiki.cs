@@ -257,7 +257,7 @@ public class MediaWiki
         if (limit.HasValue)
             query = query.Take(limit.Value);
 
-        foreach (var res in query)
+        foreach (var res in query.Select(res => res ?? new JObject { { "pages", new JArray() } }))
         {
             var resObject = new JObject()
             {
