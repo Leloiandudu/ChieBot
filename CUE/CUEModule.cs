@@ -16,9 +16,11 @@ namespace ChieBot.CUE
         private const string PageName = "Википедия:КУЛ должен быть очищен/II/Статьи";
         private const string TalkPrefix = "Обсуждение:";
         private static readonly Regex TemplateRegex = new Regex(@"\{\{\s*Статья проекта:КУЛ\s*\|\s*участник\s*=\s*(?<User>.*?)\s*\}\}", RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase);
+        private static readonly DateTime EndDate = new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
         {
+            var date = DateTime.UtcNow;
             wiki.Login(credentials.Login, credentials.Password);
 
             var page = new SectionedArticle<ArticlesList>(wiki.GetPage(PageName));
@@ -40,6 +42,11 @@ namespace ChieBot.CUE
                 if (row == null)
                 {
                     row = new ArticlesList.Row { Title = title };
+                    if (date >= EndDate)
+                    {
+                        row.Error = true;
+                        row.Data = "Статья добавлена после окончания марафона.\n";
+                    }
                     list.Rows.InsertAfter(row, list.Rows.LastOrDefault());
                 }
 
@@ -57,7 +64,7 @@ namespace ChieBot.CUE
 
     class ArticlesList : Section
     {
-        private static readonly Regex RowRegex = new Regex(@"\|-\s*\n\s*\|\s*\[\[\s*(?<Title>.+?)\s*\]\]\s*\|\|\s*\{\{u\|(?<User>.*?)\}\}\s*\|\|\s*(?<M1>\d*)\s*\|\|\s*(?<M2>\d*)\s*\|\|\s*(?<M3>\d*)\s*\|\|\s*(?<M4>\d*)\s*\|\|.+?\|\|(?<Data>.+?(?=\|-|\|\}))", RegexOptions.ExplicitCapture | RegexOptions.Singleline);
+        private static readonly Regex RowRegex = new Regex(@"\|-\s*\n\s*(?<Error>\|\s*class='ui-state-error'\s*)?\|\s*\[\[\s*(?<Title>.+?)\s*\]\]\s*\|\|\s*\{\{u\|(?<User>.*?)\}\}\s*\|\|\s*(?<M1>\d*)\s*\|\|\s*(?<M2>\d*)\s*\|\|\s*(?<M3>\d*)\s*\|\|\s*(?<M4>\d*)\s*\|\|.+?\|\|(?<Data>.+?(?=\|-|\|\}))", RegexOptions.ExplicitCapture | RegexOptions.Singleline);
         private static readonly NumberFormatInfo NumberFormat = new NumberFormatInfo { NumberDecimalSeparator = "," };
 
         static ArticlesList()
@@ -72,6 +79,7 @@ namespace ChieBot.CUE
         {
             _rows = new PartiallyParsedWikiText<Row>(Text, RowRegex, m => new Row
             {
+                Error = m.Groups["Error"].Success,
                 Title = m.Groups["Title"].Value,
                 User = m.Groups["User"].Value,
                 Marks = Enumerable.Range(1, 4).Select(i => ParseMark(m.Groups["M" + i].Value)).ToArray(),                
@@ -89,8 +97,9 @@ namespace ChieBot.CUE
         {
             foreach (var row in Rows.ToArray())
             {
-                _rows.Update(row, string.Format(NumberFormat, "|-\n| [[{0}]] || {{{{u|{1}}}}} || {2} || {3} || {4} || {5} || ''' {6:F2}''' ||{7}",
-                    row.Title, row.User, row.Marks[0], row.Marks[1], row.Marks[2], row.Marks[3], row.Marks.Average(), row.Data));
+                _rows.Update(row, string.Format(NumberFormat, "|-\n{8}| [[{0}]] || {{{{u|{1}}}}} || {2} || {3} || {4} || {5} || ''' {6:F2}''' ||{7}",
+                    row.Title, row.User, row.Marks[0], row.Marks[1], row.Marks[2], row.Marks[3], row.Marks.Average(), row.Data,
+                    row.Error ? "| class='ui-state-error' " : ""));
             }
             Text = _rows.Text;
         }
@@ -105,6 +114,7 @@ namespace ChieBot.CUE
                 Data = "\n";
             }
 
+            public bool Error { get; set; }
             public string Title { get; set; }
             public string User { get; set; }
             public int?[] Marks { get; set; }
