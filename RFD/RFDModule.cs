@@ -28,9 +28,9 @@ namespace ChieBot.RFD
 
             var rfdPage = wiki.GetPage(string.Format(Utils.DateTimeFormat, RfdTitle, date));
             var links = GetArticles(rfdPage).Distinct().ToArray();
-            var categories = wiki.GetPagesCategories(links, true);
+            var categories = wiki.GetPagesCategories(links, false);
 
-            foreach (var link in wiki.GetPages(links, true))
+            foreach (var link in wiki.GetPages(links, false))
             {
                 var page = link.Value;
                 if (page == null)
