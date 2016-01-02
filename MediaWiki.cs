@@ -201,6 +201,20 @@ public class MediaWiki
             .ToArray();
     }
 
+    public IDictionary<string, string[]> GetPagesCategories(string[] pages, bool followRedirects = false)
+    {
+        return QueryPages("categories", new Dictionary<string, string>
+        {
+            { "cllimit", "5000" },
+            { "redirects", followRedirects ? "" : null },
+        }, pages)
+            .ToDictionary(
+                x => x.Key, 
+                x => x.Value == null 
+                    ? new string[0] // page not found
+                    : x.Value.Item2.Select(cat => cat.Value<string>("title")).ToArray());
+    }
+
     private IDictionary<string, Tuple<string, JArray>> QueryPages(string property, IDictionary<string, string> queryArgs, params string[] titles)
     {
         queryArgs = new Dictionary<string, string>(queryArgs)
