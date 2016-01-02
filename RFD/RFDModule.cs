@@ -28,9 +28,14 @@ namespace ChieBot.RFD
 
             var rfdPage = wiki.GetPage(string.Format(Utils.DateTimeFormat, RfdTitle, date));
             var links = GetArticles(rfdPage).Distinct().ToArray();
+            var categories = wiki.GetPagesCategories(links, true);
 
-            foreach (var page in wiki.GetPages(links, true).Values.Where(page => page != null))
+            foreach (var link in wiki.GetPages(links, true))
             {
+                var page = link.Value;
+                if (page == null)
+                    continue;
+
                 var match = RfdTemplateRegex.Match(page.Text);
                 if (!match.Success)
                 {
@@ -38,17 +43,29 @@ namespace ChieBot.RFD
                     continue;
                 }
 
-                var noInclCount = NoIncludeRegex.Matches(page.Text).Cast<Match>()
-                    .TakeWhile(m => m.Index < match.Index)
-                    .Select(m => m.Groups[1].Success)
-                    .Aggregate(0, (count, closing) => count + (closing ? -1 : 1));
+                if (!RequiresNoInclude(page.Title, categories[link.Key]))
+                    continue;
 
-                if (noInclCount > 0)
+                if (IsNoIncludeOpen(page.Text, match.Index))
                     continue;
 
                 var text = page.Text.Substring(0, match.Index) + "<noinclude>" + match.Value + "</noinclude>" + page.Text.Substring(match.Index + match.Length);
                 wiki.Edit(page.Title, text, EditSummary, null);
             }
+        }
+
+        private static bool IsNoIncludeOpen(string text, int atIndex)
+        {
+            return NoIncludeRegex.Matches(text).Cast<Match>()
+                .TakeWhile(m => m.Index < atIndex)
+                .Select(m => m.Groups[1].Success)
+                .Sum(closing => closing ? -1 : 1) > 0;
+        }
+
+        private bool RequiresNoInclude(string title, string[] categories)
+        {
+            return title.StartsWith("Шаблон:")
+                || categories.Contains("Категория:Страницы разрешения неоднозначностей по алфавиту");
         }
 
         private static IEnumerable<string> GetArticles(string text)
