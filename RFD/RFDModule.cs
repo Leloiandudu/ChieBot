@@ -36,6 +36,10 @@ namespace ChieBot.RFD
                 if (page == null)
                     continue;
 
+                // skip modules for now
+                if (page.Title.StartsWith("Модуль:"))
+                    continue;
+
                 var match = RfdTemplateRegex.Match(page.Text);
                 if (!match.Success)
                 {
