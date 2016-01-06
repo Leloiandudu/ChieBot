@@ -99,6 +99,8 @@ public class MediaWiki
     /// </summary>
     public IDictionary<string, string> Normalize(params string[] pages)
     {
+        pages = pages.Distinct().ToArray();
+
         var res = QueryPages("revisions", new Dictionary<string, string>
         {
             { "titles", JoinList(pages) },
