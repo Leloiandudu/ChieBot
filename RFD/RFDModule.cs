@@ -15,7 +15,7 @@ namespace ChieBot.RFD
         private const string RfdTitle = "Википедия:К удалению/{0:d MMMM yyyy}";
         private const string EditSummary = "Автоматическая простановка шаблона КУ.";
         private static readonly Regex NoIncludeRegex = new Regex(@"<(/)?noinclude(?:\s.*?)?>", RegexOptions.IgnoreCase);
-        private static readonly Regex RfdTemplateRegex = new Regex(@"\{\{(К удалению|КУ)\|.*?\}\}", RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
+        private static readonly Regex RfdTemplateRegex = new Regex(@"\{\{(К удалению|КУ)\|?(?<date>.*?)\}\}", RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
         private static readonly string[] ResultTitles = { "Итог", "Автоитог" };
 
         public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
@@ -40,10 +40,18 @@ namespace ChieBot.RFD
                 if (page.Title.StartsWith("Модуль:"))
                     continue;
 
+                var newText = string.Format("<noinclude>{{{{К удалению|{0:yyyy-MM-dd}}}}}</noinclude>", date);
                 var match = RfdTemplateRegex.Match(page.Text);
+
+                if (match.Groups["date"].Length == 0)
+                {
+                    wiki.Edit(page.Title, match.Replace(page.Text, newText), EditSummary);
+                    continue;
+                }
+
                 if (!match.Success)
                 {
-                    wiki.Edit(page.Title, string.Format("<noinclude>{{{{К удалению|{0:yyyy-MM-dd}}}}}</noinclude>\n", date), EditSummary, false);
+                    wiki.Edit(page.Title, newText + "\n", EditSummary, false);
                     continue;
                 }
 
@@ -53,8 +61,7 @@ namespace ChieBot.RFD
                 if (IsNoIncludeOpen(page.Text, match.Index))
                     continue;
 
-                var text = page.Text.Substring(0, match.Index) + "<noinclude>" + match.Value + "</noinclude>" + page.Text.Substring(match.Index + match.Length);
-                wiki.Edit(page.Title, text, EditSummary, null);
+                wiki.Edit(page.Title, match.Replace(page.Text, "<noinclude>" + match.Value + "</noinclude>"), EditSummary);
             }
         }
 

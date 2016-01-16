@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace ChieBot
 {
@@ -46,6 +47,11 @@ namespace ChieBot
         public static DateTimeOffset ParseDate(string text)
         {
             return DateTimeOffset.Parse(text, Utils.DateTimeFormat, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
+        }
+
+        public static string Replace(this Match match, string on, string with)
+        {
+            return on.Substring(0, match.Index) + with + on.Substring(match.Index + match.Length);
         }
     }
 }
