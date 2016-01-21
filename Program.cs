@@ -22,7 +22,7 @@ namespace ChieBot
             var ver = typeof(ChieBot.Program).Assembly.GetName().Version;
             var userAgent = string.Format("ChieBot/{0}.{1} (https://bitbucket.org/leloiandudu/chiebot; leloiandudu@gmail.com)", ver.Major, ver.Minor);
             
-            var wiki = new MediaWiki(new Uri("http://ru.wikipedia.org/w/api.php"), userAgent);
+            var wiki = new MediaWiki(new Uri("https://ru.wikipedia.org/w/api.php"), userAgent);
             wiki.ReadOnly = !globalArgs.Contains("-live");
 
             module(wiki, moduleArgs, ReadCredentials());
