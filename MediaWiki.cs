@@ -78,6 +78,16 @@ public class MediaWiki
         });
     }
 
+    public string[] GetPageTransclusions(string page, int inNamespace = -1)
+    {
+        return QueryPages("transcludedin", new Dictionary<string, string>
+        {
+            { "tinamespace", inNamespace != -1 ? inNamespace.ToString() : null },
+            { "tiprop", "title" },
+            { "tilimit", "500" },
+        }, page)[page].Item2.Select(x => x.Value<string>("title")).ToArray();
+    }
+
     public RevisionInfo[] GetHistory(string page, DateTimeOffset from)
     {
         var revisions = QueryPages("revisions", new Dictionary<string, string>
