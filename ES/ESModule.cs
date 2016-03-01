@@ -6,36 +6,30 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 
-namespace ChieBot.JE
+namespace ChieBot.ES
 {
     /// <summary>
-    /// Марафон юниоров
+    /// Editathon Stats updated
     /// </summary>
-    class JEModule : Modules.IModule
+    class ESModule : Modules.IModule
     {
-        private const string PageName = "Википедия:Марафон юниоров/2016 (зима)/Статьи";
-        private const string StatsName = "Википедия:Марафон юниоров/2016 (зима)/marks.js";
-        private const string TemplateName = "Марафон юниоров";
-        private const string ResultsTail = "\n\n[[Категория:Википедия:Марафон юниоров]]";
+        private const string PageName = "Проект:Разумный инклюзионизм/Марафон/Март 2016/Статьи";
+        private const string StatsName = "Проект:Разумный инклюзионизм/Марафон/Март 2016/marks.js";
+        private const string TemplateName = "Статья марафона ИНК";
+        private const string ResultsTail = "";
+        private const int TemplateInclusionNamespaceId = 1;
+        private const string TemplateInclusionNamespaceName = "Обсуждение:";
 
         private static readonly Regex TemplateRegex = new Regex(@"{{\s*" + Regex.Escape(TemplateName) + @".*?}}\s*", RegexOptions.IgnoreCase);
         private static readonly NumberFormatInfo NumberFormat = new NumberFormatInfo { NumberDecimalSeparator = "," };
-        private static readonly Dictionary<string, MarkInfo> Marks = new Dictionary<string, MarkInfo>
-        {
-            { "sources", new MarkInfo(1, "И") },
-            { "size", new MarkInfo(1, "Р") },
-            { "formatting", new MarkInfo(1, "О") },
-            { "plusOne", new MarkInfo(1, "+") },
-            { "minusOne", new MarkInfo(-1, "&minus;") },
-        };
 
         public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
         {
             wiki.Login(credentials.Login, credentials.Password);
 
-            var titles = wiki.GetPageTransclusions("Template:" + TemplateName, 0);
-            //UpdateResults(wiki, titles);
-            RemoveTemplate(wiki, titles);
+            var titles = wiki.GetPageTransclusions("Template:" + TemplateName, TemplateInclusionNamespaceId);
+            UpdateResults(wiki, titles);
+            //RemoveTemplate(wiki, titles);
         }
 
         private void RemoveTemplate(MediaWiki wiki, string[] titles)
@@ -60,11 +54,15 @@ namespace ChieBot.JE
             table.WriteLine("|-");
             table.WriteLine("! style='width: 25%' | Статья !! Участник !! {0} !! Итого !! class='unsortable' | Комментарии жюри",
                 string.Join(" !! ", marks.Properties().Select(p => "{{nobr|{{u|" + p.Name + "}}}}")));
-            foreach (var title in titles)
+            foreach (var t in titles)
             {
+                var title = t;
+                if (title.StartsWith(TemplateInclusionNamespaceName))
+                    title = title.Substring(TemplateInclusionNamespaceName.Length);
+
                 table.WriteLine("|-");
                 table.WriteLine("| [[{0}]] || {{{{u|{1}}}}} || {2} || ''' {3:F2} ''' || {4}",
-                    title, GetSubmitter(articles[title].Text), FormatMarks(marks, title), GetMark(marks, title), GetComments(marks, title));
+                    title, GetSubmitter(articles[t].Text), FormatMarks(marks, title), GetMark(marks, title), GetComments(marks, title));
             }
             table.WriteLine("|}");
 
@@ -93,15 +91,9 @@ namespace ChieBot.JE
             if (mark == null)
                 return "";
 
-            var isGood = mark.Value<bool?>("isGood");
-            if (isGood == null)
-                return "";
-
-            var color = isGood.Value ? "#eef" : "#fee";
-
             var marks = GetExistingMarks(mark).Select(m => m.Title);
 
-            return string.Format("style='background-color: {0}' | {1}", color, string.Join("", marks));
+            return string.Join("", marks);
         }
 
         private double? GetMark(JObject marks, string title)
@@ -111,13 +103,7 @@ namespace ChieBot.JE
                 {
                     if (m == null)
                         return null;
-                    var isGood = m.Value<bool?>("isGood");
-                    if (isGood == null)
-                        return null;
-                    else if (isGood == false)
-                        return 0;
-                    var sum = GetExistingMarks(m).Select(mi => (double?)mi.Value).Sum();
-                    return 1 + sum;
+                    return GetExistingMarks(m).Select(mi => (double?)mi.Value).Sum();
                 },
                 m => m.Average());
         }
@@ -139,10 +125,8 @@ namespace ChieBot.JE
 
         private static MarkInfo[] GetExistingMarks(JObject mark)
         {
-            return Marks
-                .Where(m => mark.Value<bool?>(m.Key) == true)
-                .Select(m => m.Value)
-                .ToArray();
+            var value = mark.Value<int>("mark");
+            return new[] { new MarkInfo(value, value.ToString()) };
         }
 
         private static T AggregateMarks<T>(JObject marks, string title, Func<JObject, string, T> get, Func<IEnumerable<T>, T> aggregate)
