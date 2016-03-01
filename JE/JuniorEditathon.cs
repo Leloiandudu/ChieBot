@@ -18,7 +18,7 @@ namespace ChieBot.JE
         private const string TemplateName = "Марафон юниоров";
         private const string ResultsTail = "\n\n[[Категория:Википедия:Марафон юниоров]]";
 
-        private static readonly Regex TemplateRegex = new Regex(@"{{\s*" + Regex.Escape(TemplateName) + @".*?}}", RegexOptions.IgnoreCase);
+        private static readonly Regex TemplateRegex = new Regex(@"{{\s*" + Regex.Escape(TemplateName) + @".*?}}\s*", RegexOptions.IgnoreCase);
         private static readonly NumberFormatInfo NumberFormat = new NumberFormatInfo { NumberDecimalSeparator = "," };
         private static readonly Dictionary<string, MarkInfo> Marks = new Dictionary<string, MarkInfo>
         {
@@ -33,8 +33,26 @@ namespace ChieBot.JE
         {
             wiki.Login(credentials.Login, credentials.Password);
 
-            var marks = JObject.Parse(wiki.GetPage(StatsName));
             var titles = wiki.GetPageTransclusions("Template:" + TemplateName, 0);
+            //UpdateResults(wiki, titles);
+            RemoveTemplate(wiki, titles);
+        }
+
+        private void RemoveTemplate(MediaWiki wiki, string[] titles)
+        {
+            var articles = wiki.GetPages(titles);
+            foreach (var title in titles)
+            {
+                var text = articles[title].Text;
+                var match = TemplateRegex.Match(text);
+                text = match.Replace(text, "");
+                wiki.Edit(title, text, "Автоматическое удаление шаблона марафона.");
+            }
+        }
+
+        private void UpdateResults(MediaWiki wiki, string[] titles)
+        {
+            var marks = JObject.Parse(wiki.GetPage(StatsName));
             var articles = wiki.GetPages(titles);
 
             var table = new StringWriter(NumberFormat);
@@ -50,13 +68,8 @@ namespace ChieBot.JE
             }
             table.WriteLine("|}");
 
-            UpdateResults(wiki, table.ToString());
-        }
-
-        private void UpdateResults(MediaWiki wiki, string text)
-        {
             var page = new SectionedArticle<Section>(wiki.GetPage(PageName));
-            page[0].Text = text + ResultsTail;
+            page[0].Text = table.ToString() + ResultsTail;
             wiki.Edit(PageName, page.FullText, "Автоматическое обновление страницы марафона.");
         }
 
@@ -66,7 +79,7 @@ namespace ChieBot.JE
             if (!match.Success)
                 return "";
 
-            var template = Template.Parse(match.Value);
+            var template = Template.Parse(match.Value.TrimEnd());
             return template.Args.Select(a => a.Value).FirstOrDefault() ?? "";
         }
 
