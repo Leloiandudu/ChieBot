@@ -54,7 +54,7 @@
     <Compile Include="Archiving\Talk.cs" />
     <Compile Include="CUE\CUEModule.cs" />
     <Compile Include="JE\JuniorEditathon.cs" />
-    <Compile Include="JE\Template.cs" />
+    <Compile Include="Template.cs" />
     <Compile Include="RFD\RFDModule.cs" />
     <Compile Include="Stabilization\FLSModule.cs" />
     <Compile Include="ParserUtils.cs" />
