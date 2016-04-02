@@ -14,6 +14,7 @@ namespace ChieBot.Archiving
             new LeLoiArchiveRules(),
             new GeneralArchiveRules("AnimusVox"),
             new GeneralArchiveRules("Milez189") { AgeLimitInDays = 7 },
+            new LazyhawkArchiveRules(),
         }.ToDictionary(x => x.UserName);
 
         public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
@@ -113,6 +114,26 @@ namespace ChieBot.Archiving
             }
 
             public int AgeLimitInDays { get; set; }
+        }
+
+        class LazyhawkArchiveRules : IArchiveRules
+        {
+            private const string ArchiveName = "Архив/{0}";
+
+            public string UserName
+            {
+                get { return "Lazyhawk"; }
+            }
+            
+            public string GetArchiveName(DateTime date)
+            {
+                return string.Format(ArchiveName, date.Year - 2008);
+            }
+
+            public int AgeLimitInDays
+            {
+                get { return 7; }
+            }
         }
     }
 }
