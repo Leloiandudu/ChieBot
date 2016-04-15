@@ -52,7 +52,6 @@
   <ItemGroup>
     <Compile Include="Archiving\ArchiveModule.cs" />
     <Compile Include="Archiving\Talk.cs" />
-    <Compile Include="CUE\CUEModule.cs" />
     <Compile Include="ES\ESModule.cs" />
     <Compile Include="SignpostMailingList\SMLModule.cs" />
     <Compile Include="Template.cs" />

@@ -9,14 +9,16 @@ using Newtonsoft.Json.Linq;
 namespace ChieBot.ES
 {
     /// <summary>
-    /// Editathon Stats updated
+    /// Editathon Stats updater
     /// </summary>
     class ESModule : Modules.IModule
     {
-        private const string PageName = "Проект:Разумный инклюзионизм/Марафон/Март 2016/Статьи";
-        private const string StatsName = "Проект:Разумный инклюзионизм/Марафон/Март 2016/marks.js";
-        private const string TemplateName = "Статья марафона ИНК";
-        private const string ResultsTail = "";
+        private const string PageNamePrefix = "Википедия:КУЛ должен быть очищен/III";
+        private const string TemplateName = "Статья проекта:КУЛ";
+        private const string ResultsTail = "\n[[Категория:Статьи проекта:КУЛ]]";
+
+        private const string PageName = PageNamePrefix + "/Статьи";
+        private const string StatsName = PageNamePrefix + "/marks.js";
         private const int TemplateInclusionNamespaceId = 1;
         private const string TemplateInclusionNamespaceName = "Обсуждение:";
 
