@@ -221,8 +221,8 @@ public class MediaWiki
             { "redirects", followRedirects ? "" : null },
         }, pages)
             .ToDictionary(
-                x => x.Key, 
-                x => x.Value == null 
+                x => x.Key,
+                x => x.Value == null
                     ? new string[0] // page not found
                     : x.Value.Item2.Select(cat => cat.Value<string>("title")).ToArray());
     }
@@ -256,14 +256,14 @@ public class MediaWiki
         }
 
         return result["pages"].Values().ToDictionary(
-            x => normalizations.Value<string>(x.Value<string>("title")), 
+            x => normalizations.Value<string>(x.Value<string>("title")),
             x =>
             {
                 if (x["missing"] != null)
                     return null;
 
                 return Tuple.Create(
-                    x.Value<string>("title"), 
+                    x.Value<string>("title"),
                     x.Value<JArray>(property) ?? new JArray()
                 );
             });
@@ -274,8 +274,8 @@ public class MediaWiki
         queryArgs = new Dictionary<string, string>(queryArgs)
         {
             { "prop", property },
-        }; 
-        
+        };
+
         var mergeSettings = new JsonMergeSettings { MergeArrayHandling = MergeArrayHandling.Concat };
         var result = new JObject();
 
@@ -426,35 +426,56 @@ public class MediaWiki
 
     private JToken Exec(Dictionary<string, string> args)
     {
-        args.Add("format", "json");
-        var result = JToken.Parse(Post(args));
-        if (result["error"] != null)
-            throw new MediaWikiException(result["error"].Value<string>("info"));
-        return result;
-    }
-
-    private const int MaxRetries = 5;
-
-    private string Post(Dictionary<string, string> args)
-    {
+        const int MaxRetries = 5;
         for (int retries = 1; ; retries++)
         {
+            TimeSpan? sleepTime = null;
+
             try
             {
-                return _browser.Post(_apiUri.AbsoluteUri, args);
+                try
+                {
+                    return DoExec(args);
+                }
+                catch (MediaWikiApiException ex)
+                {
+                    if (ex.Code == ErrorCode.ReadOnly)
+                        sleepTime = TimeSpan.FromSeconds(30);
+                    throw;
+                }
+                catch (System.Net.WebException)
+                {
+                    sleepTime = TimeSpan.FromSeconds(5);
+                    throw;
+                }
+                catch (System.IO.IOException)
+                {
+                    sleepTime = TimeSpan.FromSeconds(5);
+                    throw;
+                }
             }
             catch (Exception ex)
             {
-                if (retries == MaxRetries)
+                if (retries == MaxRetries || !sleepTime.HasValue)
                 {
-                    Console.Error.WriteLine("After {0} retries: {1}", MaxRetries, ex);
+                    Console.Error.WriteLine("After {0} retries: {1}", retries, ex);
                     Console.Error.WriteLine("Query was:");
                     Dump(args, Console.Error.WriteLine);
                     throw;
                 }
-                System.Threading.Thread.Sleep(TimeSpan.FromSeconds(1));
+
+                System.Threading.Thread.Sleep(sleepTime.Value);
             }
         }
+    }
+
+    private JToken DoExec(Dictionary<string, string> args)
+    {
+        args["format"] = "json";
+        var result = JToken.Parse(_browser.Post(_apiUri.AbsoluteUri, args));
+        if (result["error"] != null)
+            throw new MediaWikiApiException(result["error"].Value<string>("code"), result["error"].Value<string>("info"));
+        return result;
     }
 
     [System.Diagnostics.DebuggerDisplay("{Size} {Timestamp}")]
@@ -490,8 +511,13 @@ public class MediaWiki
     {
         if (title1 == "" || title2 == "")
             return title1 == title2;
-        return char.ToUpperInvariant(title1[0]) == char.ToUpperInvariant(title2[0]) 
+        return char.ToUpperInvariant(title1[0]) == char.ToUpperInvariant(title2[0])
             && string.Equals(UnscapeTitle(title1.Substring(1)), UnscapeTitle(title2.Substring(1)), StringComparison.Ordinal);
+    }
+
+    public enum ErrorCode
+    {
+        ReadOnly,
     }
 }
 
@@ -504,5 +530,27 @@ public class MediaWikiException : Exception
     protected MediaWikiException(
         System.Runtime.Serialization.SerializationInfo info,
         System.Runtime.Serialization.StreamingContext context)
+        : base(info, context) { }
+}
+
+[Serializable]
+public class MediaWikiApiException : MediaWikiException
+{
+    public MediaWiki.ErrorCode? Code { get; private set; }
+    public string StringCode { get; private set; }
+
+    public MediaWikiApiException(string code, string message)
+        : base(string.Format("{0}: {1}", code, message))
+    {
+        StringCode = code;
+
+        MediaWiki.ErrorCode ec;
+        if (Enum.TryParse<MediaWiki.ErrorCode>(code, true, out ec))
+            Code = ec;
+    }
+
+    protected MediaWikiApiException(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context)
         : base(info, context) { }
 }
