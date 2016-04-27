@@ -46,8 +46,8 @@ namespace ChieBot.Archiving
             if (!removed.Any())
                 return;
 
-            wiki.Edit(talkName, talks.FullText, EditSummary);
             wiki.Edit(archiveName, "\n\n" + removed.FullText, EditSummary, true);
+            wiki.Edit(talkName, talks.FullText, EditSummary);
         }
 
         interface IArchiveRules
