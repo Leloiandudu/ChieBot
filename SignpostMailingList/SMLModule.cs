@@ -29,7 +29,7 @@ namespace ChieBot.SignpostMailingList
 
         private static string GetMailText(MediaWiki wiki)
         {
-            var text = wiki.GetPage(IssuePage);
+            var text = wiki.GetPage(IssuePage, followRedirects: true);
 
             var issues = new SectionedArticle<Section>(text, 2);
             var sb = new StringBuilder();
