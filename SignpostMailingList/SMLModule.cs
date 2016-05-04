@@ -58,7 +58,7 @@ namespace ChieBot.SignpostMailingList
 
         private IEnumerable<string> GetSubscribers(MediaWiki wiki)
         {
-            var text = wiki.GetPage(SubscribersPage);
+            var text = wiki.GetPage(SubscribersPage, followRedirects: true);
             var section = new SectionedArticle<Section>(text, 2).Single();
 
             foreach(var line in section.Text.Split('\n'))
