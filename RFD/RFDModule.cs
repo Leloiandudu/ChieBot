@@ -26,7 +26,14 @@ namespace ChieBot.RFD
             if (commandLine.Length == 1)
                 date = DateTime.Parse(commandLine[0], Utils.DateTimeFormat, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal);
 
-            var rfdPage = wiki.GetPage(string.Format(Utils.DateTimeFormat, RfdTitle, date));
+            var rfdTitle = string.Format(Utils.DateTimeFormat, RfdTitle, date);
+            var rfdPage = wiki.GetPage(rfdTitle);
+            if (rfdPage == null)
+            {
+                wiki.Edit(rfdTitle, "{{ВПКУ-Навигация}}", "Создание и оформление страницы нового дня");
+                return;
+            }
+
             var links = GetArticles(rfdPage).Distinct().ToArray();
             var categories = wiki.GetPagesCategories(links, false);
 
