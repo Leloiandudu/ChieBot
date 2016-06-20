@@ -136,7 +136,8 @@ public class MediaWiki
                 }
             }
 
-            if (res.Value<JObject>("pages").Values().Single(p => p.Value<string>("title") == title)["missing"] != null)
+            var pp = res.Value<JObject>("pages").Values().SingleOrDefault(p => p.Value<string>("title") == title);
+            if (pp == null || pp["missing"] != null)
                 continue;
 
             dic.Add(page, title);
@@ -283,12 +284,10 @@ public class MediaWiki
         if (limit.HasValue)
             query = query.Take(limit.Value);
 
-        foreach (var res in query.Select(res => res ?? new JObject { { "pages", new JArray() } }))
+        foreach (var res in query)
         {
-            var resObject = new JObject()
-            {
-                res.Property("pages")
-            };
+            var pages = res == null ? null : res.Property("pages");
+            var resObject = new JObject { pages ?? new JProperty("pages", new JObject()) };
 
             var normalized = res.Property("normalized");
             if (normalized != null)
