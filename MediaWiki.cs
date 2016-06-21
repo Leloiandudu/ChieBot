@@ -284,10 +284,9 @@ public class MediaWiki
         if (limit.HasValue)
             query = query.Take(limit.Value);
 
-        foreach (var res in query)
+        foreach (var res in query.Select(res => res ?? new JObject()))
         {
-            var pages = res == null ? null : res.Property("pages");
-            var resObject = new JObject { pages ?? new JProperty("pages", new JObject()) };
+            var resObject = new JObject { res.Property("pages") ?? new JProperty("pages", new JObject()) };
 
             var normalized = res.Property("normalized");
             if (normalized != null)
