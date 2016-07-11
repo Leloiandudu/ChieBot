@@ -13,17 +13,29 @@ namespace ChieBot
         private readonly List<Tuple<string, T>> _items = new List<Tuple<string, T>>();
 
         public PartiallyParsedWikiText(string text, Regex regex, Func<Match, T> itemFactory)
+            : this(text, regex.Matches(text).OfType<Match>().Select(m => Tuple.Create(m.Index, m.Length, itemFactory(m))))
+        {
+        }
+
+        public PartiallyParsedWikiText(string text, IEnumerable<Tuple<int, int, T>> items)
         {
             var index = 0;
-            foreach (Match match in regex.Matches(text))
+            foreach (var item in items)
             {
+                var match = new
+                {
+                    Index = item.Item1,
+                    Length = item.Item2,
+                    Value = item.Item3,
+                };
+
                 if (match.Index != index)
                 {
                     _items.Add(Tuple.Create(text.Substring(index, match.Index - index), (T)null));
                     index = match.Index;
                 }
 
-                _items.Add(Tuple.Create(match.Value, itemFactory(match)));
+                _items.Add(Tuple.Create(text.Substring(match.Index, match.Length), match.Value));
                 index += match.Length;
             }
 
@@ -36,6 +48,12 @@ namespace ChieBot
         public bool Remove(T item)
         {
             return _items.RemoveAll(x => x.Item2 == item) > 0;
+        }
+
+        public int GetOffset(T item)
+        {
+            var index = _items.FindIndex(x => x.Item2 == item);
+            return _items.Take(index).Sum(x => x.Item1.Length);
         }
 
         public void Update(T item, string text)

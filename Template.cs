@@ -7,7 +7,8 @@ namespace ChieBot
 {
     class Template
     {
-        private static readonly Regex ArgRegex = new Regex(@"^\s*(\w+)\s*=(.*)$");
+        private static readonly Regex TokenRegex = new Regex(@"({{|\||}}|\[\[|\]\])"); // TODO: template args
+        private static readonly Regex ArgRegex = new Regex(@"^(\s*\w+\s*)=(.*)$", RegexOptions.Singleline);
 
         public Template()
         {
@@ -16,28 +17,75 @@ namespace ChieBot
 
         public static Template Parse(string wiki)
         {
+            return Parse(wiki, true);
+        }
+
+        public static Template ParseAt(string wiki, int index)
+        {
+            return Parse(wiki.Substring(index), false);
+        }
+
+        private static Template Parse(string wiki, bool strict)
+        {
             wiki = wiki.Trim();
 
-            if (!wiki.StartsWith("{{") || !wiki.EndsWith("}}"))
+            if (!wiki.StartsWith("{{") || (strict && !wiki.EndsWith("}}")))
                 throw new FormatException("Template should be surrounded by {{}}.");
-            wiki = wiki.Substring(2, wiki.Length - 4);
 
-            // TODO: nested templates / template args
-            var parts = wiki.Split('|');
+            var parts = TokenRegex.Split(wiki);
 
-            var template = new Template { Name = parts[0] };
+            var template = new Template();
 
-            for (var i = 1; i < parts.Length; i++)
+            var level = 0;
+            var str = "";
+
+            foreach (var part in parts.Where(x => x != "").Skip(1))
             {
-                var part = parts[i];
-                var match = ArgRegex.Match(part);
+                if (level < 0)
+                {
+                    if (strict)
+                        throw new FormatException("Unexpected text after template end.");
+                    else
+                        break;
+                }
 
-                var arg = match.Success
-                    ? new Argument { Name = match.Groups[1].Value, Value = match.Groups[2].Value }
-                    : new Argument { Value = part };
+                if ((part == "|" || part == "}}") && level == 0)
+                {
+                    if (template.Name == null)
+                        template.Name = str;
+                    else
+                    {
+                        var match = ArgRegex.Match(str);
+                        var arg = match.Success
+                            ? new Argument { Name = match.Groups[1].Value, Value = match.Groups[2].Value }
+                            : new Argument { Value = str };
 
-                template.Args.Add(arg);
+                        template.Args.Add(arg);
+                    }
+
+                    str = "";
+                }
+                else
+                {
+                    str += part;
+                }
+
+                if (part == "{{" || part == "[[")
+                {
+                    level++;
+                }
+                else if (part == "}}" || part == "]]")
+                {
+                    level--;
+                }
+                else
+                {
+                    // System.Diagnostics.Debug.WriteLine("{0}: {1}", level, part);
+                }
             }
+
+            if (level >= 0)
+                throw new FormatException("Template end not found.");
 
             return template;
         }
@@ -53,17 +101,28 @@ namespace ChieBot
 
         public string this[string name]
         {
-            get { return Args.Where(a => a.Name == name).Select(a => a.Value).FirstOrDefault(); }
+            get { return FindByName(name).Select(a => a.Value).FirstOrDefault(); }
             set
             {
-                var arg = Args.Where(a => a.Name == name).FirstOrDefault();
+                var arg = FindByName(name).FirstOrDefault();
                 if (arg == null)
                 {
+                    if (value == null)
+                        return;
                     arg = new Argument { Name = name };
                     Args.Add(arg);
                 }
-                arg.Value = value;
+
+                if (value != null)
+                    arg.Value = value;
+                else
+                    Args.Remove(arg);
             }
+        }
+
+        private IEnumerable<Argument> FindByName(string name)
+        {
+            return Args.Where(a => a.Name != null && string.Equals(a.Name.Trim(), name, StringComparison.InvariantCultureIgnoreCase));
         }
 
         public override string ToString()

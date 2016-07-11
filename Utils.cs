@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -52,6 +53,34 @@ namespace ChieBot
         public static string Replace(this Match match, string on, string with)
         {
             return on.Substring(0, match.Index) + with + on.Substring(match.Index + match.Length);
+        }
+
+        public static IEnumerable<T[]> Partition<T>(this IEnumerable<T> items, int count)
+        {
+            var i = 0;
+            T[] array = null;
+
+            foreach (var item in items)
+            {
+                if (i == 0)
+                    array = new T[count];
+                
+                array[i++] = item;
+                
+                if (i == count)
+                {
+                    yield return array;
+                    i = 0;
+                }
+            }
+
+            if (i > 0)
+            {
+                if (i < count)
+                    yield return array.Take(i).ToArray();
+                else
+                    yield return array;
+            }
         }
     }
 }
