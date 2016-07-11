@@ -9,6 +9,7 @@ public class MediaWiki
 {
     private readonly Browser _browser;
     private readonly Uri _apiUri;
+    private string _csrfToken;
 
     public MediaWiki(Uri apiUri, string userAgent)
     {
@@ -26,6 +27,7 @@ public class MediaWiki
 
     public void Login(string login, string password)
     {
+        _csrfToken = null;
         var res = DoLogin(login, password)["login"];
         if (res.Value<string>("result") == "NeedToken")
             res = DoLogin(login, password, res.Value<string>("token"))["login"];
@@ -46,19 +48,56 @@ public class MediaWiki
         );
     }
 
-    public string GetPage(string page, int? revId = null, bool followRedirects = false)
+    private string GetCsrfToken()
+    {
+        if (_csrfToken == null)
+        {
+            _csrfToken = Query(new Dictionary<string, string> 
+            {
+                { "meta", "tokens" },
+            }).Single()["tokens"].Value<string>("csrftoken");
+        }
+        return _csrfToken;
+    }
+
+    public string GetPage(string page, bool followRedirects = false)
     {
         var revisons = QueryPages("revisions", new Dictionary<string, string>
         {
             { "rvprop", "content" },
             { "redirects", followRedirects ? "" : null },
-            { "rvstartid", revId == null ? null : revId.ToString() },
-            { "rvendid", revId == null ? null : revId.ToString() },
         }, page)[page];
 
         if (revisons == null)
             return null;
         return revisons.Item2[0].Value<string>("*");
+    }
+
+    public string GetPage(int revId)
+    {
+        var revisons = RawQueryPages("revisions", new Dictionary<string, string>
+        {
+            { "revids", revId.ToString(CultureInfo.InvariantCulture) },
+            { "rvprop", "content" },
+        });
+
+        return revisons["pages"].Values().Select(x => x["revisions"].Single().Value<string>("*")).SingleOrDefault();
+    }
+
+    public IDictionary<int, string> GetPages(int[] revIds)
+    {
+        if (revIds.Length == 0)
+            return new Dictionary<int, string>();
+
+        var revisons = RawQueryPages("revisions", new Dictionary<string, string>
+        {
+            { "revids", JoinList(revIds.Select(revId => revId.ToString(CultureInfo.InvariantCulture))) },
+            { "rvprop", "ids|content" },
+        });
+
+        return revisons["pages"].Values()
+            .SelectMany(x => x["revisions"].Select(r => Tuple.Create(r.Value<int>("revid"), r.Value<string>("*"))))
+            .ToDictionary(x => x.Item1, x => x.Item2);
     }
 
     public IDictionary<string, Page> GetPages(string[] pages, bool followRedirects = false)
@@ -78,21 +117,55 @@ public class MediaWiki
         });
     }
 
-    public string[] GetPageTransclusions(string page, int inNamespace = -1)
+    public IDictionary<string, string[]> GetPageTransclusions(string[] pages, int inNamespace = -1)
     {
         return QueryPages("transcludedin", new Dictionary<string, string>
         {
             { "tinamespace", inNamespace != -1 ? inNamespace.ToString() : null },
             { "tiprop", "title" },
-            { "tilimit", "500" },
-        }, page)[page].Item2.Select(x => x.Value<string>("title")).ToArray();
+            { "tilimit", "5000" },
+        }, false, pages).Where(x => x.Value != null).ToDictionary(x => x.Key, x => x.Value.Item2.Select(y => y.Value<string>("title")).ToArray());
+    }
+
+    public string[] GetPageTransclusions(string page, int inNamespace = -1)
+    {
+        return GetPageTransclusions(new[] { page }, inNamespace).Values.SingleOrDefault() ?? new string[0];
+    }
+
+    public string[] GetAllPageNames(string title)
+    {
+        var list = new List<string>();
+        title = Normalize(title).Select(x => x.Value).SingleOrDefault() ?? title;
+        list.Add(title);
+
+        var query = QueryPages("linkshere", new Dictionary<string, string>
+        {
+            { "lhprop", "title" },
+            { "lhshow", "redirect" },
+            { "lhlimit", "5000" },
+        }, false, title)[title];
+        if (query != null)
+            list.AddRange(query.Item2.Select(x => x.Value<string>("title")));
+
+        return list.Distinct().ToArray();
+    }
+
+    public IDictionary<string, string[]> GetLinksTo(string[] titles, int? inNamespace = -1)
+    {
+        return QueryPages("linkshere", new Dictionary<string, string>
+        {
+            { "lhprop", "title" },
+            { "lhnamespace", inNamespace != -1 ? inNamespace.ToString() : null },
+            { "lhshow", "!redirect" },
+            { "lhlimit", "5000" },
+        }, false, titles).Where(p => p.Value != null).ToDictionary(p => p.Key, p => p.Value.Item2.Select(x => x.Value<string>("title")).ToArray());
     }
 
     public RevisionInfo[] GetHistory(string page, DateTimeOffset from)
     {
         var revisions = QueryPages("revisions", new Dictionary<string, string>
         {
-            { "rvprop", "ids|timestamp|size|flags" },
+            { "rvprop", "ids|timestamp|size|flags|user" },
             { "rvlimit", "5000" },
             { "rvdir", "newer" },
             { "rvstart", from.ToUniversalTime().ToString("s") },
@@ -111,7 +184,7 @@ public class MediaWiki
     {
         pages = pages.Distinct().ToArray();
 
-        var res = QueryPages("revisions", new Dictionary<string, string>
+        var res = RawQueryPages("revisions", new Dictionary<string, string>
         {
             { "titles", JoinList(pages) },
             { "rvprop", "ids" },
@@ -148,7 +221,7 @@ public class MediaWiki
 
     public RevisionInfo GetRevisionInfo(int revId)
     {
-        return QueryPages("revisions", new Dictionary<string, string> {
+        return RawQueryPages("revisions", new Dictionary<string, string> {
             { "revids", revId.ToString() },
             { "rvprop", "ids|timestamp|size" },
             { "redirects", "" },
@@ -163,7 +236,7 @@ public class MediaWiki
             { "title", page },
             { "reason", reason },
             { "expiry", expiry.HasValue ? expiry.Value.ToUniversalTime().ToString("s") : "infinity" },
-            { "token", GetEditToken() },
+            { "token", GetCsrfToken() },
             { "default", stabilize ? "stable" : "latest" },
         };
 
@@ -228,7 +301,28 @@ public class MediaWiki
                     : x.Value.Item2.Select(cat => cat.Value<string>("title")).ToArray());
     }
 
+    public IDictionary<string, string[]> GetUserGroups(string[] users)
+    {
+        return Query(new Dictionary<string, string>
+        {
+            { "list", "users" },
+            { "ususers", JoinList(users) },
+            { "usprop", "groups" },
+        }).SelectMany(x => x["users"]).ToDictionary(x => x.Value<string>("name"), x => 
+        {
+            var groups = x.Value<JArray>("groups");
+            if (groups == null)
+                return new string[0];
+            return groups.Values<string>().ToArray();
+        });
+    }
+
     private IDictionary<string, Tuple<string, JArray>> QueryPages(string property, IDictionary<string, string> queryArgs, params string[] titles)
+    {
+        return QueryPages(property, queryArgs, true, titles);
+    }
+
+    private IDictionary<string, Tuple<string, JArray>> QueryPages(string property, IDictionary<string, string> queryArgs, bool nullIfMissing = true, params string[] titles)
     {
         queryArgs = new Dictionary<string, string>(queryArgs)
         {
@@ -238,7 +332,7 @@ public class MediaWiki
         var mergeSettings = new JsonMergeSettings { MergeArrayHandling = MergeArrayHandling.Concat };
         var normalizations = new JObject(titles.Select(t => new JProperty(t, t)));
 
-        var result = QueryPages(property, queryArgs);
+        var result = RawQueryPages(property, queryArgs);
         var norm = result.Value<JObject>("normalized");
         if (norm != null)
             normalizations.Merge(norm, mergeSettings);
@@ -260,7 +354,7 @@ public class MediaWiki
             x => normalizations.Value<string>(x.Value<string>("title")),
             x =>
             {
-                if (x["missing"] != null)
+                if (nullIfMissing && x["missing"] != null)
                     return null;
 
                 return Tuple.Create(
@@ -270,7 +364,7 @@ public class MediaWiki
             });
     }
 
-    private JObject QueryPages(string property, IDictionary<string, string> queryArgs, int? limit = null)
+    private JObject RawQueryPages(string property, IDictionary<string, string> queryArgs, int? limit = null)
     {
         queryArgs = new Dictionary<string, string>(queryArgs)
         {
@@ -331,33 +425,6 @@ public class MediaWiki
         }
     }
 
-    private JToken GetTokens(params string[] types)
-    {
-        var args = new Dictionary<string, string>
-        {
-            { "action", "tokens" },
-        };
-
-        if (types.Any())
-            args.Add("type", JoinList(types));
-
-        return Exec(args)["tokens"];
-    }
-
-    private string _editToken;
-    private string GetEditToken()
-    {
-        if (_editToken == null)
-        {
-            var res = GetTokens();
-            _editToken = res.Value<string>("edittoken");
-            if (_editToken == null)
-                throw new Exception(res.ToString());
-        }
-
-        return _editToken;
-    }
-
     public void Edit(string page, string contents, string summary, bool? append = null)
     {
         var args = new Dictionary<string, string>
@@ -366,7 +433,7 @@ public class MediaWiki
             { "title", page },
             { !append.HasValue ? "text" : append.Value ? "appendtext" : "prependtext", contents },
             { "summary", summary },
-            { "token", GetEditToken() },
+            { "token", GetCsrfToken() },
             { "bot", "" },
         };
 
@@ -377,6 +444,26 @@ public class MediaWiki
             throw new MediaWikiException("Invalid response: " + result);
         if (code != "Success")
             throw new MediaWikiException(code);
+    }
+
+    public void Delete(string title, string summary)
+    {
+        try
+        {
+            ExecWrite(new Dictionary<string, string>
+            {
+                { "action", "delete" },
+                { "title", title },
+                { "reason", summary },
+                { "watchlist", "nochange" },
+                { "token", GetCsrfToken() },
+            });
+        }
+        catch (MediaWikiApiException ex)
+        {
+            if (ex.Code != ErrorCode.MissingTitle)
+                throw;
+        }
     }
 
     private JToken ExecWrite(Dictionary<string, string> args)
@@ -422,7 +509,7 @@ public class MediaWiki
         writeLine("");
     }
 
-    private JToken Exec(Dictionary<string, string> args)
+    private JToken Exec(IDictionary<string, string> args)
     {
         const int MaxRetries = 5;
         for (int retries = 1; ; retries++)
@@ -467,7 +554,7 @@ public class MediaWiki
         }
     }
 
-    private JToken DoExec(Dictionary<string, string> args)
+    private JToken DoExec(IDictionary<string, string> args)
     {
         args["format"] = "json";
         var result = JToken.Parse(_browser.Post(_apiUri.AbsoluteUri, args));
@@ -476,13 +563,15 @@ public class MediaWiki
         return result;
     }
 
-    [System.Diagnostics.DebuggerDisplay("{Size} {Timestamp}")]
+    [System.Diagnostics.DebuggerDisplay("{User,nq} {Size} {Timestamp}")]
     public class RevisionInfo
     {
         [JsonProperty("revid")]
         public int Id { get; set; }
 
         public int ParentId { get; set; }
+
+        public string User { get; set; }
 
         public DateTimeOffset Timestamp { get; set; }
 
@@ -516,6 +605,7 @@ public class MediaWiki
     public enum ErrorCode
     {
         ReadOnly,
+        MissingTitle,
     }
 }
 

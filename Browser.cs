@@ -16,7 +16,7 @@ class Browser
         return GetStringResponse(GetRequest(string.Format("{0}?{1}", url, ArgsToString(args))));
     }
 
-    public string Post(string url, Dictionary<string, string> args)
+    public string Post(string url, IDictionary<string, string> args)
     {
         var request = GetRequest(url);
         request.Method = "POST";
@@ -41,7 +41,7 @@ class Browser
         return request;
     }
 
-    private string ArgsToString(Dictionary<string, string> args)
+    private string ArgsToString(IDictionary<string, string> args)
     {
         return string.Join("&", (
             from p in args
