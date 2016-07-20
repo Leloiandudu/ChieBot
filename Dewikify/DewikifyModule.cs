@@ -105,7 +105,7 @@ namespace ChieBot.Dewikify
         private string GetUser(MediaWiki wiki, DewikifyTemplate template, Revision[] history)
         {
             // looking for the first edit where the template did not exist
-            var user = history.Last().User;
+            var user = history.First().User;
             foreach (var revBatch in history.Skip(1).Partition(10))
             {
                 Revision.LoadText(wiki, revBatch);
