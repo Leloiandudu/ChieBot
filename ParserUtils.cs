@@ -84,7 +84,7 @@ namespace ChieBot
 
         public static Regex GetArticleTitleRegex(string title)
         {
-            return new Regex(@"[\s_]*[" + char.ToUpper(title[0]) + char.ToLower(title[0]) + "]" + Regex.Replace(title.Substring(1), "[ _]+", @"[\s_]+"));
+            return new Regex(@"[\s_]*[" + char.ToUpper(title[0]) + char.ToLower(title[0]) + "]" + string.Join(@"[\s_]+", Regex.Split(title.Substring(1), "[ _]+").Select(Regex.Escape)));
         }
 
         public static PartiallyParsedWikiText<Template> FindTemplates(string text, string templateName, bool skipIgnored = true)
