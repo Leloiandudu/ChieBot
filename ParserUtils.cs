@@ -115,7 +115,7 @@ namespace ChieBot
 
         public static PartiallyParsedWikiText<WikiLink> FindLinksTo(string text, string to)
         {
-            var regex = GetArticleTitleRegex(to);
+            var regex = new Regex("^" + GetArticleTitleRegex(to).ToString() + @"\s*$");
             return new PartiallyParsedWikiText<WikiLink>(text,
                 from Match match in LinkRegex.Matches(text)
                 let link = match.Groups["link"]
