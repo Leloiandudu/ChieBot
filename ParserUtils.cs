@@ -126,8 +126,12 @@ namespace ChieBot
 
         public static TextRegion GetWholeLineAt(string text, int atOffset)
         {
+            if (atOffset == text.Length)
+                return new TextRegion(atOffset, 0);
+
             var start = text.LastIndexOf('\n', atOffset);
             var end = text.IndexOf('\n', atOffset);
+            if (end == -1) end = text.Length;
             return new TextRegion(start, end - start);
         }
 
