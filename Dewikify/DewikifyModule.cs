@@ -129,15 +129,17 @@ namespace ChieBot.Dewikify
         private void DewikifyLinksTo(MediaWiki wiki, string[] titles)
         {
             var parser = new ParserUtils(wiki);
-            foreach (var linkingPages in wiki.GetLinksTo(titles, DewikifyNamespaceId))
+            var linkingPages = wiki.GetLinksTo(titles, DewikifyNamespaceId).Values.SelectMany(x => x).Distinct().ToArray();
+            foreach (var page in wiki.GetPages(linkingPages).Values)
             {
-                foreach (var page in wiki.GetPages(linkingPages.Value).Values)
+                var text = page.Text;
+                foreach (var title in titles)
                 {
-                    var text = DewikifyLinkIn(page.Text, linkingPages.Key, parser);
-                    text = RemoveTransclusionsIn(text, linkingPages.Key, parser);
-                    if (text != page.Text)
-                        wiki.Edit(page.Title, text, Summary);
+                    text = DewikifyLinkIn(text, title, parser);
+                    text = RemoveTransclusionsIn(text, title, parser);
                 }
+                if (text != page.Text)
+                    wiki.Edit(page.Title, text, Summary);
             }
         }
 
