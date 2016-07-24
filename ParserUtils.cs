@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace ChieBot
 {
-    static class ParserUtils
+    class ParserUtils
     {
         private static readonly Regex LinkRegex = new Regex(@"\[\[:?(?<link>[^|\]]+)(\|(?<title>[^\]]+))?\]\]", RegexOptions.ExplicitCapture);
         private static readonly Regex BoldLinkRegex = new Regex(@"('''[^\[\]']+''')|('''.*?\[\[:?(?<link>[^|\]]+)(\|[^\]]+)?\]\].*?('''|$))|(\[\[:?(?<link>[^|\]]+)\|'''.*?'''\]\])", RegexOptions.ExplicitCapture);
@@ -77,20 +77,15 @@ namespace ChieBot
                 yield return new TextRegion(start, wiki.Length - start);
         }
 
-        private static bool Contains(this ICollection<TextRegion> regions, int offset)
-        {
-            return regions.Any(r => r.Contains(offset));
-        }
-
         public static Regex GetArticleTitleRegex(string title)
         {
             return new Regex(@"[\s_]*[" + char.ToUpper(title[0]) + char.ToLower(title[0]) + "]" + string.Join(@"[\s_]+", Regex.Split(title.Substring(1), "[ _]+").Select(Regex.Escape)));
         }
 
-        public static PartiallyParsedWikiText<Template> FindTemplates(string text, string templateName, bool skipIgnored = true)
+        private static PartiallyParsedWikiText<Template> FindTemplatesInternal(string text, IEnumerable<string> templateNames, bool skipIgnored)
         {
             var items = new List<Tuple<int, int, Template>>();
-            var regex = new Regex(@"\{\{" + GetArticleTitleRegex(templateName).ToString() + @"[|}\s]");
+            var regex = new Regex(@"\{\{(?:" + string.Join("|", templateNames.Select(t => "(?:" + GetArticleTitleRegex(t) +")")) + @")[|}\s]");
             var ignored = skipIgnored ? new TextRegion[0] : GetIgnoredRegions(text).ToArray();
             for (var i = 0; ; )
             {
@@ -115,7 +110,7 @@ namespace ChieBot
 
         public static PartiallyParsedWikiText<WikiLink> FindLinksTo(string text, string to)
         {
-            var regex = new Regex("^" + GetArticleTitleRegex(to).ToString() + @"\s*$");
+            var regex = new Regex("^:?" + GetArticleTitleRegex(to).ToString() + @"\s*$");
             return new PartiallyParsedWikiText<WikiLink>(text,
                 from Match match in LinkRegex.Matches(text)
                 let link = match.Groups["link"]
@@ -142,11 +137,45 @@ namespace ChieBot
             return GetWholeLineAt(text.Text, text.GetOffset(atItem));
         }
 
-        public static string Remove(this string text, IEnumerable<TextRegion> regions)
+        public static void SplitTitle(string fullTitle, out string ns, out string title)
         {
-            foreach (var x in regions.OrderByDescending(x => x.Offset).ToArray())
-                text = text.Remove(x.Offset, x.Length);
-            return text;
+            fullTitle = fullTitle.TrimStart(':');
+            var index = fullTitle.IndexOf(':');
+            ns = fullTitle.Substring(0, index == -1 ? 0 : index);
+            title = fullTitle.Substring(index + 1);
+        }
+
+        private readonly MediaWiki _wiki;
+        public ParserUtils(MediaWiki wiki)
+        {
+            _wiki = wiki;
+        }
+        
+        private IEnumerable<string> GetAlternativelyNamespacedTitles(string fullName, bool isTempalte)
+        {
+            string ns, title;
+            ParserUtils.SplitTitle(fullName, out ns, out title);
+
+            var namespaces = _wiki.GetNamespaces();
+            var nsId = isTempalte
+                ? 10
+                : namespaces.Single(x => x.Value.Contains(ns)).Key;
+
+            var results = namespaces[nsId].Select(n => string.Format("{0}:{1}", n, title));
+            if (isTempalte)
+                results = results.Concat(new[] { title });
+            return results;
+        }
+     
+        public PartiallyParsedWikiText<Template> FindTemplates(string text, string templateName, bool skipIgnored = true)
+        {
+            return FindTemplates(text, new[] { templateName }, skipIgnored);
+        }
+
+        public PartiallyParsedWikiText<Template> FindTemplates(string text, string[] templateNames, bool skipIgnored = true)
+        {
+            var names = templateNames.SelectMany(t => GetAlternativelyNamespacedTitles(t, true)).Distinct().ToArray();
+            return FindTemplatesInternal(text, names, skipIgnored);
         }
     }
 

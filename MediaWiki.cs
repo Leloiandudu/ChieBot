@@ -317,6 +317,31 @@ public class MediaWiki
         });
     }
 
+    private IDictionary<int, string[]> _namespaces;
+    public IDictionary<int, string[]> GetNamespaces()
+    {
+        if (_namespaces != null)
+            return _namespaces;
+
+        var props = new[] { "*", "canonical" };
+
+        var query = Query(new Dictionary<string, string>
+        {
+            { "meta", "siteinfo" },
+            { "siprop", "namespaces|namespacealiases" },
+        }).Single();
+
+        return _namespaces = (
+            query["namespaces"].Values().SelectMany(x =>
+            {
+                var id = x.Value<int>("id");
+                return props.Select(p => x.Value<string>(p)).Where(v => v != null).Select(v => Tuple.Create(id, v));
+            })
+        ).Concat(
+            query["namespacealiases"].Select(x => Tuple.Create(x.Value<int>("id"), x.Value<string>("*")))
+        ).Distinct().GroupBy(x => x.Item1, x => x.Item2).ToDictionary(x => x.Key, x => x.ToArray());
+    }
+
     private IDictionary<string, Tuple<string, JArray>> QueryPages(string property, IDictionary<string, string> queryArgs, params string[] titles)
     {
         return QueryPages(property, queryArgs, true, titles);
