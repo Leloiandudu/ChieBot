@@ -13,7 +13,7 @@ namespace ChieBot.Dewikify
         private const int DewikifyNamespaceId = 0; // main ns
         private const string CategoryName = "Википедия:К быстрому удалению:Девикифицировать";
         private const string TemplateName = "Девикифицировать вхождения";
-        private const string Summary = "Автоматическая девикификация ссылок на удаленную статью.";
+        private const string Summary = "Автоматическая девикификация ссылок на удаленную страницу.";
         private const string RemovalSummary = "[[ВП:КБУ#П1]]";
         private static readonly string[] IncludeGroups = { "sysop", "closer" };
         private static readonly string[] ExcludeGroups = { "bot" };
