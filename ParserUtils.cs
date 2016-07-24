@@ -79,7 +79,8 @@ namespace ChieBot
 
         public static Regex GetArticleTitleRegex(string title)
         {
-            return new Regex(@"[\s_]*[" + char.ToUpper(title[0]) + char.ToLower(title[0]) + "]" + string.Join(@"[\s_]+", Regex.Split(title.Substring(1), "[ _]+").Select(Regex.Escape)));
+            var index = title.LastIndexOf(':') + 1;
+            return new Regex(@"[\s_]*" + Regex.Escape(title.Substring(0, index)) +  "[" + char.ToUpper(title[index]) + char.ToLower(title[index]) + "]" + string.Join(@"[\s_]+", Regex.Split(title.Substring(index + 1), "[ _]+").Select(Regex.Escape)) + @"[\s_]*");
         }
 
         private static PartiallyParsedWikiText<Template> FindTemplatesInternal(string text, IEnumerable<string> templateNames, bool skipIgnored)
@@ -110,7 +111,7 @@ namespace ChieBot
 
         public static PartiallyParsedWikiText<WikiLink> FindLinksTo(string text, string to)
         {
-            var regex = new Regex("^:?" + GetArticleTitleRegex(to).ToString() + @"\s*$");
+            var regex = new Regex("^:?" + GetArticleTitleRegex(to).ToString() + @"$");
             return new PartiallyParsedWikiText<WikiLink>(text,
                 from Match match in LinkRegex.Matches(text)
                 let link = match.Groups["link"]
