@@ -30,6 +30,8 @@ namespace ChieBot.Dewikify
         {
             wiki.Login(credentials.Login, credentials.Password);
 
+            var allTemplateNames = wiki.GetAllPageNames("Template:" + TemplateName);
+
             var titles = wiki.GetPagesInCategory(CategoryName, TemplateNamespaceId);
             foreach (var title in titles)
             {
@@ -37,7 +39,7 @@ namespace ChieBot.Dewikify
 
                 LoadUsers(wiki, history);
 
-                var page = ParserUtils.FindTemplates(history.First().GetText(wiki), TemplateName);
+                var page = new ParserUtils(wiki).FindTemplates(history.First().GetText(wiki), allTemplateNames);
                 foreach (var dt in page.Select(t => new DewikifyTemplate(t)).ToArray())
                 {
                     if (dt.Error != null)
@@ -58,7 +60,7 @@ namespace ChieBot.Dewikify
                         continue;
                     }
 
-                    var user = GetUser(wiki, dt, history);
+                    var user = GetUser(wiki, dt, allTemplateNames, history);
                     if (!_powerUsers[user])
                     {
                         page.Update(dt.Template, string.Format("<span style='color: red'>Шаблон <nowiki>{0}</nowiki> установлен пользователем {{{{u|{1}}}}}, не имеющим флага ПИ/А.</span>", dt.Template.ToString(), user));
@@ -67,7 +69,6 @@ namespace ChieBot.Dewikify
 
                     var allTitles = wiki.GetAllPageNames(dt.Title);
                     DewikifyLinksTo(wiki, allTitles);
-                    RemoveTransclusionsOf(wiki, allTitles);
 
                     foreach (var t in allTitles.Skip(1))
                         wiki.Delete(t, RemovalSummary);
@@ -102,7 +103,7 @@ namespace ChieBot.Dewikify
             }
         }
 
-        private string GetUser(MediaWiki wiki, DewikifyTemplate template, Revision[] history)
+        private string GetUser(MediaWiki wiki, DewikifyTemplate template, string[] allTemplateNames, Revision[] history)
         {
             // looking for the first edit where the template did not exist
             var user = history.First().User;
@@ -111,7 +112,7 @@ namespace ChieBot.Dewikify
                 Revision.LoadText(wiki, revBatch);
                 foreach (var rev in revBatch)
                 {
-                    var exists = ParserUtils.FindTemplates(rev.GetText(wiki), TemplateName)
+                    var exists = new ParserUtils(wiki).FindTemplates(rev.GetText(wiki), allTemplateNames)
                         .Select(t => new DewikifyTemplate(t))
                         .Where(t => t.Error == null)
                         .Any(t => t.Title == template.Title);
@@ -125,26 +126,28 @@ namespace ChieBot.Dewikify
             return user;
         }
 
-        private static void DewikifyLinksTo(MediaWiki wiki, string[] titles)
+        private void DewikifyLinksTo(MediaWiki wiki, string[] titles)
         {
+            var parser = new ParserUtils(wiki);
             foreach (var linkingPages in wiki.GetLinksTo(titles, DewikifyNamespaceId))
             {
                 foreach (var page in wiki.GetPages(linkingPages.Value).Values)
                 {
-                    var text = DewikifyLinkIn(page.Text, linkingPages.Key);
+                    var text = DewikifyLinkIn(page.Text, linkingPages.Key, parser);
+                    text = RemoveTransclusionsIn(text, linkingPages.Key, parser);
                     if (text != page.Text)
                         wiki.Edit(page.Title, text, Summary);
                 }
             }
         }
 
-        private static string DewikifyLinkIn(string pageIn, string linkToDewikify)
+        private string DewikifyLinkIn(string pageIn, string linkToDewikify, ParserUtils parser)
         {
             var links = ParserUtils.FindLinksTo(pageIn, linkToDewikify);
             var found = new List<WikiLink>();
 
-            var isDisambig = ParserUtils.FindTemplates(pageIn, DisambigTemplateName).Any()
-                || ParserUtils.FindTemplates(pageIn, NamesakeListTemplateName).Any();
+            var isDisambig = parser.FindTemplates(pageIn, DisambigTemplateName).Any()
+                || parser.FindTemplates(pageIn, NamesakeListTemplateName).Any();
 
             foreach (var link in links.ToArray())
             {
@@ -159,22 +162,9 @@ namespace ChieBot.Dewikify
             return text.Remove(found.Select(x => ParserUtils.GetWholeLineAt(links, x)).Distinct());
         }
 
-        private static void RemoveTransclusionsOf(MediaWiki wiki, string[] titles)
+        private string RemoveTransclusionsIn(string pageIn, string templateName, ParserUtils parser)
         {
-            foreach (var transcludingPages in wiki.GetPageTransclusions(titles, DewikifyNamespaceId))
-            {
-                foreach (var page in wiki.GetPages(transcludingPages.Value).Values)
-                {
-                    var text = RemoveTransclusionsIn(page.Text, transcludingPages.Key);
-                    if (text != page.Text)
-                        wiki.Edit(page.Title, text, Summary);
-                }
-            }
-        }
-
-        private static string RemoveTransclusionsIn(string pageIn, string templateName)
-        {
-            var templates = ParserUtils.FindTemplates(pageIn, templateName, false);
+            var templates = parser.FindTemplates(pageIn, templateName, false);
             foreach (var template in templates.ToArray())
                 templates.Update(template, "");
             var text = templates.Text;

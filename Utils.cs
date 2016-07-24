@@ -82,5 +82,17 @@ namespace ChieBot
                     yield return array;
             }
         }
+
+        public static bool Contains(this IEnumerable<TextRegion> regions, int offset)
+        {
+            return regions.Any(r => r.Contains(offset));
+        }
+
+        public static string Remove(this string text, IEnumerable<TextRegion> regions)
+        {
+            foreach (var x in regions.OrderByDescending(x => x.Offset).ToArray())
+                text = text.Remove(x.Offset, x.Length);
+            return text;
+        }
     }
 }
