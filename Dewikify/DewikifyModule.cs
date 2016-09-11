@@ -14,6 +14,7 @@ namespace ChieBot.Dewikify
         private const string CategoryName = "Википедия:К быстрому удалению:Девикифицировать";
         private const string TemplateName = "Девикифицировать вхождения";
         private const string Summary = "Автоматическая девикификация ссылок на удаленную страницу.";
+        private const string SummaryWithTitle = "Автодевикификация [[{0}]].";
         private const string RemovalSummary = "[[ВП:КБУ#П1]]";
         private static readonly string[] IncludeGroups = { "sysop", "closer" };
         private static readonly string[] ExcludeGroups = { "bot" };
@@ -68,7 +69,7 @@ namespace ChieBot.Dewikify
                     }
 
                     var allTitles = wiki.GetAllPageNames(dt.Title);
-                    DewikifyLinksTo(wiki, allTitles);
+                    DewikifyLinksTo(wiki, allTitles, dt.Title);
 
                     foreach (var t in allTitles.Skip(1))
                         wiki.Delete(t, RemovalSummary);
@@ -126,7 +127,7 @@ namespace ChieBot.Dewikify
             return user;
         }
 
-        private void DewikifyLinksTo(MediaWiki wiki, string[] titles)
+        private void DewikifyLinksTo(MediaWiki wiki, string[] titles, string originalTitle)
         {
             var parser = new ParserUtils(wiki);
             var linkingPages = wiki.GetLinksTo(titles, DewikifyNamespaceId).Values.SelectMany(x => x).Distinct().ToArray();
@@ -139,7 +140,7 @@ namespace ChieBot.Dewikify
                     text = RemoveTransclusionsIn(text, title, parser);
                 }
                 if (text != page.Text)
-                    wiki.Edit(page.Title, text, Summary);
+                    wiki.Edit(page.Title, text, string.Format(SummaryWithTitle, originalTitle));
             }
         }
 
