@@ -8,7 +8,7 @@ namespace ChieBot
     class Template
     {
         private static readonly Regex TokenRegex = new Regex(@"({{|\||}}|\[\[|\]\])"); // TODO: template args
-        private static readonly Regex ArgRegex = new Regex(@"^(\s*\w+\s*)=(.*)$", RegexOptions.Singleline);
+        private static readonly Regex ArgRegex = new Regex(@"^([\s\w]+)=(.*)$", RegexOptions.Singleline);
 
         public Template()
         {
