@@ -15,6 +15,7 @@ namespace ChieBot.Archiving
             new GeneralArchiveRules("AnimusVox"),
             new GeneralArchiveRules("Milez189") { AgeLimitInDays = 7 },
             new LazyhawkArchiveRules(),
+            new GeneralArchiveRules("Ping08") { AgeLimitInDays = 7 },
         }.ToDictionary(x => x.UserName);
 
         public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
