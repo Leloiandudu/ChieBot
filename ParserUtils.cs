@@ -130,10 +130,10 @@ namespace ChieBot
             if (atOffset == text.Length)
                 return new TextRegion(atOffset, 0);
 
-            var start = text.LastIndexOf('\n', atOffset);
+            var start = text.LastIndexOf('\n', atOffset) + 1;
             var end = text.IndexOf('\n', atOffset);
-            if (end == -1) end = text.Length;
-            return new TextRegion(start, end - start);
+            if (end == -1) end = text.Length - 1;
+            return new TextRegion(start, end - start + 1);
         }
 
         public static TextRegion GetWholeLineAt<T>(PartiallyParsedWikiText<T> text, T atItem)
