@@ -32,7 +32,7 @@ public class MediaWiki
         if (res.Value<string>("result") == "NeedToken")
             res = DoLogin(login, password, res.Value<string>("token"))["login"];
         if (res.Value<string>("result") != "Success")
-            throw new MediaWikiException(res.Value<string>("result"));
+            throw new MediaWikiException(res.Value<string>("result") + "\n" + res.Value<string>("reason"));
     }
 
     private JToken DoLogin(string login, string password, string token = null)
