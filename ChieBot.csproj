@@ -53,7 +53,6 @@
     <Compile Include="Archiving\ArchiveModule.cs" />
     <Compile Include="Archiving\Talk.cs" />
     <Compile Include="Dewikify\DewikifyModule.cs" />
-    <Compile Include="ES\ESModule.cs" />
     <Compile Include="WikiLink.cs" />
     <Compile Include="SignpostMailingList\SMLModule.cs" />
     <Compile Include="Template.cs" />
