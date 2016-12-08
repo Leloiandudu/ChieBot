@@ -36,7 +36,7 @@ namespace ChieBot.DYK
         {
             var titleFormat = (issueDate.Month != archiveDate.Month)
                 ? "{0:d MMMM} — {1:d MMMM}"
-                : "{0:%d} — {1:d MMMM}";
+                : "{0:%d}—{1:d MMMM}";
 
             _wiki.Edit(
                 GetArchiveName(archiveDate),
