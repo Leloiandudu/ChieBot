@@ -259,11 +259,23 @@ public class MediaWiki
         if (result == null || result.Value<string>("action") == "reset")
             return false;
 
-        var pars = new JObject(
-            from par in result.Value<JObject>("params").Values()
-            let parts = par.Value<string>().Split(new[] { '=' }, 2)
-            select new JProperty(parts[0], parts[1])
-        );
+        var pars = result.Value<JObject>("params");
+
+        // old format was
+        // "params": {
+        //     "0": "override=1",
+        //     "1": "autoreview=",
+        //     "2": "expiry=20161222212527",
+        //     "3": "precedence=1"
+        // },
+        if (pars["0"] != null)
+        {
+            pars = new JObject(
+                from par in pars.Values()
+                let parts = par.Value<string>().Split(new[] { '=' }, 2)
+                select new JProperty(parts[0], parts[1])
+            );
+        }
 
         var expiryString = pars.Value<string>("expiry");
         if (expiryString != "infinity" && expiryString != null)
