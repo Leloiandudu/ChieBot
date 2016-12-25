@@ -75,7 +75,7 @@ namespace ChieBot.DYK
 
         public bool ArchiveDraftTalk(DateTime issueDate)
         {
-            const string summary = "Автоматическая архивация обсуждения прошлого выпуска.";
+            const string summary = "Автоматическая архивация обсуждения позапрошлого выпуска.";
             var draft = PopDraft(issueDate, DraftTalkName, false, summary);
             if (draft == null) return false;
 
