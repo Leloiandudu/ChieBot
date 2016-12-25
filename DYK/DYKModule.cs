@@ -30,7 +30,7 @@ namespace ChieBot.DYK
 
             var dyk = new DYK.DidYouKnow(wiki);
             var draft = dyk.PopDraft(nextIssueDate);
-            dyk.ArchiveDraftTalk(nextIssueDate);
+            dyk.ArchiveDraftTalk(prevIssueDate);
             dyk.ArchiveCurrent(prevIssueDate, nextIssueDate);
             dyk.SetCurrent(draft);
             dyk.RemoveMarkedFromNextIssue(nextIssueDate);
