@@ -12,10 +12,12 @@ namespace ChieBot.Archiving
         private readonly IDictionary<string, IArchiveRules> _rules = new IArchiveRules[]
         {
             new LeLoiArchiveRules(),
-            new GeneralArchiveRules("AnimusVox"),
-            new GeneralArchiveRules("Milez189") { AgeLimitInDays = 7 },
-            new LazyhawkArchiveRules(),
-            new GeneralArchiveRules("Ping08") { AgeLimitInDays = 7 },
+            new GeneralArchiveRules("AnimusVox") { AgeLimitInDays = 14 },
+            new GeneralArchiveRules("Milez189"),
+            new GeneralArchiveRules("Lazyhawk") { ArchiveStartYear = 2008 },
+            new GeneralArchiveRules("Ping08"),
+            new GeneralArchiveRules("The222anonim") { ArchiveStartYear = 2014 },
+            new GeneralArchiveRules("Пппзз") { ArchiveStartYear = 2016 },
         }.ToDictionary(x => x.UserName);
 
         public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
@@ -75,7 +77,7 @@ namespace ChieBot.Archiving
             private static int? GetArchiveNamePrefix(DateTime date)
             {
                 if (date.Year <= 2012)
-                    return null;
+                    throw new ArgumentOutOfRangeException();
 
                 if (date.Year == 2013)
                     return 2;
@@ -99,7 +101,7 @@ namespace ChieBot.Archiving
             public GeneralArchiveRules(string userName)
             {
                 _userName = userName;
-                AgeLimitInDays = 14;
+                AgeLimitInDays = 7;
             }
 
             private const string ArchiveName = "Архив/{0}";
@@ -111,30 +113,12 @@ namespace ChieBot.Archiving
 
             public string GetArchiveName(DateTime date)
             {
-                return string.Format(ArchiveName, date.Year);
+                return string.Format(ArchiveName, date.Year - ArchiveStartYear);
             }
 
             public int AgeLimitInDays { get; set; }
-        }
 
-        class LazyhawkArchiveRules : IArchiveRules
-        {
-            private const string ArchiveName = "Архив/{0}";
-
-            public string UserName
-            {
-                get { return "Lazyhawk"; }
-            }
-            
-            public string GetArchiveName(DateTime date)
-            {
-                return string.Format(ArchiveName, date.Year - 2008);
-            }
-
-            public int AgeLimitInDays
-            {
-                get { return 7; }
-            }
+            public int ArchiveStartYear { get; set; }
         }
     }
 }
