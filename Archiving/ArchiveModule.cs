@@ -18,6 +18,7 @@ namespace ChieBot.Archiving
             new GeneralArchiveRules("Ping08"),
             new GeneralArchiveRules("The222anonim") { ArchiveStartYear = 2014 },
             new GeneralArchiveRules("Пппзз") { ArchiveStartYear = 2016 },
+            new GeneralArchiveRules("НоуФрост"),
         }.ToDictionary(x => x.UserName);
 
         public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
