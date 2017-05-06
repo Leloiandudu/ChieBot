@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace ChieBot.DYK
 {
     class NextIssuePreparationHeader : PartiallyParsedWikiText<NextIssuePreparationHeader.Item>
     {
-        private static readonly Regex TimetableItem = new Regex(@"^\s*\|\s*\{\{злвч\|.*?\|(?<date>\d+ \w+)\|\+\}\}.*?\n\s*\|-\s*\n", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase);
+        private static readonly Regex TimetableItem = new Regex(@"^\s*\|\s*\{\{злвч\|.*?\|\s*(?<date>\d+ \w+)\s*\|\+\}\}.*?\n\s*\|-\s*\n", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase);
 
         public NextIssuePreparationHeader(string text)
             : base(text, TimetableItem, x => new Item(x))

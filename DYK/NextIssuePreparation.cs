@@ -50,7 +50,7 @@ namespace ChieBot.DYK
 
         public class Item : Section
         {
-            private static readonly Regex CheckMark = new Regex(@"\{\{злвч\|.*?\|(?<date>\d+ \w+)\|*\}\}", RegexOptions.IgnoreCase);
+            private static readonly Regex CheckMark = new Regex(@"\{\{злвч\|.*?\|\s*(?<date>\d+ \w+)\s*\|*\}\}", RegexOptions.IgnoreCase);
 
             public PartiallyParsedWikiText<Article> Articles { get; set; }
 
