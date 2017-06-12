@@ -50,15 +50,15 @@ namespace ChieBot.RFD
                 var newText = string.Format("<noinclude>{{{{К удалению|{0:yyyy-MM-dd}}}}}</noinclude>", date);
                 var match = RfdTemplateRegex.Match(page.Text);
 
-                if (match.Groups["date"].Length == 0)
-                {
-                    wiki.Edit(page.Title, match.Replace(page.Text, newText), EditSummary);
-                    continue;
-                }
-
                 if (!match.Success)
                 {
                     wiki.Edit(page.Title, newText + "\n", EditSummary, false);
+                    continue;
+                }
+
+                if (match.Groups["date"].Length == 0)
+                {
+                    wiki.Edit(page.Title, match.Replace(page.Text, newText), EditSummary);
                     continue;
                 }
 
