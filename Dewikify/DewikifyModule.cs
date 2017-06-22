@@ -197,7 +197,7 @@ namespace ChieBot.Dewikify
                 if (_template.Args.Count == 2 && _template.Args[1].Name == null && _template.Args[1].Value == DoneArg)
                     return;
 
-                if (_template.Args.Count != 1 || _template.Args[0].Name != null)
+                if (_template.Args.Count != 1 || _template.Args[0].Name != null || string.IsNullOrWhiteSpace(_template.Args[0].Value))
                     _error = "неверый формат аргументов";
             }
 
