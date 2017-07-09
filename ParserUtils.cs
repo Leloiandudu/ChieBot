@@ -100,10 +100,18 @@ namespace ChieBot
                 }
                 else
                 {
-                    var template = Template.ParseAt(text, match.Index);
-                    var item = Tuple.Create(match.Index, template.ToString().Length, template);
-                    items.Add(item);
-                    i = match.Index + item.Item2;
+                    try
+                    {
+                        var template = Template.ParseAt(text, match.Index);
+                        var item = Tuple.Create(match.Index, template.ToString().Length, template);
+                        items.Add(item);
+                        i = match.Index + item.Item2;
+                    }
+                    catch (FormatException)
+                    {
+                        i = match.Index + 1;
+                        continue;
+                    }
                 }
             }
             return new PartiallyParsedWikiText<Template>(text, items);
