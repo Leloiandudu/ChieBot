@@ -6,7 +6,7 @@ namespace ChieBot.DYK
 {
     class NextIssuePreparation
     {
-        private static readonly Regex ArticleRegex = new Regex(@"(\{\{(?<status>" + Regex.Escape(DYKStatusTemplate.TemplateName) + @"\|[^}]+)\}\})?\s*\[\[(?<title>[^\]]+)\]\](,\s*)?", RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase);
+        private static readonly Regex ArticleRegex = new Regex(@"(\{\{(?<status>" + Regex.Escape(DYKStatusTemplate.TemplateName) + @"\|[^}]+)\}\})?\s*\[\[:?(?<title>[^|\]]+)(\|[^\]]+)?\]\](,\s*)?", RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase);
 
         private readonly SectionedArticle<Section> _page;
         public SectionedArticle<NextIssuePreparation.Item> Sections { get; private set; }
