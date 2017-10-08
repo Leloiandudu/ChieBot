@@ -161,6 +161,17 @@ public class MediaWiki
         }, false, titles).Where(p => p.Value != null).ToDictionary(p => p.Key, p => p.Value.Item2.Select(x => x.Value<string>("title")).ToArray());
     }
 
+    public IDictionary<string, string[]> GetTransclusionsOf(string[] titles, int? inNamespace = -1)
+    {
+        return QueryPages("transcludedin", new Dictionary<string, string>
+        {
+            { "tiprop", "title" },
+            { "tinamespace", inNamespace != -1 ? inNamespace.ToString() : null },
+            { "tishow", "!redirect" },
+            { "tilimit", "5000" },
+        }, false, titles).Where(p => p.Value != null).ToDictionary(p => p.Key, p => p.Value.Item2.Select(x => x.Value<string>("title")).ToArray());
+    }
+
     public RevisionInfo[] GetHistory(string page, DateTimeOffset from)
     {
         var revisions = QueryPages("revisions", new Dictionary<string, string>

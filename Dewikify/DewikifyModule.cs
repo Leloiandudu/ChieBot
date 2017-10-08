@@ -69,7 +69,7 @@ namespace ChieBot.Dewikify
                     }
 
                     var allTitles = wiki.GetAllPageNames(dt.Title);
-                    DewikifyLinksTo(wiki, allTitles, dt.Title);
+                    Dewikify(wiki, allTitles, dt.Title);
 
                     foreach (var t in allTitles.Skip(1))
                         wiki.Delete(t, RemovalSummary);
@@ -127,18 +127,22 @@ namespace ChieBot.Dewikify
             return user;
         }
 
-        private void DewikifyLinksTo(MediaWiki wiki, string[] titles, string originalTitle)
+        private void Dewikify(MediaWiki wiki, string[] titles, string originalTitle)
+        {
+            Dewikify(wiki, titles, originalTitle, wiki.GetLinksTo(titles, DewikifyNamespaceId), DewikifyLinkIn);
+            Dewikify(wiki, titles, originalTitle, wiki.GetTransclusionsOf(titles, DewikifyNamespaceId), RemoveTransclusionsIn);
+        }
+
+        private void Dewikify(MediaWiki wiki, string[] titles, string originalTitle, IDictionary<string, string[]> entries, Func<string, string, ParserUtils, string> dewikify)
         {
             var parser = new ParserUtils(wiki);
-            var linkingPages = wiki.GetLinksTo(titles, DewikifyNamespaceId).Values.SelectMany(x => x).Distinct().ToArray();
+            var linkingPages = entries.Values.SelectMany(x => x).Distinct().ToArray();
             foreach (var page in wiki.GetPages(linkingPages).Values)
             {
                 var text = page.Text;
                 foreach (var title in titles)
-                {
-                    text = DewikifyLinkIn(text, title, parser);
-                    text = RemoveTransclusionsIn(text, title, parser);
-                }
+                    text = dewikify(text, title, parser);
+
                 if (text != page.Text)
                     wiki.Edit(page.Title, text, string.Format(SummaryWithTitle, originalTitle));
             }
