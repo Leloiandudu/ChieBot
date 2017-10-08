@@ -138,7 +138,7 @@ namespace ChieBot
             if (atOffset == text.Length)
                 return new TextRegion(atOffset, 0);
 
-            var start = text.LastIndexOf('\n', atOffset) + 1;
+            var start = atOffset == 0 ? 0 : text.LastIndexOf('\n', atOffset - 1) + 1;
             var end = text.IndexOf('\n', atOffset);
             if (end == -1) end = text.Length - 1;
             return new TextRegion(start, end - start + 1);
