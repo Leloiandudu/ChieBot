@@ -15,7 +15,6 @@ namespace ChieBot.Dewikify
         private const string TemplateName = "Девикифицировать вхождения";
         private const string Summary = "Автоматическая девикификация ссылок на удаленную страницу.";
         private const string SummaryWithTitle = "Автодевикификация [[{0}]].";
-        private const string RemovalSummary = "[[ВП:КБУ#П1]]";
         private static readonly string[] IncludeGroups = { "sysop", "closer" };
         private static readonly string[] ExcludeGroups = { "bot" };
         private const string ClosingSectionName = "Итог";
@@ -72,7 +71,7 @@ namespace ChieBot.Dewikify
                     Dewikify(wiki, allTitles, dt.Title);
 
                     foreach (var t in allTitles.Skip(1))
-                        wiki.Delete(t, RemovalSummary);
+                        wiki.Delete(t, string.Format("[[ВП:КБУ#П1]] [[{0}]]", dt.Title));
 
                     dt.IsDone = true;
                     page.Update(dt.Template, dt.Template.ToString());
