@@ -8,7 +8,7 @@ namespace ChieBot
     class Template
     {
         private static readonly Regex TokenRegex = new Regex(@"({{|\||}}|\[\[|\]\])"); // TODO: template args
-        private static readonly Regex ArgRegex = new Regex(@"^([\s\w]+)=(.*)$", RegexOptions.Singleline);
+        private static readonly Regex ArgRegex = new Regex(@"^(.*?)=(.*)$", RegexOptions.Singleline);
 
         public Template()
         {
@@ -118,6 +118,11 @@ namespace ChieBot
                 else
                     Args.Remove(arg);
             }
+        }
+
+        public string this[int index]
+        {
+            get { return Args.Where(a => a.Name == null).Select(a => a.Value).Skip(index).FirstOrDefault(); }
         }
 
         private IEnumerable<Argument> FindByName(string name)

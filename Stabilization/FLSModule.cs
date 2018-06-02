@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using ChieBot.Modules;
 
 namespace ChieBot.Stabilization
@@ -12,20 +9,23 @@ namespace ChieBot.Stabilization
     /// </summary>
     class FLSModule : IModule
     {
+        private const string PageName = "Шаблон:Текущий избранный список";
+        private const string TemplateName = "Заглавная/Избранные списки";
+
         public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
         {
             wiki.Login(credentials.Login, credentials.Password);
-            Stabilize(wiki, "Шаблон:Текущий избранный список");
-        }
 
-        private void Stabilize(MediaWiki wiki, string currentTemplateTitle)
-        {
-            var text = wiki.GetPage(currentTemplateTitle);
-            var link = ParserUtils.FindLinks(text).FirstOrDefault();
-            if (link == null)
-                throw new Exception("Current featured list link not found.");
+            var text = wiki.GetPage(PageName);
+            var template = new ParserUtils(wiki).FindTemplates(text, TemplateName).FirstOrDefault();
+            if (template == null)
+                throw new Exception("Current featured list template not found.");
 
-            wiki.Stabilize(link, "Автоматическая стабилизация избранного списка.", null);
+            for (var i = 0; i < 2; i++)
+            {
+                wiki.Stabilize(template[i].Trim(), "Автоматическая стабилизация избранного списка.", null);
+            }
+
         }
     }
 }
