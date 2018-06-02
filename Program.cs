@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 
 namespace ChieBot
@@ -17,10 +15,13 @@ namespace ChieBot
             var moduleName = globalArgs.Last();
             var module = modules.Get(moduleName);
             if (module == null)
-                throw new Exception(string.Format("Module `{0}` not found", moduleName));
+                throw new Exception($"Module `{moduleName}` not found");
 
-            var ver = typeof(ChieBot.Program).Assembly.GetName().Version;
-            var userAgent = string.Format("ChieBot/{0}.{1} (https://bitbucket.org/leloiandudu/chiebot; leloiandudu@gmail.com)", ver.Major, ver.Minor);
+            var ver = typeof(Program).Assembly.GetName().Version;
+            var userAgent = $"ChieBot/{ver.Major}.{ver.Minor} (https://bitbucket.org/leloiandudu/chiebot; leloiandudu@gmail.com)"
+                + $" .net/4.0";
+            if (Mono.Version != null)
+                userAgent += $" mono/{Mono.Version}";
             
             var wiki = new MediaWiki(new Uri("https://ru.wikipedia.org/w/api.php"), userAgent);
             wiki.ReadOnly = !globalArgs.Contains("-live");
