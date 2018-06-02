@@ -52,7 +52,7 @@ namespace ChieBot.RFD
 
                 if (!match.Success)
                 {
-                    wiki.Edit(page.Title, newText + "\n", EditSummary, false);
+                    wiki.Edit(page.Title, newText, EditSummary, false);
                     continue;
                 }
 
