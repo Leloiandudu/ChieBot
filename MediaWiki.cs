@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using ChieBot;
 
 public class MediaWiki
 {
@@ -372,15 +373,19 @@ public class MediaWiki
 
     private IDictionary<string, Tuple<string, JArray>> QueryPages(string property, IDictionary<string, string> queryArgs, bool nullIfMissing = true, params string[] titles)
     {
-        queryArgs = new Dictionary<string, string>(queryArgs)
-        {
-            { "titles", JoinList(titles) },
-        };
-
         var mergeSettings = new JsonMergeSettings { MergeArrayHandling = MergeArrayHandling.Concat };
         var normalizations = new JObject(titles.Select(t => new JProperty(t, t)));
 
-        var result = RawQueryPages(property, queryArgs);
+        var result = new JObject();
+
+        foreach (var titlesChunk in titles.Partition(500))
+        {
+            result.Merge(RawQueryPages(property, new Dictionary<string, string>(queryArgs)
+            {
+                { "titles", JoinList(titlesChunk) },
+            }), mergeSettings);
+        }
+
         var norm = result.Value<JObject>("normalized");
         if (norm != null)
             normalizations.Merge(norm, mergeSettings);
