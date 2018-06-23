@@ -373,6 +373,9 @@ public class MediaWiki
 
     private IDictionary<string, Tuple<string, JArray>> QueryPages(string property, IDictionary<string, string> queryArgs, bool nullIfMissing = true, params string[] titles)
     {
+        if (titles.Length == 0)
+            return new Dictionary<string, Tuple<string, JArray>>();
+
         var mergeSettings = new JsonMergeSettings { MergeArrayHandling = MergeArrayHandling.Concat };
         var normalizations = new JObject(titles.Select(t => new JProperty(t, t)));
 
