@@ -30,7 +30,7 @@ namespace ChieBot.RFD
             var rfdPage = wiki.GetPage(rfdTitle);
             if (rfdPage == null)
             {
-                wiki.Edit(rfdTitle, "{{ВПКУ-Навигация}}", "Создание и оформление страницы нового дня");
+                wiki.Edit(rfdTitle, "{{КУ-Навигация}}", "Создание и оформление страницы нового дня");
                 return;
             }
 
