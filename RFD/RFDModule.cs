@@ -37,6 +37,7 @@ namespace ChieBot.RFD
             var links = GetArticles(rfdPage).Distinct().ToArray();
             var categories = wiki.GetPagesCategories(links, false);
 
+            var ts = DateTime.UtcNow;
             foreach (var link in wiki.GetPages(links, false))
             {
                 var page = link.Value;
@@ -68,7 +69,7 @@ namespace ChieBot.RFD
                 if (IsNoIncludeOpen(page.Text, match.Index))
                     continue;
 
-                wiki.Edit(page.Title, match.Replace(page.Text, "<noinclude>" + match.Value + "</noinclude>"), EditSummary);
+                wiki.Edit(page.Title, match.Replace(page.Text, "<noinclude>" + match.Value + "</noinclude>"), EditSummary, null, ts);
             }
         }
 
