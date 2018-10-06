@@ -481,7 +481,7 @@ public class MediaWiki
         }
     }
 
-    public void Edit(string page, string contents, string summary, bool? append = null)
+    public void Edit(string page, string contents, string summary, bool? append = null, DateTime? timestamp = null)
     {
         var args = new Dictionary<string, string>
         {
@@ -490,6 +490,7 @@ public class MediaWiki
             { !append.HasValue ? "text" : append.Value ? "appendtext" : "prependtext", contents },
             { "summary", summary },
             { "token", GetCsrfToken() },
+            { "basetimestamp", timestamp == null ? null : timestamp.Value.ToUniversalTime().ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'") },
             { "bot", "" },
         };
 
@@ -597,6 +598,11 @@ public class MediaWiki
             }
             catch (Exception ex)
             {
+                var mex = ex as MediaWikiApiException;
+                if (mex != null && mex.Code == ErrorCode.EditConflict) {
+                    throw;
+                }
+                
                 if (retries == MaxRetries || !sleepTime.HasValue)
                 {
                     Console.Error.WriteLine("After {0} retries: {1}", retries, ex);
@@ -662,6 +668,7 @@ public class MediaWiki
     {
         ReadOnly,
         MissingTitle,
+        EditConflict,
     }
 }
 
@@ -689,7 +696,7 @@ public class MediaWikiApiException : MediaWikiException
         StringCode = code;
 
         MediaWiki.ErrorCode ec;
-        if (Enum.TryParse<MediaWiki.ErrorCode>(code, true, out ec))
+        if (Enum.TryParse(code, true, out ec))
             Code = ec;
     }
 
