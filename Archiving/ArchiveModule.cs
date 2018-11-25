@@ -18,6 +18,7 @@ namespace ChieBot.Archiving
             new GeneralArchiveRules("The222anonim") { ArchiveStartYear = 2014 },
             new GeneralArchiveRules("Пппзз") { ArchiveStartYear = 2016 },
             new GeneralArchiveRules("НоуФрост"),
+            new GeneralArchiveRules("Люба КБ"),
             new DelegateArchiveRules("Meiræ", d => ""),
         }.ToDictionary(x => x.UserName);
 
