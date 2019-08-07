@@ -20,6 +20,7 @@ namespace ChieBot.Archiving
             new GeneralArchiveRules("НоуФрост"),
             new GeneralArchiveRules("Люба КБ"),
             new DelegateArchiveRules("Meiræ", d => ""),
+            new GeneralArchiveRules("Stjn"),
         }.ToDictionary(x => x.UserName);
 
         public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
@@ -28,7 +29,7 @@ namespace ChieBot.Archiving
 
             if (commandLine.Length != 1)
                 throw new Exception("specify user name as a single parameter");
-            
+
             var rules = _rules[commandLine.Single()];
             var talkName = string.Format("Обсуждение участника:{0}", rules.UserName);
 
@@ -52,7 +53,7 @@ namespace ChieBot.Archiving
                 return;
 
             wiki.Edit(archiveName, "\n\n" + removed.FullText, EditSummary, true);
-            wiki.Edit(talkName, talks.FullText, EditSummary);
+            wiki.Edit(talkName, talks.FullText, $"[[{archiveName}|{EditSummary}]]");
         }
 
         private static int GetLeLoyArchiveName(DateTime date)
