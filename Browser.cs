@@ -7,6 +7,11 @@ using System.IO;
 
 class Browser
 {
+    static Browser()
+    {
+        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+    }
+
     private readonly CookieContainer _cookies = new CookieContainer();
 
     public string UserAgent { get; set; }
