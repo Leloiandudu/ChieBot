@@ -136,7 +136,7 @@ namespace ChieBot.Dewikify
         {
             var parser = new ParserUtils(wiki);
             var linkingPages = entries.Values.SelectMany(x => x).Distinct().ToArray();
-            foreach (var page in wiki.GetPages(linkingPages).Values)
+            foreach (var page in wiki.GetPages(linkingPages).Values.Where(p => p != null))
             {
                 var text = page.Text;
                 foreach (var title in titles)

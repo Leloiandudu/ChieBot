@@ -108,7 +108,7 @@ public class MediaWiki
             { "rvprop", "content" },
             { "redirects", followRedirects ? "" : null },
         }, pages).ToDictionary(x => x.Key, x => {
-            if (x.Value == null)
+            if (x.Value == null || x.Value.Item2.Count == 0)
                 return null;
             return new Page
             {
