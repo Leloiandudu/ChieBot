@@ -75,7 +75,16 @@ namespace ChieBot.DYK
             {
                 var status = match.Groups["status"];
                 Title = match.Groups["title"].Value;
-                Status = status.Success ? new DYKStatusTemplate(status.Value) : null;
+
+                try
+                {
+                    if (status.Success)
+                        Status = new DYKStatusTemplate(status.Value);
+                }
+                catch
+                {
+                    Status = null;
+                }
             }
 
             public string Title { get; private set; }
