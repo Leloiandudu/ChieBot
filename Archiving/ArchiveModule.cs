@@ -21,6 +21,8 @@ namespace ChieBot.Archiving
             new GeneralArchiveRules("Люба КБ"),
             new DelegateArchiveRules("Meiræ", d => ""),
             new GeneralArchiveRules("Stjn"),
+            new DelegateArchiveRules("Red Blooded Man", d => ""),
+            new GeneralArchiveRules("Alex parker 1979") { ArchiveStartYear = 2019 },
         }.ToDictionary(x => x.UserName);
 
         public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
