@@ -8,7 +8,7 @@ namespace ChieBot.Modules
 {
     class Modules
     {
-        public delegate void Binder(MediaWiki wiki, string[] commandLine, Credentials credentials);
+        public delegate void Binder(MediaWiki wiki, string[] commandLine);
 
         private readonly IDictionary<string, Binder> _binders = new Dictionary<string, Binder>();
 
@@ -40,10 +40,10 @@ namespace ChieBot.Modules
 
         private static Binder Bind(Type type)
         {
-            return (wiki, args, creds) =>
+            return (wiki, args) =>
             {
                 var module = (IModule)Activator.CreateInstance(type);
-                module.Execute(wiki, args, creds);
+                module.Execute(wiki, args);
             };
         }
 

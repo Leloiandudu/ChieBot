@@ -10,9 +10,8 @@ namespace ChieBot.Stabilization
     /// </summary>
     class ITNSModule : Modules.IModule
     {
-        public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
+        public void Execute(MediaWiki wiki, string[] commandLine)
         {
-            wiki.Login(credentials.Login, credentials.Password);
             Stabilize(wiki, "Шаблон:Актуальные события", DateTimeOffset.Now.AddDays(7));
         }
 

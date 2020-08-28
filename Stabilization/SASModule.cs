@@ -9,9 +9,8 @@ namespace ChieBot.Stabilization
     /// </summary>
     class SASModule : Modules.IModule
     {
-        public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
+        public void Execute(MediaWiki wiki, string[] commandLine)
         {
-            wiki.Login(credentials.Login, credentials.Password);
             Stabilize(wiki, "Википедия:Кандидаты в хорошие статьи/Журнал избраний", new LastDateChecked("sas-lastrev"));
         }
 

@@ -12,9 +12,9 @@ public class MediaWiki
     private readonly Uri _apiUri;
     private string _csrfToken;
 
-    public MediaWiki(Uri apiUri, string userAgent)
+    public MediaWiki(Uri apiUri, Browser browser)
     {
-        _browser = new Browser { UserAgent = userAgent };
+        _browser = browser;
         _apiUri = apiUri;
         ReadOnly = true;
     }
@@ -24,6 +24,16 @@ public class MediaWiki
     private static string JoinList(IEnumerable<string> tokens)
     {
         return string.Join("|", tokens.ToArray());
+    }
+
+    public bool IsLoggedIn()
+    {
+        var res = Query(new Dictionary<string, string>
+        {
+            { "meta", "userinfo" },
+        }).Single();
+
+        return res["userinfo"]["anon"] == null;
     }
 
     public void Login(string login, string password)
@@ -53,7 +63,7 @@ public class MediaWiki
     {
         if (_csrfToken == null)
         {
-            _csrfToken = Query(new Dictionary<string, string> 
+            _csrfToken = Query(new Dictionary<string, string>
             {
                 { "meta", "tokens" },
             }).Single()["tokens"].Value<string>("csrftoken");
@@ -332,7 +342,7 @@ public class MediaWiki
             { "list", "users" },
             { "ususers", JoinList(users) },
             { "usprop", "groups" },
-        }).SelectMany(x => x["users"]).ToDictionary(x => x.Value<string>("name"), x => 
+        }).SelectMany(x => x["users"]).ToDictionary(x => x.Value<string>("name"), x =>
         {
             var groups = x.Value<JArray>("groups");
             if (groups == null)
@@ -542,7 +552,7 @@ public class MediaWiki
     {
         Dump(args);
         return new JObject
-        { 
+        {
             new JProperty(args["action"], new JObject(new JProperty("result", "Success")))
         };
     }
@@ -602,7 +612,7 @@ public class MediaWiki
                 if (mex != null && mex.Code == ErrorCode.EditConflict) {
                     throw;
                 }
-                
+
                 if (retries == MaxRetries || !sleepTime.HasValue)
                 {
                     Console.Error.WriteLine("After {0} retries: {1}", retries, ex);

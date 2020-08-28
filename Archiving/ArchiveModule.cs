@@ -25,10 +25,8 @@ namespace ChieBot.Archiving
             new GeneralArchiveRules("Alex parker 1979") { ArchiveStartYear = 2019 },
         }.ToDictionary(x => x.UserName);
 
-        public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
+        public void Execute(MediaWiki wiki, string[] commandLine)
         {
-            wiki.Login(credentials.Login, credentials.Password);
-
             if (commandLine.Length != 1)
                 throw new Exception("specify user name as a single parameter");
 

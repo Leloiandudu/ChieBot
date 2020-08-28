@@ -56,6 +56,7 @@
     <Compile Include="Archiving\ArchiveModule.cs" />
     <Compile Include="Archiving\Talk.cs" />
     <Compile Include="Dewikify\DewikifyModule.cs" />
+    <Compile Include="CookieJar.cs" />
     <Compile Include="Mono.cs" />
     <Compile Include="WikiLink.cs" />
     <Compile Include="SignpostMailingList\SMLModule.cs" />

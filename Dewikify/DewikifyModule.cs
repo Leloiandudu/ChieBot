@@ -26,10 +26,8 @@ namespace ChieBot.Dewikify
 
         private readonly Dictionary<string, bool> _powerUsers = new Dictionary<string, bool>();
 
-        public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
+        public void Execute(MediaWiki wiki, string[] commandLine)
         {
-            wiki.Login(credentials.Login, credentials.Password);
-
             var allTemplateNames = wiki.GetAllPageNames("Template:" + TemplateName);
 
             var titles = wiki.GetPagesInCategory(CategoryName, TemplateNamespaceId);

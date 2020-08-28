@@ -18,10 +18,8 @@ namespace ChieBot.RFD
         private static readonly Regex RfdTemplateRegex = new Regex(@"\{\{(К удалению|КУ)\|?(?<date>.*?)\}\}", RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
         private static readonly string[] ResultTitles = { "Итог", "Автоитог" };
 
-        public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
+        public void Execute(MediaWiki wiki, string[] commandLine)
         {
-            wiki.Login(credentials.Login, credentials.Password);
-
             var date = DateTime.UtcNow;
             if (commandLine.Length == 1)
                 date = DateTime.Parse(commandLine[0], Utils.DateTimeFormat, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal);

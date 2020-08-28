@@ -5,14 +5,19 @@ using System.Text;
 using System.Net;
 using System.IO;
 
-class Browser
+public class Browser
 {
     static Browser()
     {
         ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
     }
 
-    private readonly CookieContainer _cookies = new CookieContainer();
+    public Browser()
+    {
+        Cookies = new CookieContainer();
+    }
+
+    public CookieContainer Cookies { get; set; }
 
     public string UserAgent { get; set; }
 
@@ -40,7 +45,7 @@ class Browser
     private HttpWebRequest GetRequest(string url)
     {
         var request = (HttpWebRequest)WebRequest.Create(url);
-        request.CookieContainer = _cookies;
+        request.CookieContainer = Cookies;
         request.UserAgent = UserAgent;
         request.ServicePoint.Expect100Continue = false;
         return request;

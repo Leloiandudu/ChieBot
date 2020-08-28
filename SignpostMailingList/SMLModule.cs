@@ -14,10 +14,8 @@ namespace ChieBot.SignpostMailingList
 
         private static readonly Regex RefsRegex = new Regex(@"<ref\s*>.*?</ref>", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
-        public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
+        public void Execute(MediaWiki wiki, string[] commandLine)
         {
-            wiki.Login(credentials.Login, credentials.Password);
-
             var text = GetMailText(wiki);
             if (text == null)
                 return;

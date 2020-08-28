@@ -7,6 +7,6 @@ namespace ChieBot.Modules
 {
     interface IModule
     {
-        void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials);
+        void Execute(MediaWiki wiki, string[] commandLine);
     }
 }

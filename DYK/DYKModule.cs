@@ -18,15 +18,13 @@ namespace ChieBot.DYK
         /// <summary>Period between DYK (in days).</summary>
         const int DYKPeriod = 3;
 
-        public void Execute(MediaWiki wiki, string[] args, Credentials credentials)
+        public void Execute(MediaWiki wiki, string[] args)
         {
             var nextIssueDate = GetNearestIssueDate();
             var prevIssueDate = nextIssueDate.AddDays(-DYKPeriod);
 
             if (!args.Contains("-force") && (Now() - nextIssueDate).Duration() > MaxLeftTime)
                 return;
-
-            wiki.Login(credentials.Login, credentials.Password);
 
             var dyk = new DYK.DidYouKnow(wiki);
             var draft = dyk.PopDraft(nextIssueDate);

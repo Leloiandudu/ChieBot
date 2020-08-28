@@ -10,10 +10,8 @@ namespace ChieBot.DYK
     {
         private const int MinArticleSize = 4 * 1024;
 
-        public void Execute(MediaWiki wiki, string[] commandLine, Credentials credentials)
+        public void Execute(MediaWiki wiki, string[] commandLine)
         {
-            wiki.Login(credentials.Login, credentials.Password);
-
             var preparation = new NextIssuePreparation(wiki.GetPage(DidYouKnow.NextIssueName));
             if (CheckPreparation(preparation, wiki, commandLine.Contains("-onlyNew")))
                 wiki.Edit(DidYouKnow.NextIssueName, preparation.FullText, "Автоматическое обновление страницы.");
