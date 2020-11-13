@@ -16,10 +16,10 @@ public class MediaWiki
     {
         _browser = browser;
         _apiUri = apiUri;
-        ReadOnly = true;
     }
 
-    public bool ReadOnly { get; set; }
+    public bool ReadOnly { get; set; } = true;
+    public bool BotFlag { get; set; } = true;
 
     private static string JoinList(IEnumerable<string> tokens)
     {
@@ -501,7 +501,7 @@ public class MediaWiki
             { "summary", summary },
             { "token", GetCsrfToken() },
             { "basetimestamp", timestamp == null ? null : timestamp.Value.ToUniversalTime().ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'") },
-            { "bot", "" },
+            { "bot", BotFlag ? "" : null },
         };
 
         var result = ExecWrite(args);

@@ -36,7 +36,10 @@ namespace ChieBot.RFD
             var categories = wiki.GetPagesCategories(links, false);
 
             var ts = DateTime.UtcNow;
-            foreach (var link in wiki.GetPages(links, false))
+            var pages = wiki.GetPages(links, false);
+            wiki.BotFlag = false;
+
+            foreach (var link in pages)
             {
                 var page = link.Value;
                 if (page == null)
