@@ -79,7 +79,7 @@ public class MediaWiki
             { "redirects", followRedirects ? "" : null },
         }, page)[page];
 
-        if (revisons == null)
+        if (revisons == null || revisons.Item2.Count == 0)
             return null;
         return revisons.Item2[0].Value<string>("*");
     }
