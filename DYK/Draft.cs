@@ -34,6 +34,10 @@ namespace ChieBot.DYK
 
         protected override bool InitSection(Draft draft)
         {
+            // don't parse remarks section
+            if (draft.Title.Trim() == "== Примечания ==")
+                return true;
+
             var match = DraftHeader.Match(draft.Title);
             DateTime date;
             if (!match.Success || !DYKUtils.TryParseIssueDate(match.Groups["date"].Value, out date))
