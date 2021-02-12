@@ -54,6 +54,10 @@ namespace ChieBot.RFD
 
                 if (!match.Success)
                 {
+                    // if a page starts with a table - add newline after the template or the table will break
+                    if (page.Text.StartsWith("{|"))
+                        newText += "\n";
+
                     wiki.Edit(page.Title, newText, EditSummary, false);
                     continue;
                 }
