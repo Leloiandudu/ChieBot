@@ -16,7 +16,7 @@ namespace ChieBot.Archiving
             new GeneralArchiveRules("Lazyhawk") { ArchiveStartYear = 2008 },
             new GeneralArchiveRules("Ping08"),
             new GeneralArchiveRules("The222anonim") { ArchiveStartYear = 2014 },
-            new GeneralArchiveRules("Пппзз") { ArchiveStartYear = 2016 },
+            new GeneralArchiveRules("Евгений Юрьев") { ArchiveStartYear = 2016 },
             new GeneralArchiveRules("NoFrost"),
             new GeneralArchiveRules("Люба КБ"),
             new DelegateArchiveRules("Meiræ", d => ""),
