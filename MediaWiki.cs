@@ -243,11 +243,16 @@ public class MediaWiki
 
     public RevisionInfo GetRevisionInfo(int revId)
     {
-        return RawQueryPages("revisions", new Dictionary<string, string> {
+        var result = RawQueryPages("revisions", new Dictionary<string, string> {
             { "revids", revId.ToString() },
             { "rvprop", "ids|timestamp|size" },
             { "redirects", "" },
-        })["pages"].Values().Single()["revisions"].Single().ToObject<RevisionInfo>();
+        })["pages"].Values().Single();
+
+        if (result["missing"] != null)
+            return null;
+
+        return result["revisions"].Single().ToObject<RevisionInfo>();
     }
 
     public void Stabilize(string page, string reason, DateTimeOffset? expiry, bool stabilize = true)

@@ -87,11 +87,10 @@ namespace ChieBot.DYK
                 return DateTimeOffset.MinValue; // no revisions for 3 months, thus not valid
 
             // retreiving immediate parent of the first "3 months old" edit
-            // or faking the "creation" with a zero-sized revision 
+            // or faking the "creation" with a zero-sized revision
             var parentId = history.First().ParentId;
-            var parent = parentId == 0
-                ? new MediaWiki.RevisionInfo()
-                : wiki.GetRevisionInfo(parentId);
+            var parent = parentId == 0 ? null : wiki.GetRevisionInfo(parentId);
+            parent = parent ?? new MediaWiki.RevisionInfo();
             parent.Timestamp = oldDate.AddTicks(-1);
 
             // searching for the first revision that makes article non-valid
