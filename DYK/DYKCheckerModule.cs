@@ -12,9 +12,26 @@ namespace ChieBot.DYK
 
         public void Execute(MediaWiki wiki, string[] commandLine)
         {
-            var preparation = new NextIssuePreparation(wiki.GetPage(DidYouKnow.NextIssueName));
-            if (CheckPreparation(preparation, wiki, commandLine.Contains("-onlyNew")))
-                wiki.Edit(DidYouKnow.NextIssueName, preparation.FullText, "Автоматическое обновление страницы.");
+            var retries = 5;
+            for (var i = 0; i < retries; i++)
+            {
+                try
+                {
+                    var page = wiki.GetPageInfo(DidYouKnow.NextIssueName);
+                    var preparation = new NextIssuePreparation(page.Text);
+                    if (CheckPreparation(preparation, wiki, commandLine.Contains("-onlyNew")))
+                        wiki.Edit(DidYouKnow.NextIssueName, preparation.FullText, "Автоматическое обновление страницы.", revId: page.Id);
+                    return;
+                }
+                catch (MediaWikiApiException ex)
+                {
+                    if (ex.Code == MediaWiki.ErrorCode.EditConflict)
+                        continue;
+                    throw;
+                }
+            }
+
+            throw new Exception($"Edit conflict after {retries} retries");
         }
 
         private bool CheckPreparation(NextIssuePreparation preparation, MediaWiki wiki, bool onlyNew)

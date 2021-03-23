@@ -84,6 +84,19 @@ public class MediaWiki
         return revisons.Item2[0].Value<string>("*");
     }
 
+    public PageInfo GetPageInfo(string page, bool followRedirects = false)
+    {
+        var revisons = QueryPages("revisions", new Dictionary<string, string>
+        {
+            { "rvprop", "ids|timestamp|size|content" },
+            { "redirects", followRedirects ? "" : null },
+        }, page)[page];
+
+        if (revisons == null || revisons.Item2.Count == 0)
+            return null;
+        return revisons.Item2.Single().ToObject<PageInfo>();
+    }
+
     public string GetPage(int revId)
     {
         var revisons = RawQueryPages("revisions", new Dictionary<string, string>
@@ -496,7 +509,7 @@ public class MediaWiki
         }
     }
 
-    public void Edit(string page, string contents, string summary, bool? append = null, DateTime? timestamp = null)
+    public void Edit(string page, string contents, string summary, bool? append = null, DateTime? timestamp = null, int? revId = null)
     {
         var args = new Dictionary<string, string>
         {
@@ -506,6 +519,7 @@ public class MediaWiki
             { "summary", summary },
             { "token", GetCsrfToken() },
             { "basetimestamp", timestamp == null ? null : timestamp.Value.ToUniversalTime().ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'") },
+            { "baserevid", revId?.ToString() },
             { "bot", BotFlag ? "" : null },
         };
 
@@ -653,6 +667,12 @@ public class MediaWiki
         public DateTimeOffset Timestamp { get; set; }
 
         public int Size { get; set; }
+    }
+
+    public class PageInfo : RevisionInfo
+    {
+        [JsonProperty("*")]
+        public string Text { get; set; }
     }
 
     public class Page
