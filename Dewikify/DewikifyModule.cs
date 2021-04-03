@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace ChieBot.Dewikify
@@ -33,7 +31,7 @@ namespace ChieBot.Dewikify
             var titles = wiki.GetPagesInCategory(CategoryName, TemplateNamespaceId);
             foreach (var title in titles)
             {
-                var history = wiki.GetHistory(title, DateTimeOffset.MinValue).Reverse().Select(r => new Revision(r)).ToArray();
+                var history = Revision.FromHistory(wiki.GetHistory(title, DateTimeOffset.MinValue));
 
                 LoadUsers(wiki, history);
 
@@ -93,7 +91,7 @@ namespace ChieBot.Dewikify
 
         private void LoadUsers(MediaWiki wiki, Revision[] history)
         {
-            var users = wiki.GetUserGroups(history.Select(h => h.User).Distinct().Except(_powerUsers.Keys).ToArray());
+            var users = wiki.GetUserGroups(history.Select(h => h.Info.User).Distinct().Except(_powerUsers.Keys).ToArray());
             foreach (var user in users)
             {
                 var groups = user.Value;
@@ -104,24 +102,11 @@ namespace ChieBot.Dewikify
         private string GetUser(MediaWiki wiki, DewikifyTemplate template, string[] allTemplateNames, Revision[] history)
         {
             // looking for the first edit where the template did not exist
-            var user = history.First().User;
-            foreach (var revBatch in history.Skip(1).Partition(10))
-            {
-                Revision.LoadText(wiki, revBatch);
-                foreach (var rev in revBatch)
-                {
-                    var exists = new ParserUtils(wiki).FindTemplates(rev.GetText(wiki), allTemplateNames)
-                        .Select(t => new DewikifyTemplate(t))
-                        .Where(t => t.Error == null)
-                        .Any(t => t.Title == template.Title);
 
-                    if (!exists)
-                        return user;
-
-                    user = rev.User;
-                }
-            }
-            return user;
+            return history.SkipWhile(wiki, text => new ParserUtils(wiki).FindTemplates(text, allTemplateNames)
+                .Select(t => new DewikifyTemplate(t))
+                .Where(t => t.Error == null)
+                .Any(t => t.Title == template.Title)).Info.User;
         }
 
         private void Dewikify(MediaWiki wiki, string[] titles, string originalTitle)
@@ -242,40 +227,6 @@ namespace ChieBot.Dewikify
             {
                 if (_error != null)
                     throw new InvalidOperationException("Template is not valid: " + _error);
-            }
-        }
-
-        [DebuggerDisplay("#{Id} {User,nq}")]
-        class Revision
-        {
-            private readonly MediaWiki.RevisionInfo _rev;
-            private string _text;
-
-            public Revision(MediaWiki.RevisionInfo rev)
-            {
-                _rev = rev;
-            }
-
-            public int Id { get { return _rev.Id; } }
-
-            public string User
-            {
-                get { return _rev.User; }
-            }
-
-            public string GetText(MediaWiki wiki)
-            {
-                if (_text == null)
-                    _text = wiki.GetPage(_rev.Id);
-                return _text;
-            }
-
-            public static void LoadText(MediaWiki wiki, IEnumerable<Revision> revisions)
-            {
-                revisions = revisions.Where(r => r._text == null).ToArray();
-                var texts = wiki.GetPages(revisions.Select(r => r.Id).ToArray());
-                foreach (var rev in revisions)
-                    rev._text = texts[rev.Id];
             }
         }
     }

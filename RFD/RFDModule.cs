@@ -17,6 +17,7 @@ namespace ChieBot.RFD
         private static readonly Regex NoIncludeRegex = new Regex(@"<(/)?noinclude(?:\s.*?)?>", RegexOptions.IgnoreCase);
         private static readonly Regex RfdTemplateRegex = new Regex(@"\{\{(К удалению|КУ)\|?(?<date>.*?)\}\}", RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
         private static readonly string[] ResultTitles = { "Итог", "Автоитог" };
+        private const string CategoryName = "Категория:Википедия:Кандидаты на удаление";
 
         public void Execute(MediaWiki wiki, string[] commandLine)
         {
@@ -25,7 +26,9 @@ namespace ChieBot.RFD
                 date = DateTime.Parse(commandLine[0], Utils.DateTimeFormat, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal);
 
             var rfdTitle = string.Format(Utils.DateTimeFormat, RfdTitle, date);
-            var rfdPage = wiki.GetPage(rfdTitle);
+            var history = Revision.FromHistory(wiki.GetHistory(rfdTitle, DateTimeOffset.MinValue) ?? new MediaWiki.RevisionInfo[0]);
+
+            var rfdPage = history.FirstOrDefault()?.GetText(wiki);
             if (rfdPage == null)
             {
                 wiki.Edit(rfdTitle, "{{КУ-Навигация}}", "Создание и оформление страницы нового дня");
@@ -34,6 +37,7 @@ namespace ChieBot.RFD
 
             var links = GetArticles(rfdPage).Distinct().ToArray();
             var categories = wiki.GetPagesCategories(links, false);
+            links = links.Where(title => !categories[title].Contains(CategoryName)).ToArray();
 
             var ts = DateTime.UtcNow;
             var pages = wiki.GetPages(links, false);
@@ -48,6 +52,9 @@ namespace ChieBot.RFD
                 // skip modules for now
                 if (page.Title.StartsWith("Модуль:"))
                     continue;
+
+                var createdBy = history.SkipWhile(wiki, text => GetArticles(text).Contains(link.Key)).Info;
+                if (createdBy.Anonymous) continue;
 
                 var newText = string.Format("<noinclude>{{{{К удалению|{0:yyyy-MM-dd}}}}}</noinclude>", date);
                 var match = RfdTemplateRegex.Match(page.Text);

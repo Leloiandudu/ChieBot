@@ -667,6 +667,11 @@ public class MediaWiki
         public DateTimeOffset Timestamp { get; set; }
 
         public int Size { get; set; }
+
+        public bool Anonymous => Anon != null;
+
+        [JsonProperty]
+        private string Anon { get; set; }
     }
 
     public class PageInfo : RevisionInfo
