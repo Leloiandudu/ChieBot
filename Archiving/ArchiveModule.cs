@@ -23,6 +23,8 @@ namespace ChieBot.Archiving
             new GeneralArchiveRules("Stjn"),
             new GeneralArchiveRules("Red Blooded Man") { ArchiveStartYear = 2019 },
             new GeneralArchiveRules("Alex parker 1979") { ArchiveStartYear = 2019 },
+            new GeneralArchiveRules("Putnik") { AgeLimitInDays = 90 },
+            new GeneralArchiveRules("Iniquity") { ArchiveStartYear = 2014 },
         }.ToDictionary(x => x.UserName);
 
         public void Execute(MediaWiki wiki, string[] commandLine)
