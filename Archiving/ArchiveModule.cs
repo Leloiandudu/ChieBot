@@ -10,7 +10,7 @@ namespace ChieBot.Archiving
 
         private readonly IDictionary<string, IArchiveRules> _rules = new IArchiveRules[]
         {
-            new DelegateArchiveRules("Ле Лой", d => GetLeLoyArchiveName(d).ToString()),
+            new DelegateArchiveRules("Ле Лой", d => $"Архив/{GetLeLoyArchiveName(d)}"),
             new GeneralArchiveRules("AnimusVox") { AgeLimitInDays = 14 },
             new GeneralArchiveRules("Milez189"),
             new GeneralArchiveRules("Lazyhawk") { ArchiveStartYear = 2008 },
@@ -19,12 +19,13 @@ namespace ChieBot.Archiving
             new GeneralArchiveRules("Евгений Юрьев") { ArchiveStartYear = 2016 },
             new GeneralArchiveRules("NoFrost"),
             new GeneralArchiveRules("Люба КБ"),
-            new DelegateArchiveRules("Meiræ", d => ""),
+            new DelegateArchiveRules("Meiræ", d => "Архив"),
             new GeneralArchiveRules("Stjn"),
             new GeneralArchiveRules("Red Blooded Man") { ArchiveStartYear = 2019 },
             new GeneralArchiveRules("Alex parker 1979") { ArchiveStartYear = 2019 },
             new GeneralArchiveRules("Putnik") { AgeLimitInDays = 90 },
             new GeneralArchiveRules("Iniquity") { ArchiveStartYear = 2014 },
+            new DelegateArchiveRules("Рейму Хакурей", d => d.Year.ToString()) { AgeLimitInDays = 30 },
         }.ToDictionary(x => x.UserName);
 
         public void Execute(MediaWiki wiki, string[] commandLine)
@@ -93,12 +94,7 @@ namespace ChieBot.Archiving
 
             public string UserName { get { return _userName; } }
 
-            protected abstract string GetArchiveName(DateTime date);
-
-            string IArchiveRules.GetArchiveName(DateTime date)
-            {
-                return "Архив" + GetArchiveName(date);
-            }
+            public abstract string GetArchiveName(DateTime date);
         }
 
         class DelegateArchiveRules : ArchiveRulesBase
@@ -111,7 +107,7 @@ namespace ChieBot.Archiving
                 _getArchiveName = getArchiveName;
             }
 
-            protected override string GetArchiveName(DateTime date)
+            public override string GetArchiveName(DateTime date)
             {
                 return _getArchiveName(date);
             }
@@ -124,9 +120,9 @@ namespace ChieBot.Archiving
             {
             }
 
-            protected override string GetArchiveName(DateTime date)
+            public override string GetArchiveName(DateTime date)
             {
-                return "/" + (date.Year - ArchiveStartYear);
+                return "Архив/" + (date.Year - ArchiveStartYear);
             }
 
             public int ArchiveStartYear { get; set; }
