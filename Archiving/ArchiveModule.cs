@@ -10,7 +10,7 @@ namespace ChieBot.Archiving
 
         private readonly IDictionary<string, IArchiveRules> _rules = new IArchiveRules[]
         {
-            new DelegateArchiveRules("Ле Лой", d => $"Архив/{GetLeLoyArchiveName(d)}"),
+            new DelegateArchiveRules("Ле Лой", d => $"Архив{GetLeLoyArchiveName(d)}"),
             new GeneralArchiveRules("AnimusVox") { AgeLimitInDays = 14 },
             new GeneralArchiveRules("Milez189"),
             new GeneralArchiveRules("Lazyhawk") { ArchiveStartYear = 2008 },
