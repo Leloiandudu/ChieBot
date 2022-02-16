@@ -616,7 +616,7 @@ public class MediaWiki
                 }
                 catch (System.Net.WebException)
                 {
-                    sleepTime = TimeSpan.FromSeconds(5);
+                    sleepTime = TimeSpan.FromMinutes(1);
                     throw;
                 }
                 catch (System.IO.IOException)
