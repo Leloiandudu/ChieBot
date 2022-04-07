@@ -196,20 +196,36 @@ public class MediaWiki
         }, false, titles).Where(p => p.Value != null).ToDictionary(p => p.Key, p => p.Value.Item2.Select(x => x.Value<string>("title")).ToArray());
     }
 
-    public RevisionInfo[] GetHistory(string page, DateTimeOffset from)
+    public RevisionInfo[] GetHistory(string page, DateTimeOffset? from = null, DateTimeOffset? to = null, bool includeContents = false, bool includeParsedComment = false)
     {
         var revisions = QueryPages("revisions", new Dictionary<string, string>
         {
-            { "rvprop", "ids|timestamp|size|flags|user" },
+            { "rvprop", "ids|timestamp|size|flags|user" + (includeContents ? "|content" : "") + (includeParsedComment ? "|parsedcomment" : "") },
             { "rvlimit", "5000" },
             { "rvdir", "newer" },
-            { "rvstart", from.ToUniversalTime().ToString("s") },
             { "redirects", "" },
+            { "rvstart", from?.UtcDateTime.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ssK") },
+            { "rvend", to?.UtcDateTime.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ssK") },
         }, page)[page];
 
         if (revisions == null)
             return null;
         return revisions.Item2.ToObject<RevisionInfo[]>();
+    }
+
+    public void HideRevisions(int[] ids, bool hideComment, bool hideUser)
+    {
+        foreach (var chunk in ids.Partition(500))
+        {
+            ExecWrite(new Dictionary<string, string>
+            {
+                ["action"] = "revisiondelete",
+                ["type"] = "revision",
+                ["ids"] = JoinList(chunk.Select(x => x.ToString())),
+                ["hide"] = JoinList(new[] { hideUser ? "user" : null, hideComment ? "comment" : null }.Where(x => x != null)),
+                ["token"] = GetCsrfToken(),
+            });
+        }
     }
 
     /// <summary>
@@ -668,10 +684,21 @@ public class MediaWiki
 
         public int Size { get; set; }
 
-        public bool Anonymous => Anon != null;
+        [JsonProperty("Anon")]
+        [JsonConverter(typeof(WikiBoolConverter))]
+        public bool Anonymous { get; set; }
 
-        [JsonProperty]
-        private string Anon { get; set; }
+        [JsonConverter(typeof(WikiBoolConverter))]
+        public bool UserHidden { get; set; }
+
+        [JsonConverter(typeof(WikiBoolConverter))]
+        public bool CommentHidden { get; set; }
+
+        public string ParsedComment { get; set; }
+
+        /// <summary>Ревизорское скрытие</summary>
+        [JsonConverter(typeof(WikiBoolConverter))]
+        public bool Suppressed { get; set; }
     }
 
     public class PageInfo : RevisionInfo
@@ -744,4 +771,22 @@ public class MediaWikiApiException : MediaWikiException
       System.Runtime.Serialization.SerializationInfo info,
       System.Runtime.Serialization.StreamingContext context)
         : base(info, context) { }
+}
+
+class WikiBoolConverter : JsonConverter
+{
+    public override bool CanConvert(Type objectType) => objectType == typeof(bool);
+
+    public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+    {
+        if (reader.TokenType != JsonToken.String)
+            throw new JsonSerializationException($"Expected a string, found: {reader.TokenType}");
+
+        return true;
+    }
+
+    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+    {
+        throw new NotSupportedException();
+    }
 }
