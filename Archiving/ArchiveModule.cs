@@ -25,6 +25,7 @@ namespace ChieBot.Archiving
             new GeneralArchiveRules("Putnik") { AgeLimitInDays = 90 },
             new GeneralArchiveRules("Iniquity") { ArchiveStartYear = 2014 },
             new DelegateArchiveRules("Рейму Хакурей", d => d.Year.ToString()) { AgeLimitInDays = 30 },
+            new GeneralArchiveRules("Birulik") { ArchiveStartYear = 2017, AgeLimitInDays = 90 },
         }.ToDictionary(x => x.UserName);
 
         public void Execute(MediaWiki wiki, string[] commandLine)
