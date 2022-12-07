@@ -281,7 +281,7 @@ public class MediaWiki
         if (result["missing"] != null)
             return null;
 
-        return result["revisions"].Single().ToObject<RevisionInfo>();
+        return result["revisions"]?.Single().ToObject<RevisionInfo>();
     }
 
     public void Stabilize(string page, string reason, DateTimeOffset? expiry, bool stabilize = true)
