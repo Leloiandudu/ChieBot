@@ -54,6 +54,17 @@ namespace ChieBot.HideHistory
                     wiki.HideRevisions(ids, hideComment: hide.Comment, hideUser: hide.User);
             }
 
+            var protection = wiki.GetProtection(title);
+            if (!protection.TryGetValue(MediaWiki.ProtectionType.Edit, out var p) || (p.Level == MediaWiki.ProtectionLevel.AutoConfirmed && p.Expiry.HasValue))
+            {
+                protection[MediaWiki.ProtectionType.Edit] = new MediaWiki.ProtectionInfo
+                {
+                    Level = MediaWiki.ProtectionLevel.AutoConfirmed
+                };
+
+                wiki.Protect(title, "Автоматическая полузащита статьи из списка потенциально опасных для редакторов", protection);
+            }
+
             return true;
         }
 

@@ -213,6 +213,37 @@ public class MediaWiki
         return revisions.Item2.ToObject<RevisionInfo[]>();
     }
 
+    public Dictionary<ProtectionType, ProtectionInfo> GetProtection(string page)
+    {
+        var result = RawQueryPages("info", new Dictionary<string, string>
+        {
+            ["titles"] = page,
+            ["inprop"] = "protection",
+            ["redirects"] = "",
+        })["pages"].Values().Single();
+
+        if (result["missing"] != null)
+            return null;
+
+        var ser = JsonSerializer.CreateDefault();
+        ser.Converters.Add(new WikiExpiryConverter());
+        return result["protection"].ToDictionary(x => x["type"].ToObject<ProtectionType>(ser), x => x.ToObject<ProtectionInfo>(ser));
+    }
+
+    public void Protect(string page, string reason, Dictionary<ProtectionType, ProtectionInfo> protections)
+    {
+        ExecWrite(new Dictionary<string, string>
+        {
+            ["title"] = page,
+            ["reason"] = reason,
+            ["action"] = "protect",
+            ["expiry"] = JoinList(protections.Select(x => WikiExpiryConverter.ToString(x.Value.Expiry))),
+            ["protections"] = JoinList(protections.Select(x =>
+                $"{x.Key.ToString().ToLowerInvariant()}={x.Value.Level.ToString().ToLowerInvariant()}")),
+            ["token"] = GetCsrfToken(),
+        });
+    }
+
     public void HideRevisions(int[] ids, bool hideComment, bool hideUser)
     {
         foreach (var chunk in ids.Partition(500))
@@ -701,6 +732,26 @@ public class MediaWiki
         public bool Suppressed { get; set; }
     }
 
+    public class ProtectionInfo
+    {
+        public ProtectionLevel Level { get; set; }
+
+        [JsonConverter(typeof(WikiExpiryConverter))]
+        public DateTimeOffset? Expiry { get; set; }
+    }
+
+    public enum ProtectionType
+    {
+        Edit,
+        Move,
+    }
+
+    public enum ProtectionLevel
+    {
+        AutoConfirmed,
+        SysOp,
+    }
+
     public class PageInfo : RevisionInfo
     {
         [JsonProperty("*")]
@@ -789,4 +840,33 @@ class WikiBoolConverter : JsonConverter
     {
         throw new NotSupportedException();
     }
+}
+
+class WikiExpiryConverter : JsonConverter
+{
+    public override bool CanConvert(Type objectType) =>
+        (Nullable.GetUnderlyingType(objectType) ?? objectType) == typeof(DateTimeOffset);
+
+    public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+    {
+        if (reader.TokenType == JsonToken.Date)
+            return new DateTimeOffset((DateTime)reader.Value);
+
+        if (reader.TokenType != JsonToken.String)
+            throw new JsonSerializationException($"Expected a string, found: {reader.TokenType}");
+
+        var value = (string)reader.Value;
+        if (value == "infinity")
+            return null;
+
+        return DateTimeOffset.Parse(value);
+    }
+
+    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+    {
+        writer.WriteValue(ToString((DateTimeOffset?)value));
+    }
+
+    public static string ToString(DateTimeOffset? expiry) =>
+        expiry == null ? "infinity" : expiry.Value.ToUniversalTime().ToString("s") + "Z";
 }
