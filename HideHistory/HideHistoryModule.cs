@@ -35,7 +35,7 @@ namespace ChieBot.HideHistory
                 {
                     x.Id,
                     HideUser = !x.UserHidden,
-                    HideComment = x.CommentHidden ? false : HideComment(x.ParsedComment),
+                    HideComment = !x.CommentHidden && HideComment(x.ParsedComment, x.User),
                 })
                 .ToArray();
 
@@ -68,10 +68,10 @@ namespace ChieBot.HideHistory
             return true;
         }
 
-        private bool HideComment(string html)
+        private bool HideComment(string html, string user)
         {
             html = Uri.UnescapeDataString(html);
-            return html.Contains("/wiki/Служебная:Вклад/") || html.Contains("/wiki/Участник:");
+            return html.Contains("/wiki/Служебная:Вклад/") || html.Contains("/wiki/Участник:") || html.StartsWith($"{user} ");
         }
     }
 }
