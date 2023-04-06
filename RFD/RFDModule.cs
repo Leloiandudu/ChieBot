@@ -16,6 +16,7 @@ namespace ChieBot.RFD
         private const string EditSummary = "Автоматическая простановка шаблона КУ.";
         private static readonly Regex NoIncludeRegex = new Regex(@"<(/)?noinclude(?:\s.*?)?>", RegexOptions.IgnoreCase);
         private static readonly Regex RfdTemplateRegex = new Regex(@"\{\{(К удалению|КУ)\|?(?<date>.*?)\}\}", RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
+        private static readonly Regex RedirectRegex = new Regex(@"^\s*#(redirect|перенаправление)", RegexOptions.IgnoreCase | RegexOptions.Singleline);
         private static readonly string[] ResultTitles = { "Итог", "Автоитог" };
         private const string CategoryName = "Категория:Википедия:Кандидаты на удаление";
 
@@ -65,7 +66,11 @@ namespace ChieBot.RFD
                     if (page.Text.StartsWith("{|"))
                         newText += "\n";
 
-                    wiki.Edit(page.Title, newText, EditSummary, false);
+                    var isRedirect = RedirectRegex.IsMatch(page.Text);
+                    if (isRedirect)
+                        newText = "\n" + newText;
+
+                    wiki.Edit(page.Title, newText, EditSummary, isRedirect);
                     continue;
                 }
 
