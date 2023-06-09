@@ -749,6 +749,7 @@ public class MediaWiki
     public enum ProtectionLevel
     {
         AutoConfirmed,
+        EditAutoReviewProtected,
         SysOp,
     }
 
