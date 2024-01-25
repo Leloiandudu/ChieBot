@@ -51,7 +51,7 @@ public class Browser
         return request;
     }
 
-    private string ArgsToString(IDictionary<string, string> args)
+    private static string ArgsToString(IDictionary<string, string> args)
     {
         return string.Join("&", (
             from p in args
@@ -64,8 +64,20 @@ public class Browser
     {
         const int maxLength = 32766;
         var sb = new StringBuilder();
-        for (int i = 0; i < str.Length; i += maxLength)
-            sb.Append(Uri.EscapeDataString(str.Substring(i, Math.Min(str.Length - i, maxLength))));
+        for (int i = 0; i < str.Length;)
+        {
+            var len = Math.Min(str.Length - i, maxLength);
+            while (len >= 0 && str[len - 1] >= 0xD800 && str[len - 1] < 0xDBFF)
+                len--;
+
+            if (len == 0)
+                throw new ArgumentException("Can't find the end of the surrogate at " + i);
+
+            var chunk = str.Substring(i, len);
+            i += len;
+
+            sb.Append(Uri.EscapeDataString(chunk));
+        }
         return sb.ToString();
     }
 

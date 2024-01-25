@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace ChieBot
 {
-    [DebuggerDisplay("#{Id} {User,nq}")]
+    [DebuggerDisplay("#{_info.Id} {_info.User,nq}")]
     class Revision
     {
         private readonly MediaWiki.RevisionInfo _info;
