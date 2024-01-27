@@ -12,6 +12,7 @@ namespace ChieBot
         static void Main(string[] args)
         {
             ServicePointManager.ServerCertificateValidationCallback = LetsEncryptWorkaround;
+            ServicePointManager.DnsRefreshTimeout = 0; // disable DNS cache
 
             var moduleArgs = args.SkipWhile(a => a.StartsWith("-")).Skip(1).ToArray();
             var globalArgs = args.Take(args.Length - moduleArgs.Length).ToArray();
