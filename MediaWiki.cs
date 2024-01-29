@@ -661,9 +661,10 @@ public class MediaWiki
                         sleepTime = TimeSpan.FromSeconds(30);
                     throw;
                 }
-                catch (System.Net.WebException)
+                catch (System.Net.WebException wex)
                 {
                     sleepTime = TimeSpan.FromMinutes(1);
+                    Console.Error.WriteLine($"{DateTime.UtcNow.ToLongTimeString()} Got '{wex.Message}', waiting for {sleepTime}");
                     throw;
                 }
                 catch (System.IO.IOException)
