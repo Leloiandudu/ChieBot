@@ -644,6 +644,7 @@ public class MediaWiki
 
     private JToken Exec(IDictionary<string, string> args)
     {
+        var log = "";
         const int MaxRetries = 5;
         for (int retries = 1; ; retries++)
         {
@@ -664,7 +665,7 @@ public class MediaWiki
                 catch (System.Net.WebException wex)
                 {
                     sleepTime = TimeSpan.FromMinutes(1);
-                    Console.Error.WriteLine($"{DateTime.UtcNow.ToLongTimeString()} Got '{wex.Message}', waiting for {sleepTime}");
+                    log += $"{DateTime.UtcNow.ToLongTimeString()} Got '{wex.Message}', waiting for {sleepTime}\n";
                     throw;
                 }
                 catch (System.IO.IOException)
@@ -680,9 +681,22 @@ public class MediaWiki
                     throw;
                 }
 
+                if (mex != null && mex.Code == ErrorCode.Blocked)
+                {
+                    Console.Error.Write("Blocked. IsLoggedIn(): ");
+                    try
+                    {
+                        Console.Error.WriteLine(IsLoggedIn());
+                    }
+                    catch (Exception ex2)
+                    {
+                        Console.Error.WriteLine(ex2);
+                    }
+                }
+
                 if (retries == MaxRetries || !sleepTime.HasValue)
                 {
-                    Console.Error.WriteLine("After {0} retries: {1}", retries, ex);
+                    Console.Error.WriteLine($"{log}After {retries} retries: {ex}");
                     Console.Error.WriteLine("Query was:");
                     Dump(args, Console.Error.WriteLine);
                     throw;
@@ -789,6 +803,7 @@ public class MediaWiki
         ReadOnly,
         MissingTitle,
         EditConflict,
+        Blocked,
     }
 }
 
