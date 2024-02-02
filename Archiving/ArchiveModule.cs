@@ -46,7 +46,7 @@ namespace ChieBot.Archiving
                 }
 
                 if (!removed.Any())
-                    return;
+                    continue;
 
                 var archiveName = string.Format("{0}/{1}", talkName, rules.GetArchiveName(now.Date));
                 wiki.Edit(archiveName, "\n\n" + removed.FullText, EditSummary, true);
