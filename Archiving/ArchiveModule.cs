@@ -7,33 +7,33 @@ namespace ChieBot.Archiving
     {
         private const string EditSummary = "Автоматический аркайвинг";
 
-        private readonly ArchiveRules[] _rules = new[]
+        private readonly ArchiveRule[] _rules = new[]
         {
-            Rules("Ле Лой", Daily, GetLeLoyArchiveName),
-            Rules("AnimusVox", Weekly, ageLimitInDays: 14),
-            Rules("Lazyhawk", Daily, SimpleArchiveName(2008)),
-            Rules("Ping08", Weekly),
-            Rules("The222anonim", Weekly, SimpleArchiveName(2014)),
-            Rules("Meiræ", Weekly, d => "Архив"),
-            Rules("Stjn", TriMonthly),
-            Rules("Alex parker 1979", Weekly, SimpleArchiveName(2019)),
-            Rules("Putnik", Weekly, ageLimitInDays:90),
-            Rules("Birulik", TriMonthly, SimpleArchiveName(2017), ageLimitInDays: 90),
+            Rule("Ле Лой", Daily, GetLeLoyArchiveName),
+            Rule("AnimusVox", Weekly, ageLimitInDays: 14),
+            Rule("Lazyhawk", Daily, SimpleArchiveName(2008)),
+            Rule("Ping08", Weekly),
+            Rule("The222anonim", Weekly, SimpleArchiveName(2014)),
+            Rule("Meiræ", Weekly, d => "Архив"),
+            Rule("Stjn", TriMonthly),
+            Rule("Alex parker 1979", Weekly, SimpleArchiveName(2019)),
+            Rule("Putnik", Weekly, ageLimitInDays:90),
+            Rule("Birulik", TriMonthly, SimpleArchiveName(2017), ageLimitInDays: 90),
         };
 
         public void Execute(MediaWiki wiki, string[] commandLine)
         {
             var now = DateTimeOffset.UtcNow;
 
-            foreach (var rules in _rules)
+            foreach (var rule in _rules)
             {
-                if (!rules.ShouldRun(now.Date))
+                if (!rule.ShouldRun(now.Date))
                     continue;
 
-                var talkName = string.Format("Обсуждение участника:{0}", rules.UserName);
+                var talkName = string.Format("Обсуждение участника:{0}", rule.UserName);
 
                 var talks = new Talks(wiki.GetPage(talkName));
-                var dayX = now.AddDays(-rules.AgeLimitInDays);
+                var dayX = now.AddDays(-rule.AgeLimitInDays);
                 var removed = new Talks();
 
                 foreach (var talk in talks.ToArray())
@@ -48,15 +48,15 @@ namespace ChieBot.Archiving
                 if (!removed.Any())
                     continue;
 
-                var archiveName = string.Format("{0}/{1}", talkName, rules.GetArchiveName(now.Date));
+                var archiveName = string.Format("{0}/{1}", talkName, rule.GetArchiveName(now.Date));
                 wiki.Edit(archiveName, "\n\n" + removed.FullText, EditSummary, true);
                 wiki.Edit(talkName, talks.FullText, $"[[{archiveName}|{EditSummary}]]");
             }
         }
 
-        class ArchiveRules
+        class ArchiveRule
         {
-            public ArchiveRules(string userName, Predicate<DateTime> shouldRun, Func<DateTime, string> getArchiveName = null, int ageLimitInDays = 7)
+            public ArchiveRule(string userName, Predicate<DateTime> shouldRun, Func<DateTime, string> getArchiveName = null, int ageLimitInDays = 7)
             {
                 UserName = userName;
                 ShouldRun = shouldRun;
@@ -70,8 +70,8 @@ namespace ChieBot.Archiving
             public Func<DateTime, string> GetArchiveName { get; }
         }
 
-        private static ArchiveRules Rules(string userName, Predicate<DateTime> shouldRun, Func<DateTime, string> getArchiveName = null, int ageLimitInDays = 7)
-            => new ArchiveRules(userName, shouldRun, getArchiveName, ageLimitInDays);
+        private static ArchiveRule Rule(string userName, Predicate<DateTime> shouldRun, Func<DateTime, string> getArchiveName = null, int ageLimitInDays = 7)
+            => new ArchiveRule(userName, shouldRun, getArchiveName, ageLimitInDays);
 
         private static bool Daily(DateTime _) => true;
         private static bool Weekly(DateTime d) => d.DayOfWeek == DayOfWeek.Wednesday;
