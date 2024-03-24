@@ -19,6 +19,7 @@ namespace ChieBot.Archiving
             Rule("Alex parker 1979", Weekly, SimpleArchiveName(2019)),
             Rule("Putnik", Weekly, ageLimitInDays:90),
             Rule("Birulik", TriMonthly, SimpleArchiveName(2017), ageLimitInDays: 90),
+            Rule("Megitsune-chan", Daily),
         };
 
         public void Execute(MediaWiki wiki, string[] commandLine)
