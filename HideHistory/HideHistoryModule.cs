@@ -8,7 +8,7 @@ namespace ChieBot.HideHistory
     {
         private const string ListPage = "Участник:Lê Lợi (bot)/He protecc";
 
-        public void Execute(MediaWiki wiki, string[] commandLine)
+        public void Execute(IMediaWiki wiki, string[] commandLine)
         {
             var titles = wiki.GetPage(ListPage).Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
             var newTitles = new List<string>(titles.Length);
@@ -23,7 +23,7 @@ namespace ChieBot.HideHistory
                 wiki.Edit(ListPage, string.Join("\n", newTitles), "Автоматическое удаление удаленных статей");
         }
 
-        private bool HideHistory(MediaWiki wiki, string title)
+        private bool HideHistory(IMediaWiki wiki, string title)
         {
             var history = wiki.GetHistory(title, includeParsedComment: true);
             if (history == null)

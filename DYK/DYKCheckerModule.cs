@@ -10,7 +10,7 @@ namespace ChieBot.DYK
     {
         private const int MinArticleSize = 4 * 1024;
 
-        public void Execute(MediaWiki wiki, string[] commandLine)
+        public void Execute(IMediaWiki wiki, string[] commandLine)
         {
             var retries = 5;
             for (var i = 0; i < retries; i++)
@@ -34,7 +34,7 @@ namespace ChieBot.DYK
             throw new Exception($"Edit conflict after {retries} retries");
         }
 
-        private bool CheckPreparation(NextIssuePreparation preparation, MediaWiki wiki, bool onlyNew)
+        private bool CheckPreparation(NextIssuePreparation preparation, IMediaWiki wiki, bool onlyNew)
         {
             var hasChanges = false;
 
@@ -64,7 +64,7 @@ namespace ChieBot.DYK
 
         private static readonly Regex ForDeletionRegex = CreateTemlateRegex("к удалению");
 
-        private DYKStatusTemplate CheckStatus(MediaWiki wiki, string title)
+        private DYKStatusTemplate CheckStatus(IMediaWiki wiki, string title)
         {
             var text = wiki.GetPage(title, followRedirects: true);
 
@@ -78,7 +78,7 @@ namespace ChieBot.DYK
                 return null;
         }
 
-        private DYKStatusTemplate CheckValidness(MediaWiki wiki, string title)
+        private DYKStatusTemplate CheckValidness(IMediaWiki wiki, string title)
         {
             var validThrough = GetValidThroughTime(wiki, title, DateTimeOffset.UtcNow);
             return validThrough == null
@@ -92,7 +92,7 @@ namespace ChieBot.DYK
             return new Regex(@"\{\{\s*(" + names + @")\s*(\||\}\})", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture);
         }
 
-        private static DateTimeOffset? GetValidThroughTime(MediaWiki wiki, string title, DateTimeOffset date)
+        private static DateTimeOffset? GetValidThroughTime(IMediaWiki wiki, string title, DateTimeOffset date)
         {
             var oldDate = date.AddMonths(-3);
             var history = wiki.GetHistory(title, oldDate);

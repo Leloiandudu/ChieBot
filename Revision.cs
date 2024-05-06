@@ -18,7 +18,7 @@ namespace ChieBot
 
         public MediaWiki.RevisionInfo Info => _info;
 
-        public string GetText(MediaWiki wiki)
+        public string GetText(IMediaWiki wiki)
         {
             if (_text == null)
                 _text = wiki.GetPage(_info.Id);
@@ -30,7 +30,7 @@ namespace ChieBot
             return infos.OrderByDescending(r => r.Id).Select(r => new Revision(r)).ToArray();
         }
 
-        public static void LoadText(MediaWiki wiki, IEnumerable<Revision> revisions)
+        public static void LoadText(IMediaWiki wiki, IEnumerable<Revision> revisions)
         {
             revisions = revisions.Where(r => r._text == null).ToArray();
             var texts = wiki.GetPages(revisions.Select(r => r.Info.Id).ToArray());
@@ -41,7 +41,7 @@ namespace ChieBot
 
     static class RevisionExtensions
     {
-        public static Revision SkipWhile(this IReadOnlyCollection<Revision> history, MediaWiki wiki, Predicate<string> skip)
+        public static Revision SkipWhile(this IReadOnlyCollection<Revision> history, IMediaWiki wiki, Predicate<string> skip)
         {
             var result = history.First();
             foreach (var revBatch in history.Skip(1).Partition(10))

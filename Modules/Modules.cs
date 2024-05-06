@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace ChieBot.Modules
 {
     class Modules
     {
-        public delegate void Binder(MediaWiki wiki, string[] commandLine);
+        public delegate void Binder(IMediaWiki wiki, string[] commandLine);
 
         private readonly IDictionary<string, Binder> _binders = new Dictionary<string, Binder>();
 

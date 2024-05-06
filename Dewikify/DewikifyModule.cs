@@ -24,7 +24,7 @@ namespace ChieBot.Dewikify
 
         private readonly Dictionary<string, bool> _powerUsers = new Dictionary<string, bool>();
 
-        public void Execute(MediaWiki wiki, string[] commandLine)
+        public void Execute(IMediaWiki wiki, string[] commandLine)
         {
             var allTemplateNames = wiki.GetAllPageNames("Template:" + TemplateName);
 
@@ -89,7 +89,7 @@ namespace ChieBot.Dewikify
                 .LastOrDefault();
         }
 
-        private void LoadUsers(MediaWiki wiki, Revision[] history)
+        private void LoadUsers(IMediaWiki wiki, Revision[] history)
         {
             var users = wiki.GetUserGroups(history.Select(h => h.Info.User).Distinct().Except(_powerUsers.Keys).ToArray());
             foreach (var user in users)
@@ -99,7 +99,7 @@ namespace ChieBot.Dewikify
             }
         }
 
-        private string GetUser(MediaWiki wiki, DewikifyTemplate template, string[] allTemplateNames, Revision[] history)
+        private string GetUser(IMediaWiki wiki, DewikifyTemplate template, string[] allTemplateNames, Revision[] history)
         {
             // looking for the first edit where the template did not exist
 
@@ -109,13 +109,13 @@ namespace ChieBot.Dewikify
                 .Any(t => t.Title == template.Title)).Info.User;
         }
 
-        private void Dewikify(MediaWiki wiki, string[] titles, string originalTitle)
+        private void Dewikify(IMediaWiki wiki, string[] titles, string originalTitle)
         {
             Dewikify(wiki, titles, originalTitle, wiki.GetLinksTo(titles, DewikifyNamespaceId), DewikifyLinkIn);
             Dewikify(wiki, titles, originalTitle, wiki.GetTransclusionsOf(titles, DewikifyNamespaceId), RemoveTransclusionsIn);
         }
 
-        private void Dewikify(MediaWiki wiki, string[] titles, string originalTitle, IDictionary<string, string[]> entries, Func<string, string, ParserUtils, string> dewikify)
+        private void Dewikify(IMediaWiki wiki, string[] titles, string originalTitle, IDictionary<string, string[]> entries, Func<string, string, ParserUtils, string> dewikify)
         {
             var parser = new ParserUtils(wiki);
             var linkingPages = entries.Values.SelectMany(x => x).Distinct().ToArray();

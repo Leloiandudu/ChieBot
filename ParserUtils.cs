@@ -53,7 +53,7 @@ namespace ChieBot
         public static IEnumerable<TextRegion> GetIgnoredRegions(string wiki)
         {
             var tokens = new Regex(string.Join("|", new[] { "<!--", "-->", @"(<nowiki)[\s>]", "</nowiki>" }));
-            
+
             string prevToken = null;
             var start = 0;
 
@@ -158,12 +158,12 @@ namespace ChieBot
             title = fullTitle.Substring(index + 1);
         }
 
-        private readonly MediaWiki _wiki;
-        public ParserUtils(MediaWiki wiki)
+        private readonly IMediaWiki _wiki;
+        public ParserUtils(IMediaWiki wiki)
         {
             _wiki = wiki;
         }
-        
+
         private IEnumerable<string> GetAlternativelyNamespacedTitles(string fullName, bool isTempalte)
         {
             string ns, title;
@@ -179,7 +179,7 @@ namespace ChieBot
                 results = results.Concat(new[] { title });
             return results;
         }
-     
+
         public PartiallyParsedWikiText<Template> FindTemplates(string text, string templateName, bool skipIgnored = true)
         {
             return FindTemplates(text, new[] { templateName }, skipIgnored);

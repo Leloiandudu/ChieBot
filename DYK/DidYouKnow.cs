@@ -13,9 +13,9 @@ namespace ChieBot.DYK
         public const string NextIssueName = "Проект:Знаете ли вы/Подготовка следующего выпуска";
         private const string NextIssueNameHeader = "Проект:Знаете ли вы/Расписание";
 
-        private readonly MediaWiki _wiki;
+        private readonly IMediaWiki _wiki;
 
-        public DidYouKnow(MediaWiki wiki)
+        public DidYouKnow(IMediaWiki wiki)
         {
             _wiki = wiki;
         }

@@ -12,7 +12,7 @@ namespace ChieBot.Stabilization
         private const string PageName = "Шаблон:Текущий избранный список";
         private const string TemplateName = "Заглавная/Избранные списки";
 
-        public void Execute(MediaWiki wiki, string[] commandLine)
+        public void Execute(IMediaWiki wiki, string[] commandLine)
         {
             var text = wiki.GetPage(PageName);
             var template = new ParserUtils(wiki).FindTemplates(text, TemplateName).FirstOrDefault();

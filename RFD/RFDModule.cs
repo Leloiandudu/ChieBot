@@ -20,7 +20,7 @@ namespace ChieBot.RFD
         private static readonly string[] ResultTitles = { "Итог", "Автоитог" };
         private const string CategoryName = "Категория:Википедия:Кандидаты на удаление";
 
-        public void Execute(MediaWiki wiki, string[] commandLine)
+        public void Execute(IMediaWiki wiki, string[] commandLine)
         {
             var date = DateTime.UtcNow;
             if (commandLine.Length == 1)

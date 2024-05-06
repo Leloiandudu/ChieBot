@@ -14,7 +14,7 @@ namespace ChieBot.SignpostMailingList
 
         private static readonly Regex RefsRegex = new Regex(@"<ref\s*>.*?</ref>", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
-        public void Execute(MediaWiki wiki, string[] commandLine)
+        public void Execute(IMediaWiki wiki, string[] commandLine)
         {
             var text = GetMailText(wiki);
             if (text == null)
@@ -25,7 +25,7 @@ namespace ChieBot.SignpostMailingList
                 wiki.Edit(user, text, Summary, true);
         }
 
-        private static string GetMailText(MediaWiki wiki)
+        private static string GetMailText(IMediaWiki wiki)
         {
             var text = wiki.GetPage(IssuePage, followRedirects: true);
 
@@ -54,7 +54,7 @@ namespace ChieBot.SignpostMailingList
             return sb.ToString();
         }
 
-        private IEnumerable<string> GetSubscribers(MediaWiki wiki)
+        private IEnumerable<string> GetSubscribers(IMediaWiki wiki)
         {
             var text = wiki.GetPage(SubscribersPage, followRedirects: true);
             var section = new SectionedArticle<Section>(text, 2).Single();

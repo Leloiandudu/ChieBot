@@ -10,12 +10,12 @@ namespace ChieBot.Stabilization
     /// </summary>
     class ITNSModule : Modules.IModule
     {
-        public void Execute(MediaWiki wiki, string[] commandLine)
+        public void Execute(IMediaWiki wiki, string[] commandLine)
         {
             Stabilize(wiki, "Шаблон:Актуальные события", DateTimeOffset.Now.AddDays(7));
         }
 
-        private void Stabilize(MediaWiki wiki, string templateTitle, DateTimeOffset? expiry)
+        private void Stabilize(IMediaWiki wiki, string templateTitle, DateTimeOffset? expiry)
         {
             var links = ParserUtils.FindLinks(wiki.GetPage(templateTitle));
             var normalized = wiki.Normalize(links);

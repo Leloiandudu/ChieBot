@@ -9,12 +9,12 @@ namespace ChieBot.Stabilization
     /// </summary>
     class SASModule : Modules.IModule
     {
-        public void Execute(MediaWiki wiki, string[] commandLine)
+        public void Execute(IMediaWiki wiki, string[] commandLine)
         {
             Stabilize(wiki, "Википедия:Кандидаты в хорошие статьи/Журнал избраний", new LastDateChecked("sas-lastrev"));
         }
 
-        private void Stabilize(MediaWiki wiki, string logTitle, LastDateChecked last)
+        private void Stabilize(IMediaWiki wiki, string logTitle, LastDateChecked last)
         {
             var lines = ParseLog(wiki.GetPage(logTitle));
 
@@ -36,7 +36,7 @@ namespace ChieBot.Stabilization
         }
 
         private static readonly Regex StatusTemplateRegex = new Regex(@"\{\{Хорошая статья[|}]", RegexOptions.IgnoreCase);
-        private void StabilizeArticle(MediaWiki wiki, string page)
+        private void StabilizeArticle(IMediaWiki wiki, string page)
         {
             var text = wiki.GetPage(page);
             if (text != null && StatusTemplateRegex.IsMatch(text))

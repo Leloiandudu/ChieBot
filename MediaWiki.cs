@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ChieBot;
 
-public class MediaWiki
+public class MediaWiki : IMediaWiki
 {
     private readonly Browser _browser;
     private readonly Uri _apiUri;
@@ -130,7 +130,8 @@ public class MediaWiki
         {
             { "rvprop", "content" },
             { "redirects", followRedirects ? "" : null },
-        }, pages).ToDictionary(x => x.Key, x => {
+        }, pages).ToDictionary(x => x.Key, x =>
+        {
             if (x.Value == null || x.Value.Item2.Count == 0)
                 return null;
             return new Page
@@ -677,9 +678,8 @@ public class MediaWiki
             catch (Exception ex)
             {
                 var mex = ex as MediaWikiApiException;
-                if (mex != null && mex.Code == ErrorCode.EditConflict) {
+                if (mex != null && mex.Code == ErrorCode.EditConflict)
                     throw;
-                }
 
                 if (mex != null && mex.Code == ErrorCode.Blocked)
                 {

@@ -18,7 +18,7 @@ namespace ChieBot.DYK
         /// <summary>Period between DYK (in days).</summary>
         const int DYKPeriod = 3;
 
-        public void Execute(MediaWiki wiki, string[] args)
+        public void Execute(IMediaWiki wiki, string[] args)
         {
             var nextIssueDate = GetNearestIssueDate();
             var prevIssueDate = nextIssueDate.AddDays(-DYKPeriod);

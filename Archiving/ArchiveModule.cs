@@ -22,7 +22,7 @@ namespace ChieBot.Archiving
             Rule("Megitsune-chan", Daily),
         };
 
-        public void Execute(MediaWiki wiki, string[] commandLine)
+        public void Execute(IMediaWiki wiki, string[] commandLine)
         {
             var now = DateTimeOffset.UtcNow;
 
