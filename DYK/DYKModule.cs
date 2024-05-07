@@ -9,7 +9,7 @@ namespace ChieBot.DYK
     {
         /// <summary>Moscow timezone.</summary>
         /// <remarks>Because of mono we have to search timezone by city name.</remarks>
-        private static readonly TimeZoneInfo TimeZone = TimeZoneInfo.GetSystemTimeZones().Single(tz => tz.Id.Contains("Moscow") || tz.DisplayName.Contains("Moscow"));
+        private static readonly TimeZoneInfo TimeZone = TimeZoneInfo.GetSystemTimeZones().Single(tz => tz.Id is "Russian Standard Time" or "Europe/Moscow");
 
         /// <summary>Next issue must be within this time span, unless "-force" is specified.</summary>
         /// <remarks>Used to workaround cron inability to run every N days. Cron is instructed to run everyday instead.</remarks>
