@@ -813,10 +813,6 @@ public class MediaWikiException : Exception
     public MediaWikiException() { }
     public MediaWikiException(string message) : base(message) { }
     public MediaWikiException(string message, Exception inner) : base(message, inner) { }
-    protected MediaWikiException(
-        System.Runtime.Serialization.SerializationInfo info,
-        System.Runtime.Serialization.StreamingContext context)
-        : base(info, context) { }
 }
 
 [Serializable]
@@ -834,11 +830,6 @@ public class MediaWikiApiException : MediaWikiException
         if (Enum.TryParse(code, true, out ec))
             Code = ec;
     }
-
-    protected MediaWikiApiException(
-      System.Runtime.Serialization.SerializationInfo info,
-      System.Runtime.Serialization.StreamingContext context)
-        : base(info, context) { }
 }
 
 class WikiBoolConverter : JsonConverter

@@ -2,6 +2,8 @@
 using System.Net;
 using System.Runtime.Serialization.Formatters.Binary;
 
+#pragma warning disable SYSLIB0011
+
 namespace ChieBot
 {
     static class CookieJar
