@@ -1,8 +1,6 @@
 ﻿using System.IO;
 using System.Net;
-using System.Runtime.Serialization.Formatters.Binary;
-
-#pragma warning disable SYSLIB0011
+using System.Text.Json;
 
 namespace ChieBot
 {
@@ -10,32 +8,30 @@ namespace ChieBot
     {
         public static CookieContainer Load()
         {
+            var cookies = new CookieContainer();
+
             try
             {
-                using (var stream = File.OpenRead(GetFileName()))
-                {
-                    var formatter = new BinaryFormatter();
-                    return (CookieContainer)formatter.Deserialize(stream);
-                }
+                using var fs = File.OpenRead(GetFileName());
+                var collection = JsonSerializer.Deserialize<CookieCollection>(fs);
+                cookies.Add(collection);
             }
             catch (FileNotFoundException)
             {
-                return new CookieContainer();
             }
+
+            return cookies;
         }
 
         public static void Save(CookieContainer cookies)
         {
-            using (var stream = File.OpenWrite(GetFileName()))
-            {
-                var formatter = new BinaryFormatter();
-                formatter.Serialize(stream, cookies);
-            }
+            using var fs = File.OpenWrite(GetFileName());
+            JsonSerializer.Serialize(fs, cookies.GetAllCookies());
         }
 
         private static string GetFileName()
         {
-            return Path.Combine(Utils.GetProgramDir(), "cookie-jar.bin");
+            return Path.Combine(Utils.GetProgramDir(), "cookie-jar.json");
         }
     }
 }
