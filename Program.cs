@@ -41,10 +41,7 @@ namespace ChieBot
         private static string GetUserAgent()
         {
             var ver = typeof(Program).Assembly.GetName().Version;
-            var userAgent = $"ChieBot/{ver.Major}.{ver.Minor} (https://bitbucket.org/leloiandudu/chiebot; leloiandudu@gmail.com) .net/4.0";
-            if (Mono.Version != null)
-                userAgent += $" mono/{Mono.Version}";
-            return userAgent;
+            return $"ChieBot/{ver.Major}.{ver.Minor} (https://github.com/Leloiandudu/ChieBot; leloiandudu@gmail.com) .net/{Environment.Version}";
         }
 
         private static Credentials ReadCredentials()
