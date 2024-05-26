@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace ChieBot
 {
-    static class Utils
+    public static class Utils
     {
         public static DateTimeFormatInfo DateTimeFormat { get; private set; }
 
@@ -14,8 +14,8 @@ namespace ChieBot
         {
             // mono uses nominative months names only :(
             DateTimeFormat = (DateTimeFormatInfo)CultureInfo.GetCultureInfo("ru-RU").DateTimeFormat.Clone();
-            DateTimeFormat.MonthNames = new[] { 
-                "января", "февраля", "марта", "апреля", "мая", "июня", 
+            DateTimeFormat.MonthNames = new[] {
+                "января", "февраля", "марта", "апреля", "мая", "июня",
                 "июля", "августа", "сентября", "октября", "ноября", "декабря", "" };
         }
 
@@ -64,9 +64,9 @@ namespace ChieBot
             {
                 if (i == 0)
                     array = new T[count];
-                
+
                 array[i++] = item;
-                
+
                 if (i == count)
                 {
                     yield return array;
@@ -93,6 +93,21 @@ namespace ChieBot
             foreach (var x in regions.OrderByDescending(x => x.Offset).ToArray())
                 text = text.Remove(x.Offset, x.Length);
             return text;
+        }
+
+        public static DateTimeOffset WithTimeZone(this DateTime dt, TimeZoneInfo tz)
+        {
+            if (dt.Kind != DateTimeKind.Unspecified)
+                throw new Exception("DateTime should be without timezone info");
+
+            dt = TimeZoneInfo.ConvertTimeToUtc(dt, tz);
+            var dto = new DateTimeOffset(dt, TimeSpan.Zero);
+            return TimeZoneInfo.ConvertTime(dto, tz);
+        }
+
+        public static DateOnly ToDateOnly(this DateTimeOffset dto)
+        {
+            return DateOnly.FromDateTime(dto.Date);
         }
     }
 }

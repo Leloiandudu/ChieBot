@@ -9,8 +9,8 @@ namespace ChieBot.DYK
         private static readonly Regex ArticleRegex = new Regex(@"(\{\{(?<status>" + Regex.Escape(DYKStatusTemplate.TemplateName) + @"\|[^}]+)\}\})?\s*\[\[:?(?<title>[^|\]]+)(\|[^\]]+)?\]\](,\s*)?", RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase);
 
         private readonly SectionedArticle<Section> _page;
-        public SectionedArticle<NextIssuePreparation.Item> Sections { get; private set; }
-        public SectionedArticle<NextIssuePreparation.Item> NewSections { get; private set; }
+        public SectionedArticle<Item> Sections { get; private set; }
+        public SectionedArticle<Item> NewSections { get; private set; }
 
         public NextIssuePreparation(string text)
         {
@@ -34,7 +34,7 @@ namespace ChieBot.DYK
             get { return _page.FullText; }
         }
 
-        class Preparation : SectionedArticle<NextIssuePreparation.Item>
+        class Preparation : SectionedArticle<Item>
         {
             public Preparation(string text)
                 : base(text, 3)
@@ -54,10 +54,10 @@ namespace ChieBot.DYK
 
             public PartiallyParsedWikiText<Article> Articles { get; set; }
 
-            public DateTime? GetIssueDate()
+            public DateOnly? GetIssueDate()
             {
                 var match = CheckMark.Match(Text);
-                DateTime date;
+                DateOnly date;
                 if (match.Success && DYKUtils.TryParseIssueDate(match.Groups["date"].Value, out date))
                     return date;
                 return null;

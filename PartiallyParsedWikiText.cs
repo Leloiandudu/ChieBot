@@ -7,7 +7,7 @@ using System.Diagnostics;
 
 namespace ChieBot
 {
-    class PartiallyParsedWikiText<T> : IEnumerable<T>
+    public class PartiallyParsedWikiText<T> : IEnumerable<T>
         where T : class
     {
         private readonly List<Tuple<string, T>> _items = new List<Tuple<string, T>>();

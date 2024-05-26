@@ -16,13 +16,12 @@ namespace ChieBot.DYK
         {
             public Item(Match match)
             {
-                DateTime date;
-                if (!DYKUtils.TryParseIssueDate(match.Groups["date"].Value, out date))
+                if (!DYKUtils.TryParseIssueDate(match.Groups["date"].Value, out var date))
                     throw new DidYouKnowException(string.Format("Не удалось распарсить дату выпуска `{0}`", match.Groups["date"].Value));
                 Date = date;
             }
 
-            public DateTime Date { get; private set; }
+            public DateOnly Date { get; private set; }
         }
     }
 }

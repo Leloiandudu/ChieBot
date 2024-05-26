@@ -13,11 +13,18 @@ namespace ChieBot.DYK
         public const string NextIssueName = "Проект:Знаете ли вы/Подготовка следующего выпуска";
         public const string NextIssueNameHeader = "Проект:Знаете ли вы/Расписание";
 
-        private readonly IMediaWiki _wiki;
+        /// <summary>Period between DYK (in days).</summary>
+        public const int PeriodInDays = 3;
 
-        public DidYouKnow(IMediaWiki wiki)
+        private readonly IMediaWiki _wiki;
+        private readonly DateTimeOffset _prevIssueDate;
+        private readonly DateTimeOffset _nextIssueDate;
+
+        public DidYouKnow(IMediaWiki wiki, DateTimeOffset nextIssueDate)
         {
             _wiki = wiki;
+            _prevIssueDate = nextIssueDate.AddDays(-PeriodInDays);
+            _nextIssueDate = nextIssueDate;
         }
 
         public string GetCurrent()
@@ -27,34 +34,35 @@ namespace ChieBot.DYK
 
         public void SetCurrent(string text)
         {
-            var template = new Template(_wiki.GetPage(TemplateName));
-            template.IssueText = text;
+            var template = new Template(_wiki.GetPage(TemplateName)) { IssueText = text };
             _wiki.Edit(TemplateName, template.FullText, "Автоматическая публикация выпуска.");
         }
 
-        public void ArchiveCurrent(DateTime issueDate, DateTime archiveDate)
+        public string GetArchiveTitle()
         {
-            var titleFormat = (issueDate.Month != archiveDate.Month)
+            var titleFormat = _prevIssueDate.Month != _nextIssueDate.Month
                 ? "{0:d MMMM} — {1:d MMMM}"
                 : "{0:%d}—{1:d MMMM}";
 
+            return string.Format(Utils.DateTimeFormat, titleFormat, _prevIssueDate, _nextIssueDate);
+        }
+
+        public void ArchiveCurrent()
+        {
             _wiki.Edit(
-                GetArchiveName(archiveDate),
-                string.Format("== {0} ==\n\n{1}\n\n",
-                    string.Format(Utils.DateTimeFormat, titleFormat, issueDate, archiveDate),
-                    GetCurrent()
-                ),
+                GetArchiveName(),
+                $"== {GetArchiveTitle()} ==\n\n{GetCurrent()}\n\n",
                 "Автоматическая архивация прошлого выпуска.",
                 false
             );
         }
 
-        public string PopDraft(DateTime issueDate)
+        public string PopDraft()
         {
-            return PopDraft(issueDate, DraftName, true, "Автоматическая публикация выпуска.").GetIssueText();
+            return PopDraft(_nextIssueDate.ToDateOnly(), DraftName, true, "Автоматическая публикация выпуска.").GetIssueText();
         }
 
-        private Draft PopDraft(DateTime issueDate, string pageName, bool required, string editSummary)
+        private Draft PopDraft(DateOnly issueDate, string pageName, bool required, string editSummary)
         {
             var drafts = new Drafts(_wiki.GetPage(pageName));
             var draft = drafts[issueDate];
@@ -73,8 +81,10 @@ namespace ChieBot.DYK
             return draft;
         }
 
-        public bool ArchiveDraftTalk(DateTime issueDate)
+        public bool ArchiveDraftTalk()
         {
+            DateOnly issueDate = _prevIssueDate.ToDateOnly();
+
             const string summary = "Автоматическая архивация обсуждения позапрошлого выпуска.";
             var draft = PopDraft(issueDate, DraftTalkName, false, summary);
             if (draft == null) return false;
@@ -88,8 +98,10 @@ namespace ChieBot.DYK
             return true;
         }
 
-        public void RemoveMarkedFromNextIssue(DateTime issueDate)
+        public void RemoveMarkedFromNextIssue()
         {
+            var issueDate = _nextIssueDate.ToDateOnly();
+
             var nip = new NextIssuePreparation(_wiki.GetPage(NextIssueName));
             foreach (var item in nip.Sections.Where(x => x.GetIssueDate() == issueDate).ToList())
                 nip.Sections.Remove(item);
@@ -97,8 +109,10 @@ namespace ChieBot.DYK
             _wiki.Edit(NextIssueName, nip.FullText, "Автоматическое удаление использованных анонсов.");
         }
 
-        public void RemoveFromPreparationTimetable(DateTime issueDate)
+        public void RemoveFromPreparationTimetable()
         {
+            var issueDate = _nextIssueDate.ToDateOnly();
+
             var niph = new NextIssuePreparationHeader(_wiki.GetPage(NextIssueNameHeader));
             var item = niph.SingleOrDefault(x => x.Date == issueDate);
             if (item == null)
@@ -107,22 +121,19 @@ namespace ChieBot.DYK
             _wiki.Edit(NextIssueNameHeader, niph.Text, "Автоматическое удаление использованных анонсов.");
         }
 
-        private string GetArchiveName(DateTime date)
-        {
-            return string.Format(ArchiveName, date);
-        }
+        private string GetArchiveName() =>
+            string.Format(ArchiveName, _nextIssueDate);
 
-        private string GetDraftTalkArchiveName(DateTime date)
-        {
-            return string.Format(DraftTalkArchiveName, date.Year - 2011);
-        }
+        private static string GetDraftTalkArchiveName(DateOnly date) =>
+            string.Format(DraftTalkArchiveName, date.Year - 2011);
 
-        public void Stabilize(string draft, DateTimeOffset until)
+        public void Stabilize(string draft)
         {
-            foreach(var article in ParserUtils.FindBoldLinks(draft))
+            var until = _nextIssueDate.AddDays(PeriodInDays);
+
+            foreach (var article in ParserUtils.FindBoldLinks(draft))
             {
-                DateTimeOffset? expiry;
-                if (_wiki.GetStabilizationExpiry(article, out expiry))
+                if (_wiki.GetStabilizationExpiry(article, out var expiry))
                 {
                     if (expiry == null || expiry >= until)
                         continue;

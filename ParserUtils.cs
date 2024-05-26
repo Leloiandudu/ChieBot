@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace ChieBot
 {
-    class ParserUtils
+    public class ParserUtils
     {
         private static readonly Regex LinkRegex = new Regex(@"\[\[:?(?<link>[^|\]]+)(\|(?<title>[^\]]+))?\]\]", RegexOptions.ExplicitCapture);
         private static readonly Regex BoldLinkRegex = new Regex(@"('''[^\[\]']+''')|('''.*?\[\[:?(?<link>[^|\]]+)(\|[^\]]+)?\]\].*?('''|$))|(\[\[:?(?<link>[^|\]]+)\|'''.*?'''\]\])", RegexOptions.ExplicitCapture);
@@ -193,7 +193,7 @@ namespace ChieBot
     }
 
     [DebuggerDisplay("off: {Offset}, len: {Length}")]
-    class TextRegion
+    public class TextRegion
     {
         public TextRegion(int offset, int length)
         {

@@ -5,14 +5,14 @@ using System.Text.RegularExpressions;
 
 namespace ChieBot
 {
-    class Template
+    public class Template
     {
         private static readonly Regex TokenRegex = new Regex(@"({{|\||}}|\[\[|\]\])"); // TODO: template args
         private static readonly Regex ArgRegex = new Regex(@"^(.*?)=(.*)$", RegexOptions.Singleline);
 
         public Template()
         {
-            Args = new List<Argument>();
+            Args = new TemplateArgs();
         }
 
         public static Template Parse(string wiki)
@@ -91,7 +91,7 @@ namespace ChieBot
         }
 
         public string Name { get; set; }
-        public IList<Argument> Args { get; private set; }
+        public TemplateArgs Args { get; private set; }
 
         public class Argument
         {
@@ -138,6 +138,14 @@ namespace ChieBot
                 result += "|" + string.Join("|", Args.Select(a => a.Name == null ? a.Value : string.Format("{0}={1}", a.Name, a.Value)));
 
             return result + "}}";
+        }
+
+        public class TemplateArgs : List<Argument>
+        {
+            public void Add(string name, string value)
+            {
+                Add(new Argument() { Name = name, Value = value });
+            }
         }
     }
 }

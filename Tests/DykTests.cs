@@ -1,3 +1,4 @@
+using ChieBot;
 using ChieBot.DYK;
 using Moq;
 
@@ -5,13 +6,18 @@ namespace Tests;
 
 public class DykTests
 {
-    public static readonly DateTime IssueDate = new(DateTime.UtcNow.Year, 5, 4, 0, 0, 0, DateTimeKind.Utc);
+    public static readonly DateTimeOffset IssueDate = new DateTime(2012, 5, 4).WithTimeZone(DYKModule.TimeZone);
+
+    public DykTests()
+    {
+        DYKUtils.ReferenceDate = IssueDate.ToDateOnly();
+    }
 
     [Fact]
     public void EndToEnd()
     {
-        const string ArchiveName = "Проект:Знаете ли вы/Архив рубрики/2024-05";
-        const string DraftArchiveName = "Обсуждение проекта:Знаете ли вы/Черновик/Архив/13";
+        const string ArchiveName = "Проект:Знаете ли вы/Архив рубрики/2012-05";
+        const string DraftArchiveName = "Обсуждение проекта:Знаете ли вы/Черновик/Архив/1";
         var futureStblDate = new DateTimeOffset(new DateOnly(2099, 1, 1), default, default);
 
         // arrange
@@ -28,7 +34,8 @@ public class DykTests
         wiki.SetStabilization("Мустафа I", futureStblDate);
 
         // act
-        var module = new DYKModule { ExecutionTime = new DateTime(2024, 5, 18, 0, 0, 0, DateTimeKind.Utc)};
+        var module = new DYKModule { ExecutionTime = new DateTime(2012, 5, 18, 0, 0, 0, DateTimeKind.Utc)};
+        DYKUtils.ReferenceDate = module.ExecutionTime.ToDateOnly();
         module.Execute(wiki, []);
 
         // assert
@@ -51,7 +58,7 @@ public class DykTests
             "Палауский диалект английского языка", "Пиранези, Франческо", "Хиллз, Арнолд",
         };
 
-        var expectedUntil = new DateTimeOffset(new DateOnly(2024, 5, 21), default, TimeSpan.FromHours(3));
+        var expectedUntil = new DateTime(2012, 5, 21).WithTimeZone(DYKModule.TimeZone);
         foreach (var page in pages)
             AssertStabilizationUntil(wiki, page, expectedUntil);
     }
@@ -70,8 +77,8 @@ public class DykTests
         wiki.Setup(w => w.GetPage(DidYouKnow.DraftName, false)).Returns(DraftPage.FullPageBefore);
         wiki.Setup(w => w.Edit(DidYouKnow.DraftName, DraftPage.FullPageAfter, It.IsAny<string>(), null, null, null));
 
-        var dyk = new DidYouKnow(wiki.Object);
-        var draft = dyk.PopDraft(IssueDate);
+        var dyk = new DidYouKnow(wiki.Object, IssueDate);
+        var draft = dyk.PopDraft();
 
         Assert.Equal(DraftPage.Issue, draft);
         wiki.VerifyAll();
@@ -83,10 +90,8 @@ public class DykTests
         var wiki = new Mock<IMediaWiki>(MockBehavior.Strict);
         wiki.Setup(w => w.GetPage(DidYouKnow.DraftName, false)).Returns(DraftPage.FullPageBefore);
 
-        var dyk = new DidYouKnow(wiki.Object);
-
-        Assert.Throws<DidYouKnowException>(() => dyk.PopDraft(IssueDate.AddDays(-1)));
-        Assert.Throws<DidYouKnowException>(() => dyk.PopDraft(IssueDate.AddDays(+1)));
+        Assert.Throws<DidYouKnowException>(() => new DidYouKnow(wiki.Object, IssueDate.AddDays(-1)).PopDraft());
+        Assert.Throws<DidYouKnowException>(() => new DidYouKnow(wiki.Object, IssueDate.AddDays(+1)).PopDraft());
 
         wiki.VerifyAll();
     }
@@ -99,8 +104,8 @@ public class DykTests
         wiki.Setup(w => w.Edit(DidYouKnow.DraftTalkName, DraftPage.FullPageAfter, It.IsAny<string>(), null, null, null));
         wiki.Setup(w => w.Edit(It.Is<string>(s => s.StartsWith(DidYouKnow.DraftTalkName + "/")), "\n\n" + DraftPage.IssueFullText + "\n\n", It.IsAny<string>(), true, null, null));
 
-        var dyk = new DidYouKnow(wiki.Object);
-        var result = dyk.ArchiveDraftTalk(IssueDate);
+        var dyk = new DidYouKnow(wiki.Object, IssueDate.AddDays(3));
+        var result = dyk.ArchiveDraftTalk();
 
         Assert.True(result);
         wiki.VerifyAll();
@@ -112,8 +117,8 @@ public class DykTests
         var wiki = new Mock<IMediaWiki>(MockBehavior.Strict);
         wiki.Setup(w => w.GetPage(DidYouKnow.DraftTalkName, false)).Returns(DraftPage.FullPageBefore);
 
-        var dyk = new DidYouKnow(wiki.Object);
-        var result = dyk.ArchiveDraftTalk(IssueDate.AddDays(1));
+        var dyk = new DidYouKnow(wiki.Object, IssueDate.AddDays(1));
+        var result = dyk.ArchiveDraftTalk();
 
         Assert.False(result);
         wiki.VerifyAll();
@@ -130,10 +135,10 @@ public class DykTests
 
         var wiki = new Mock<IMediaWiki>(MockBehavior.Strict);
         wiki.Setup(w => w.GetPage(DidYouKnow.TemplateName, false)).Returns(TemplatePage.FullText);
-        wiki.Setup(w => w.Edit("Проект:Знаете ли вы/Архив рубрики/2024-05", expectedContents, It.IsAny<string>(), false, null, null));
+        wiki.Setup(w => w.Edit("Проект:Знаете ли вы/Архив рубрики/2012-05", expectedContents, It.IsAny<string>(), false, null, null));
 
-        var dyk = new DidYouKnow(wiki.Object);
-        dyk.ArchiveCurrent(IssueDate, IssueDate.AddDays(3));
+        var dyk = new DidYouKnow(wiki.Object, IssueDate.AddDays(3));
+        dyk.ArchiveCurrent();
 
         wiki.VerifyAll();
     }
@@ -154,8 +159,8 @@ public class DykTests
         wiki.Setup(w => w.GetPage(DidYouKnow.TemplateName, false)).Returns(template);
         wiki.Setup(w => w.Edit(It.IsAny<string>(), It.Is<string>(str => str.StartsWith(expectedContents)), It.IsAny<string>(), false, null, null));
 
-        var dyk = new DidYouKnow(wiki.Object);
-        dyk.ArchiveCurrent(issueDate, issueDate.AddDays(3));
+        var dyk = new DidYouKnow(wiki.Object, issueDate.AddDays(3));
+        dyk.ArchiveCurrent();
 
         wiki.VerifyAll();
     }

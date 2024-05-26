@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Globalization;
 
 namespace ChieBot.DYK
 {
@@ -11,14 +8,14 @@ namespace ChieBot.DYK
     {
         private static readonly Regex LineStartedWithSmall = new Regex(@"^\s*<small\b.*$", RegexOptions.Compiled | RegexOptions.Multiline);
 
-        public DateTime Date { get; set; }
+        public DateOnly Date { get; set; }
 
         public string GetIssueText()
         {
             var text = Text;
             var small = LineStartedWithSmall.Match(text);
             if (small.Index == 0)
-                text = text.Substring(small.Length).TrimStart();
+                text = text[small.Length..].TrimStart();
             return text.Trim();
         }
     }
@@ -39,8 +36,7 @@ namespace ChieBot.DYK
                 return true;
 
             var match = DraftHeader.Match(draft.Title);
-            DateTime date;
-            if (!match.Success || !DYKUtils.TryParseIssueDate(match.Groups["date"].Value, out date))
+            if (!match.Success || !DYKUtils.TryParseIssueDate(match.Groups["date"].Value, out var date))
             {
                 Console.Error.WriteLine("Не удалось распарсить дату выпуска `{0}`", draft.Title);
             }
@@ -51,7 +47,7 @@ namespace ChieBot.DYK
             return true;
         }
 
-        public Draft this[DateTime date]
+        public Draft this[DateOnly date]
         {
             get { return this.SingleOrDefault(d => d.Date == date); }
         }

@@ -3,13 +3,22 @@ using System.Globalization;
 
 namespace ChieBot.DYK
 {
-    static class DYKUtils
+    public static class DYKUtils
     {
-        public static bool TryParseIssueDate(string text, out DateTime date)
+        public static DateOnly ReferenceDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
+
+        /// <summary>
+        /// Don't allow dates more than this many days before <see cref="ReferenceDate"/>
+        /// </summary>
+        public static int MaxDaysInThePast { get; set; } = 30;
+
+        public static bool TryParseIssueDate(string text, out DateOnly date)
         {
-            if (!DateTime.TryParseExact(text, "d MMMM", Utils.DateTimeFormat, DateTimeStyles.None, out date))
+            if (!DateOnly.TryParseExact(text, "d MMMM", Utils.DateTimeFormat, DateTimeStyles.None, out date))
                 return false;
-            if ((DateTime.Now - date).TotalDays > 30) // in case of announces for next year
+            date = new(ReferenceDate.Year, date.Month, date.Day);
+
+            if (date < ReferenceDate.AddDays(-MaxDaysInThePast)) // in case of announces for next year
                 date = date.AddYears(1);
             return true;
         }
