@@ -65,7 +65,7 @@ namespace ChieBot.DYK
 
             public void Update()
             {
-                Title = string.Format("=== {0} ===\r\n", string.Join(", ", Articles));
+                Title = string.Format("=== {0} ===\n", string.Join(", ", Articles));
             }
         }
 

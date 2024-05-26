@@ -5,13 +5,13 @@ namespace ChieBot.DYK
 {
     public class DidYouKnow
     {
-        private const string TemplateName = "Шаблон:Знаете ли вы";
+        public const string TemplateName = "Шаблон:Знаете ли вы";
         private const string ArchiveName = "Проект:Знаете ли вы/Архив рубрики/{0:yyyy-MM}";
-        private const string DraftName = "Проект:Знаете ли вы/Черновик";
-        private const string DraftTalkName = "Обсуждение проекта:Знаете ли вы/Черновик";
+        public const string DraftName = "Проект:Знаете ли вы/Черновик";
+        public const string DraftTalkName = "Обсуждение проекта:Знаете ли вы/Черновик";
         private const string DraftTalkArchiveName = "Обсуждение проекта:Знаете ли вы/Черновик/Архив/{0}";
         public const string NextIssueName = "Проект:Знаете ли вы/Подготовка следующего выпуска";
-        private const string NextIssueNameHeader = "Проект:Знаете ли вы/Расписание";
+        public const string NextIssueNameHeader = "Проект:Знаете ли вы/Расписание";
 
         private readonly IMediaWiki _wiki;
 

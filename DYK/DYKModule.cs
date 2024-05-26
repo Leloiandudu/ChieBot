@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ChieBot.DYK
 {
-    class DYKModule : Modules.IModule
+    public class DYKModule : Modules.IModule
     {
         /// <summary>Moscow timezone.</summary>
         /// <remarks>Because of mono we have to search timezone by city name.</remarks>
@@ -38,7 +38,7 @@ namespace ChieBot.DYK
             dyk.Stabilize(draft, new DateTimeOffset(issueValidUntil, TimeZone.GetUtcOffset(issueValidUntil)));
         }
 
-        private static DateTime GetNearestIssueDate()
+        private DateTime GetNearestIssueDate()
         {
             // some date DYK took place
             var started = new DateTime(2013, 10, 19);
@@ -52,9 +52,11 @@ namespace ChieBot.DYK
             return started.AddDays(rounded);
         }
 
-        private static DateTime Now()
+        private DateTime Now()
         {
-            return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZone);
+            return TimeZoneInfo.ConvertTimeFromUtc(ExecutionTime, TimeZone);
         }
+
+        public DateTime ExecutionTime { get; set; } = DateTime.UtcNow;
     }
 }
