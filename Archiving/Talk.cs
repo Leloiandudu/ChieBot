@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace ChieBot.Archiving
@@ -23,8 +20,8 @@ namespace ChieBot.Archiving
         {
             section.LastActivity = section.FullText
                 .Split('\n')
-                .SelectMany(comment => DateRegex.Matches(comment).OfType<Match>())
-                .Max(comment => TryParseDate(comment));
+                .SelectMany(comment => DateRegex.Matches(comment))
+                .Max(TryParseDate);
             return true;
         }
 

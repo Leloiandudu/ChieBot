@@ -31,14 +31,14 @@ namespace ChieBot
 
         public static string[] FindAnyLinks(string text)
         {
-            return LinkRegex.Matches(text).Cast<Match>()
+            return LinkRegex.Matches(text)
                 .Select(m => m.Groups["link"].Value)
                 .ToArray();
         }
 
         private static string[] GetLinks(MatchCollection matches)
         {
-            return matches.Cast<Match>()
+            return matches
                 .Select(m => m.Groups["link"])
                 .Where(g => g.Success)
                 .Select(g => g.Value)
@@ -57,7 +57,7 @@ namespace ChieBot
             string prevToken = null;
             var start = 0;
 
-            foreach(Match match in tokens.Matches(wiki))
+            foreach (Match match in tokens.Matches(wiki))
             {
                 var token = match.Groups[1].Success ? match.Groups[1].Value : match.Value;
                 if ((token == "<!--" || token == "<nowiki") && prevToken == null)
@@ -85,7 +85,7 @@ namespace ChieBot
 
         private static PartiallyParsedWikiText<Template> FindTemplatesInternal(string text, IEnumerable<string> templateNames, bool skipIgnored)
         {
-            var items = new List<Tuple<int, int, Template>>();
+            var items = new List<(int, int, Template)>();
             var regex = new Regex(@"\{\{(?:" + string.Join("|", templateNames.Select(t => "(?:" + GetArticleTitleRegex(t) +")")) + @")[|}\s]");
             var ignored = skipIgnored ? new TextRegion[0] : GetIgnoredRegions(text).ToArray();
             for (var i = 0; ; )
@@ -103,9 +103,9 @@ namespace ChieBot
                     try
                     {
                         var template = Template.ParseAt(text, match.Index);
-                        var item = Tuple.Create(match.Index, template.ToString().Length, template);
+                        var item = (match.Index, template.ToString().Length, template);
                         items.Add(item);
-                        i = match.Index + item.Item2;
+                        i = match.Index + item.Length;
                     }
                     catch (FormatException)
                     {
@@ -121,11 +121,11 @@ namespace ChieBot
         {
             var regex = new Regex("^:?" + GetArticleTitleRegex(to).ToString() + @"$");
             return new PartiallyParsedWikiText<WikiLink>(text,
-                from Match match in LinkRegex.Matches(text)
+                from match in LinkRegex.Matches(text)
                 let link = match.Groups["link"]
                 where link.Success && regex.IsMatch(link.Value)
                 let title = match.Groups["title"]
-                select Tuple.Create(match.Index, match.Length, new WikiLink
+                select (match.Index, match.Length, new WikiLink
                 {
                     Link = link.Value,
                     Text = title.Success ? title.Value : null,

@@ -51,12 +51,12 @@ namespace ChieBot.Stabilization
         private static LogLine[] ParseLog(string text)
         {
             return (
-                from Match m in LogLineRegex.Matches(text)
+                from m in LogLineRegex.Matches(text)
                 select new LogLine
                 {
                     Date = Utils.ParseDate(m.Groups[2].Value),
                     Titles = (
-                        from Match mm in LinkRegex.Matches(m.Groups[1].Value)
+                        from mm in LinkRegex.Matches(m.Groups[1].Value)
                         select mm.Groups["link"].Value
                     ).ToArray(),
                 }

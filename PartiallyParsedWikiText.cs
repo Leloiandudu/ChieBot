@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
 
@@ -10,28 +9,21 @@ namespace ChieBot
     public class PartiallyParsedWikiText<T> : IEnumerable<T>
         where T : class
     {
-        private readonly List<Tuple<string, T>> _items = new List<Tuple<string, T>>();
+        private readonly List<Tuple<string, T>> _items = [];
 
         public PartiallyParsedWikiText(string text, Regex regex, Func<Match, T> itemFactory)
-            : this(text, regex.Matches(text).OfType<Match>().Select(m => Tuple.Create(m.Index, m.Length, itemFactory(m))))
+            : this(text, regex.Matches(text).Select(m => (m.Index, m.Length, itemFactory(m))))
         {
         }
 
-        public PartiallyParsedWikiText(string text, IEnumerable<Tuple<int, int, T>> items)
+        public PartiallyParsedWikiText(string text, IEnumerable<(int Index, int Length, T Value)> items)
         {
             var index = 0;
-            foreach (var item in items)
+            foreach (var match in items)
             {
-                var match = new
-                {
-                    Index = item.Item1,
-                    Length = item.Item2,
-                    Value = item.Item3,
-                };
-
                 if (match.Index != index)
                 {
-                    _items.Add(Tuple.Create(text.Substring(index, match.Index - index), (T)null));
+                    _items.Add(Tuple.Create(text[index..match.Index], (T)null));
                     index = match.Index;
                 }
 

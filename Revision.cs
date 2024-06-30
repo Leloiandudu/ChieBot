@@ -41,7 +41,7 @@ namespace ChieBot
 
     static class RevisionExtensions
     {
-        public static Revision SkipWhile(this IReadOnlyCollection<Revision> history, IMediaWiki wiki, Predicate<string> skip)
+        public static Revision FindEarliest(this IReadOnlyCollection<Revision> history, IMediaWiki wiki, Predicate<string> skip)
         {
             var result = history.First();
             foreach (var revBatch in history.Skip(1).Partition(10))

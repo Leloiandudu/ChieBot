@@ -54,7 +54,7 @@ namespace ChieBot.RFD
                 if (page.Title.StartsWith("Модуль:"))
                     continue;
 
-                var createdBy = history.SkipWhile(wiki, text => GetArticles(text).Contains(link.Key)).Info;
+                var createdBy = history.FindEarliest(wiki, text => GetArticles(text).Contains(link.Key)).Info;
                 if (createdBy.Anonymous) continue;
 
                 var newText = string.Format("<noinclude>{{{{К удалению|{0:yyyy-MM-dd}}}}}</noinclude>", date);
@@ -92,7 +92,7 @@ namespace ChieBot.RFD
 
         private static bool IsNoIncludeOpen(string text, int atIndex)
         {
-            return NoIncludeRegex.Matches(text).Cast<Match>()
+            return NoIncludeRegex.Matches(text)
                 .TakeWhile(m => m.Index < atIndex)
                 .Select(m => m.Groups[1].Success)
                 .Sum(closing => closing ? -1 : 1) > 0;

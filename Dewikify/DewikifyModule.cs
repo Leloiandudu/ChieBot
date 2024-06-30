@@ -83,7 +83,6 @@ namespace ChieBot.Dewikify
         {
             var offset = page.GetOffset(item);
             return HeaderRegex.Matches(page.Text)
-                .Cast<Match>()
                 .TakeWhile(m => m.Index < offset)
                 .Select(m => m.Groups[1].Value.Trim())
                 .LastOrDefault();
@@ -92,10 +91,9 @@ namespace ChieBot.Dewikify
         private void LoadUsers(IMediaWiki wiki, Revision[] history)
         {
             var users = wiki.GetUserGroups(history.Select(h => h.Info.User).Distinct().Except(_powerUsers.Keys).ToArray());
-            foreach (var user in users)
+            foreach (var (user, groups) in users)
             {
-                var groups = user.Value;
-                _powerUsers.Add(user.Key, groups.Any(g => IncludeGroups.Contains(g)) && groups.All(g => !ExcludeGroups.Contains(g)));
+                _powerUsers.Add(user, groups.Any(g => IncludeGroups.Contains(g)) && groups.All(g => !ExcludeGroups.Contains(g)));
             }
         }
 
@@ -103,7 +101,7 @@ namespace ChieBot.Dewikify
         {
             // looking for the first edit where the template did not exist
 
-            return history.SkipWhile(wiki, text => new ParserUtils(wiki).FindTemplates(text, allTemplateNames)
+            return history.FindEarliest(wiki, text => new ParserUtils(wiki).FindTemplates(text, allTemplateNames)
                 .Select(t => new DewikifyTemplate(t))
                 .Where(t => t.Error == null)
                 .Any(t => t.Title == template.Title)).Info.User;
