@@ -182,7 +182,7 @@ namespace ChieBot.Dewikify
                     return;
 
                 if (_template.Args.Count != 1 || _template.Args[0].Name != null || string.IsNullOrWhiteSpace(_template.Args[0].Value))
-                    _error = "неверый формат аргументов";
+                    _error = "неверный формат аргументов";
             }
 
             public Template Template

@@ -52,7 +52,7 @@ public class DewikifyTests
 
         new DewikifyModule().Execute(_wiki.Object, []);
 
-        _wiki.Verify(w => w.Edit(SomePage, $"<span style='color: red'>Ошибка в шаблоне <nowiki>{template}</nowiki>: '''неверый формат аргументов'''</span>", It.IsAny<string>(), null, null, null));
+        _wiki.Verify(w => w.Edit(SomePage, $"<span style='color: red'>Ошибка в шаблоне <nowiki>{template}</nowiki>: '''неверный формат аргументов'''</span>", It.IsAny<string>(), null, null, null));
     }
 
     [Fact]
