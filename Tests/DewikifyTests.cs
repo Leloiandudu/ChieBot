@@ -14,7 +14,7 @@ public class DewikifyTests
         _wiki.Setup(w => w.GetAllPageNames(It.Is<string>(str => str.StartsWith("Template:"))))
             .Returns([DewikifyModule.TemplateName]);
 
-        _wiki.Setup(w => w.GetPagesInCategory(DewikifyModule.CategoryName, It.IsAny<int>()))
+        _wiki.Setup(w => w.GetPagesInCategory(DewikifyModule.CategoryName, It.IsAny<MediaWiki.Namespace?>()))
             .Returns([SomePage]);
 
         _wiki.Setup(w => w.GetUserGroups(It.IsAny<string[]>()))
@@ -27,9 +27,9 @@ public class DewikifyTests
             });
 
         _wiki.Setup(w => w.GetNamespaces())
-            .Returns(new Dictionary<int, string[]>
+            .Returns(new Dictionary<MediaWiki.Namespace, string[]>
             {
-                [10] = ["Ш"],
+                [MediaWiki.Namespace.Template] = ["Ш"],
             });
     }
 

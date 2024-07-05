@@ -142,21 +142,6 @@ public class MediaWiki : IMediaWiki
         });
     }
 
-    public IDictionary<string, string[]> GetPageTransclusions(string[] pages, int inNamespace = -1)
-    {
-        return QueryPages("transcludedin", new Dictionary<string, string>
-        {
-            { "tinamespace", inNamespace != -1 ? inNamespace.ToString() : null },
-            { "tiprop", "title" },
-            { "tilimit", "5000" },
-        }, false, pages).Where(x => x.Value != null).ToDictionary(x => x.Key, x => x.Value.Item2.Select(y => y.Value<string>("title")).ToArray());
-    }
-
-    public string[] GetPageTransclusions(string page, int inNamespace = -1)
-    {
-        return GetPageTransclusions(new[] { page }, inNamespace).Values.SingleOrDefault() ?? new string[0];
-    }
-
     public string[] GetAllPageNames(string title)
     {
         var list = new List<string>();
@@ -175,23 +160,23 @@ public class MediaWiki : IMediaWiki
         return list.Distinct().ToArray();
     }
 
-    public IDictionary<string, string[]> GetLinksTo(string[] titles, int? inNamespace = -1)
+    public IDictionary<string, string[]> GetLinksTo(string[] titles, Namespace? inNamespace = null)
     {
         return QueryPages("linkshere", new Dictionary<string, string>
         {
             { "lhprop", "title" },
-            { "lhnamespace", inNamespace != -1 ? inNamespace.ToString() : null },
+            { "lhnamespace", GetNamespace(inNamespace) },
             { "lhshow", "!redirect" },
             { "lhlimit", "5000" },
         }, false, titles).Where(p => p.Value != null).ToDictionary(p => p.Key, p => p.Value.Item2.Select(x => x.Value<string>("title")).ToArray());
     }
 
-    public IDictionary<string, string[]> GetTransclusionsOf(string[] titles, int? inNamespace = -1)
+    public IDictionary<string, string[]> GetTransclusionsOf(string[] titles, Namespace? inNamespace = null)
     {
         return QueryPages("transcludedin", new Dictionary<string, string>
         {
             { "tiprop", "title" },
-            { "tinamespace", inNamespace != -1 ? inNamespace.ToString() : null },
+            { "tinamespace", GetNamespace(inNamespace) },
             { "tishow", "!redirect" },
             { "tilimit", "5000" },
         }, false, titles).Where(p => p.Value != null).ToDictionary(p => p.Key, p => p.Value.Item2.Select(x => x.Value<string>("title")).ToArray());
@@ -371,14 +356,14 @@ public class MediaWiki : IMediaWiki
         return true;
     }
 
-    public string[] GetPagesInCategory(string categoryName, int pageNamespace = -1)
+    public string[] GetPagesInCategory(string categoryName, Namespace? pageNamespace = null)
     {
         return Query(new Dictionary<string, string>
         {
             { "list", "categorymembers" },
             { "cmtitle", "Category:" + categoryName },
             { "cmprop", "title" },
-            { "cmnamespace", pageNamespace != -1 ? pageNamespace.ToString() : null },
+            { "cmnamespace", GetNamespace(pageNamespace) },
             { "cmtype", "page" },
             { "cmlimit", "5000" },
             { "redirects", "" },
@@ -417,8 +402,8 @@ public class MediaWiki : IMediaWiki
         });
     }
 
-    private IDictionary<int, string[]> _namespaces;
-    public IDictionary<int, string[]> GetNamespaces()
+    private IDictionary<Namespace, string[]> _namespaces;
+    public IDictionary<Namespace, string[]> GetNamespaces()
     {
         if (_namespaces != null)
             return _namespaces;
@@ -439,7 +424,7 @@ public class MediaWiki : IMediaWiki
             })
         ).Concat(
             query["namespacealiases"].Select(x => Tuple.Create(x.Value<int>("id"), x.Value<string>("*")))
-        ).Distinct().GroupBy(x => x.Item1, x => x.Item2).ToDictionary(x => x.Key, x => x.ToArray());
+        ).Distinct().GroupBy(x => x.Item1, x => x.Item2).ToDictionary(x => (Namespace)x.Key, x => x.ToArray());
     }
 
     private IDictionary<string, Tuple<string, JArray>> QueryPages(string property, IDictionary<string, string> queryArgs, params string[] titles)
@@ -805,6 +790,29 @@ public class MediaWiki : IMediaWiki
         EditConflict,
         Blocked,
     }
+
+    public enum Namespace
+    {
+        Article,
+        Talk,
+        User,
+        UserTalk,
+        Wikipedia,
+        WikipediaTalk,
+        File,
+        FileTalk,
+        MediaWiki,
+        MediaWikiTalk,
+        Template,
+        TemplateTalk,
+        Help,
+        HelpTalk,
+        Category,
+        CategoryTalk,
+    }
+
+    private static string GetNamespace(Namespace? nsOrNull)
+        => nsOrNull is { } ns ? ((int)ns).ToString() : null;
 }
 
 [Serializable]

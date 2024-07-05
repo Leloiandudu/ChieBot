@@ -57,12 +57,12 @@ internal class MockWiki : IMediaWiki
         throw new NotImplementedException();
     }
 
-    IDictionary<string, string[]> IMediaWiki.GetLinksTo(string[] titles, int? inNamespace)
+    IDictionary<string, string[]> IMediaWiki.GetLinksTo(string[] titles, MediaWiki.Namespace? inNamespace)
     {
         throw new NotImplementedException();
     }
 
-    IDictionary<int, string[]> IMediaWiki.GetNamespaces()
+    IDictionary<MediaWiki.Namespace, string[]> IMediaWiki.GetNamespaces()
     {
         throw new NotImplementedException();
     }
@@ -94,17 +94,7 @@ internal class MockWiki : IMediaWiki
         throw new NotImplementedException();
     }
 
-    string[] IMediaWiki.GetPagesInCategory(string categoryName, int pageNamespace)
-    {
-        throw new NotImplementedException();
-    }
-
-    string[] IMediaWiki.GetPageTransclusions(string page, int inNamespace)
-    {
-        throw new NotImplementedException();
-    }
-
-    IDictionary<string, string[]> IMediaWiki.GetPageTransclusions(string[] pages, int inNamespace)
+    string[] IMediaWiki.GetPagesInCategory(string categoryName, MediaWiki.Namespace? pageNamespace)
     {
         throw new NotImplementedException();
     }
@@ -122,7 +112,7 @@ internal class MockWiki : IMediaWiki
     bool IMediaWiki.GetStabilizationExpiry(string title, out DateTimeOffset? expiry) =>
         _stabilization.TryGetValue(title, out expiry);
 
-    IDictionary<string, string[]> IMediaWiki.GetTransclusionsOf(string[] titles, int? inNamespace)
+    IDictionary<string, string[]> IMediaWiki.GetTransclusionsOf(string[] titles, MediaWiki.Namespace? inNamespace)
     {
         throw new NotImplementedException();
     }

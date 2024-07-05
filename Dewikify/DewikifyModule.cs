@@ -7,8 +7,6 @@ namespace ChieBot.Dewikify
 {
     public class DewikifyModule : Modules.IModule
     {
-        private const int TemplateNamespaceId = 4; // Википедия
-        private const int DewikifyNamespaceId = 0; // main ns
         public const string CategoryName = "Википедия:К быстрому удалению:Девикифицировать";
         public const string TemplateName = "Девикифицировать вхождения";
         public const string Summary = "Автоматическая девикификация ссылок на удаленную страницу.";
@@ -28,7 +26,7 @@ namespace ChieBot.Dewikify
         {
             var allTemplateNames = wiki.GetAllPageNames("Template:" + TemplateName);
 
-            var titles = wiki.GetPagesInCategory(CategoryName, TemplateNamespaceId);
+            var titles = wiki.GetPagesInCategory(CategoryName, MediaWiki.Namespace.Wikipedia);
             foreach (var title in titles)
             {
                 var history = Revision.FromHistory(wiki.GetHistory(title, DateTimeOffset.MinValue));
@@ -109,8 +107,8 @@ namespace ChieBot.Dewikify
 
         private void Dewikify(IMediaWiki wiki, string[] titles, string originalTitle)
         {
-            Dewikify(wiki, titles, originalTitle, wiki.GetLinksTo(titles, DewikifyNamespaceId), DewikifyLinkIn);
-            Dewikify(wiki, titles, originalTitle, wiki.GetTransclusionsOf(titles, DewikifyNamespaceId), RemoveTransclusionsIn);
+            Dewikify(wiki, titles, originalTitle, wiki.GetLinksTo(titles, MediaWiki.Namespace.Article), DewikifyLinkIn);
+            Dewikify(wiki, titles, originalTitle, wiki.GetTransclusionsOf(titles, MediaWiki.Namespace.Article), RemoveTransclusionsIn);
         }
 
         private void Dewikify(IMediaWiki wiki, string[] titles, string originalTitle, IDictionary<string, string[]> entries, Func<string, string, ParserUtils, string> dewikify)

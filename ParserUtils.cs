@@ -166,12 +166,11 @@ namespace ChieBot
 
         private IEnumerable<string> GetAlternativelyNamespacedTitles(string fullName, bool isTempalte)
         {
-            string ns, title;
-            ParserUtils.SplitTitle(fullName, out ns, out title);
+            SplitTitle(fullName, out var ns, out var title);
 
             var namespaces = _wiki.GetNamespaces();
             var nsId = isTempalte
-                ? 10
+                ? MediaWiki.Namespace.Template
                 : namespaces.Single(x => x.Value.Contains(ns)).Key;
 
             var results = namespaces[nsId].Select(n => string.Format("{0}:{1}", n, title));
