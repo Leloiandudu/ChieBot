@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace ChieBot.Dewikify
 {
@@ -11,98 +10,24 @@ namespace ChieBot.Dewikify
         public const string TemplateName = "Девикифицировать вхождения";
         public const string Summary = "Автоматическая девикификация ссылок на удаленную страницу.";
         public const string SummaryWithTitle = "Автодевикификация [[{0}]].";
-        private static readonly string[] IncludeGroups = { "sysop", "closer" };
-        private static readonly string[] ExcludeGroups = { "bot" };
-        private const string ClosingSectionName = "Итог";
         private const string SeeAlsoSectionName = "См. также";
         private const string DisambigTemplateName = "неоднозначность";
         private const string NamesakeListTemplateName = "Список однофамильцев";
 
-        private static readonly Regex HeaderRegex = new Regex(@"^=+\s*([^=].*?)\s*=+", RegexOptions.Multiline);
-
-        private readonly Dictionary<string, bool> _powerUsers = new Dictionary<string, bool>();
-
         public void Execute(IMediaWiki wiki, string[] commandLine)
         {
-            var allTemplateNames = wiki.GetAllPageNames("Template:" + TemplateName);
-
-            var titles = wiki.GetPagesInCategory(CategoryName, MediaWiki.Namespace.Wikipedia);
-            foreach (var title in titles)
+            var executor = new TemplateBasedTaskExecutor(wiki, TemplateName, Summary);
+            foreach (var taskPage in wiki.GetPagesInCategory(CategoryName, MediaWiki.Namespace.Wikipedia))
             {
-                var history = Revision.FromHistory(wiki.GetHistory(title, DateTimeOffset.MinValue));
-
-                LoadUsers(wiki, history);
-
-                var page = new ParserUtils(wiki).FindTemplates(history.First().GetText(wiki), allTemplateNames);
-                foreach (var dt in page.Select(t => new DewikifyTemplate(t)).ToArray())
+                executor.Run(taskPage, title =>
                 {
-                    if (dt.Error != null)
-                    {
-                        page.Update(dt.Template, string.Format("<span style='color: red'>Ошибка в шаблоне <nowiki>{0}</nowiki>: '''{1}'''</span>", dt.Template.ToString(), dt.Error));
-                        continue;
-                    }
-
-                    if (dt.IsDone)
-                    {
-                        continue;
-                    }
-
-                    var section = GetSectionName(page, dt.Template);
-                    if (section != ClosingSectionName)
-                    {
-                        page.Update(dt.Template, string.Format("<span style='color: red'>Шаблон <nowiki>{0}</nowiki> должен находиться в секции '''Итоги'''.</span>", dt.Template.ToString()));
-                        continue;
-                    }
-
-                    var user = GetUser(wiki, dt, allTemplateNames, history);
-                    if (!_powerUsers[user])
-                    {
-                        page.Update(dt.Template, string.Format("<span style='color: red'>Шаблон <nowiki>{0}</nowiki> установлен пользователем {{{{u|{1}}}}}, не имеющим флага ПИ/А.</span>", dt.Template.ToString(), user));
-                        continue;
-                    }
-
-                    var allTitles = wiki.GetAllPageNames(dt.Title);
-                    Dewikify(wiki, allTitles, dt.Title);
+                    var allTitles = wiki.GetAllPageNames(title);
+                    Dewikify(wiki, allTitles, title);
 
                     foreach (var t in allTitles.Skip(1))
-                        wiki.Delete(t, string.Format("[[ВП:КБУ#П1]] [[{0}]]", dt.Title));
-
-                    dt.IsDone = true;
-                    page.Update(dt.Template, dt.Template.ToString());
-                }
-
-                if (history.First().GetText(wiki) != page.Text)
-                    wiki.Edit(title, page.Text, Summary);
+                        wiki.Delete(t, string.Format("[[ВП:КБУ#П1]] [[{0}]]", title));
+                });
             }
-        }
-
-        private static string GetSectionName<T>(PartiallyParsedWikiText<T> page, T item)
-            where T : class
-        {
-            var offset = page.GetOffset(item);
-            return HeaderRegex.Matches(page.Text)
-                .TakeWhile(m => m.Index < offset)
-                .Select(m => m.Groups[1].Value.Trim())
-                .LastOrDefault();
-        }
-
-        private void LoadUsers(IMediaWiki wiki, Revision[] history)
-        {
-            var users = wiki.GetUserGroups(history.Select(h => h.Info.User).Distinct().Except(_powerUsers.Keys).ToArray());
-            foreach (var (user, groups) in users)
-            {
-                _powerUsers.Add(user, groups.Any(g => IncludeGroups.Contains(g)) && groups.All(g => !ExcludeGroups.Contains(g)));
-            }
-        }
-
-        private string GetUser(IMediaWiki wiki, DewikifyTemplate template, string[] allTemplateNames, Revision[] history)
-        {
-            // looking for the first edit where the template did not exist
-
-            return history.FindEarliest(wiki, text => new ParserUtils(wiki).FindTemplates(text, allTemplateNames)
-                .Select(t => new DewikifyTemplate(t))
-                .Where(t => t.Error == null)
-                .Any(t => t.Title == template.Title)).Info.User;
         }
 
         private void Dewikify(IMediaWiki wiki, string[] titles, string originalTitle)
@@ -111,7 +36,7 @@ namespace ChieBot.Dewikify
             Dewikify(wiki, titles, originalTitle, wiki.GetTransclusionsOf(titles, MediaWiki.Namespace.Article), RemoveTransclusionsIn);
         }
 
-        private void Dewikify(IMediaWiki wiki, string[] titles, string originalTitle, IDictionary<string, string[]> entries, Func<string, string, ParserUtils, string> dewikify)
+        private static void Dewikify(IMediaWiki wiki, string[] titles, string originalTitle, IDictionary<string, string[]> entries, Func<string, string, ParserUtils, string> dewikify)
         {
             var parser = new ParserUtils(wiki);
             var linkingPages = entries.Values.SelectMany(x => x).Distinct().ToArray();
@@ -136,7 +61,7 @@ namespace ChieBot.Dewikify
 
             foreach (var link in links.ToArray())
             {
-                if (isDisambig || GetSectionName(links, link) == SeeAlsoSectionName)
+                if (isDisambig || ParserUtils.GetSectionName(links, link) == SeeAlsoSectionName)
                     found.Add(link); // whole line will be removed later (see below)
                 else
                     links.Update(link, link.Text ?? link.Link);
@@ -147,7 +72,7 @@ namespace ChieBot.Dewikify
             return text.Remove(found.Select(x => ParserUtils.GetWholeLineAt(links, x)).Distinct());
         }
 
-        private string RemoveTransclusionsIn(string pageIn, string templateName, ParserUtils parser)
+        private static string RemoveTransclusionsIn(string pageIn, string templateName, ParserUtils parser)
         {
             var templates = parser.FindTemplates(pageIn, templateName, false);
             foreach (var template in templates.ToArray())
@@ -159,71 +84,6 @@ namespace ChieBot.Dewikify
                 .Where(r => r.Get(text).Trim() == "");
 
             return text.Remove(emptyLines);
-        }
-
-        class DewikifyTemplate
-        {
-            private const string DoneArg = "сделано";
-
-            private readonly Template _template;
-            private string _error;
-
-            public DewikifyTemplate(Template template)
-            {
-                _template = template;
-                Verify();
-            }
-
-            private void Verify()
-            {
-                if (_template.Args.Count == 2 && _template.Args[1].Name == null && _template.Args[1].Value == DoneArg)
-                    return;
-
-                if (_template.Args.Count != 1 || _template.Args[0].Name != null || string.IsNullOrWhiteSpace(_template.Args[0].Value))
-                    _error = "неверный формат аргументов";
-            }
-
-            public Template Template
-            {
-                get { return _template; }
-            }
-
-            public string Error
-            {
-                get { return _error; }
-            }
-
-            public string Title
-            {
-                get
-                {
-                    Check();
-                    return _template.Args[0].Value;
-                }
-            }
-
-            public bool IsDone
-            {
-                get
-                {
-                    Check();
-                    return _template.Args.Count == 2;
-                }
-                set
-                {
-                    if (IsDone == value) return;
-                    if (value)
-                        _template.Args.Add(new Template.Argument { Value = DoneArg });
-                    else
-                        _template.Args.RemoveAt(1);
-                }
-            }
-
-            private void Check()
-            {
-                if (_error != null)
-                    throw new InvalidOperationException("Template is not valid: " + _error);
-            }
         }
     }
 }

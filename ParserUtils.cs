@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace ChieBot
 {
-    public class ParserUtils
+    public partial class ParserUtils
     {
         private static readonly Regex LinkRegex = new Regex(@"\[\[:?(?<link>[^|\]]+)(\|(?<title>[^\]]+))?\]\]", RegexOptions.ExplicitCapture);
         private static readonly Regex BoldLinkRegex = new Regex(@"('''[^\[\]']+''')|('''.*?\[\[:?(?<link>[^|\]]+)(\|[^\]]+)?\]\].*?('''|$))|(\[\[:?(?<link>[^|\]]+)\|'''.*?'''\]\])", RegexOptions.ExplicitCapture);
@@ -189,6 +189,20 @@ namespace ChieBot
             var names = templateNames.SelectMany(t => GetAlternativelyNamespacedTitles(t, true)).Distinct().ToArray();
             return FindTemplatesInternal(text, names, skipIgnored);
         }
+
+        public static string GetSectionName<T>(PartiallyParsedWikiText<T> page, T item)
+            where T : class
+        {
+            var offset = page.GetOffset(item);
+            return HeaderRegex().Matches(page.Text)
+                .TakeWhile(m => m.Index < offset)
+                .Select(m => m.Groups[1].Value.Trim())
+                .LastOrDefault();
+        }
+
+
+        [GeneratedRegex(@"^=+\s*([^=].*?)\s*=+", RegexOptions.Multiline)]
+        private static partial Regex HeaderRegex();
     }
 
     [DebuggerDisplay("off: {Offset}, len: {Length}")]
