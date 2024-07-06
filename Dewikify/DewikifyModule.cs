@@ -5,14 +5,14 @@ using System.Text.RegularExpressions;
 
 namespace ChieBot.Dewikify
 {
-    class DewikifyModule : Modules.IModule
+    public class DewikifyModule : Modules.IModule
     {
         private const int TemplateNamespaceId = 4; // Википедия
         private const int DewikifyNamespaceId = 0; // main ns
-        private const string CategoryName = "Википедия:К быстрому удалению:Девикифицировать";
-        private const string TemplateName = "Девикифицировать вхождения";
-        private const string Summary = "Автоматическая девикификация ссылок на удаленную страницу.";
-        private const string SummaryWithTitle = "Автодевикификация [[{0}]].";
+        public const string CategoryName = "Википедия:К быстрому удалению:Девикифицировать";
+        public const string TemplateName = "Девикифицировать вхождения";
+        public const string Summary = "Автоматическая девикификация ссылок на удаленную страницу.";
+        public const string SummaryWithTitle = "Автодевикификация [[{0}]].";
         private static readonly string[] IncludeGroups = { "sysop", "closer" };
         private static readonly string[] ExcludeGroups = { "bot" };
         private const string ClosingSectionName = "Итог";
