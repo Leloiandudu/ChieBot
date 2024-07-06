@@ -9,7 +9,7 @@ namespace ChieBot
     public class PartiallyParsedWikiText<T> : IEnumerable<T>
         where T : class
     {
-        private readonly List<Tuple<string, T>> _items = [];
+        private readonly List<(string Text, T Item)> _items = [];
 
         public PartiallyParsedWikiText(string text, Regex regex, Func<Match, T> itemFactory)
             : this(text, regex.Matches(text).Select(m => (m.Index, m.Length, itemFactory(m))))
@@ -23,56 +23,52 @@ namespace ChieBot
             {
                 if (match.Index != index)
                 {
-                    _items.Add(Tuple.Create(text[index..match.Index], (T)null));
+                    _items.Add((text[index..match.Index], null));
                     index = match.Index;
                 }
 
-                _items.Add(Tuple.Create(text.Substring(match.Index, match.Length), match.Value));
+                _items.Add((text.Substring(match.Index, match.Length), match.Value));
                 index += match.Length;
             }
 
             if (index != text.Length)
-                _items.Add(Tuple.Create(text.Substring(index), (T)null));
+                _items.Add((text[index..], null));
 
             Debug.Assert(text == Text);
         }
 
         public bool Remove(T item)
         {
-            return _items.RemoveAll(x => x.Item2 == item) > 0;
+            return _items.RemoveAll(x => x.Item == item) > 0;
         }
 
         public int GetOffset(T item)
         {
-            var index = _items.FindIndex(x => x.Item2 == item);
-            return _items.Take(index).Sum(x => x.Item1.Length);
+            var index = _items.FindIndex(x => x.Item == item);
+            return _items.Take(index).Sum(x => x.Text.Length);
         }
 
         public void Update(T item, string text)
         {
-            var index = _items.FindIndex(x => x.Item2 == item);
-            _items[index] = Tuple.Create(text, item);
+            var index = _items.FindIndex(x => x.Item == item);
+            _items[index] = (text, item);
         }
 
         public void InsertAfter(T item, T after)
         {
-            var index = _items.FindIndex(x => x.Item2 == after);
-            _items.Insert(index + 1, Tuple.Create("", item));
+            var index = _items.FindIndex(x => x.Item == after);
+            _items.Insert(index + 1, ("", item));
         }
 
         public string Text
         {
-            get { return string.Join("", _items.Select(x => x.Item1)); }
+            get { return string.Join("", _items.Select(x => x.Text)); }
         }
 
         public IEnumerator<T> GetEnumerator()
-        {
-            return _items.Select(x => x.Item2).Where(x => x != null).GetEnumerator();
-        }
+            => _items.Select(x => x.Item).Where(x => x != null).GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+            => GetEnumerator();
     }
 }

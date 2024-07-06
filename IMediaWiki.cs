@@ -14,7 +14,7 @@ public interface IMediaWiki
     IDictionary<MediaWiki.Namespace, string[]> GetNamespaces();
     string GetPage(int revId);
     string GetPage(string page, bool followRedirects = false);
-    MediaWiki.PageInfo GetPageInfo(string page, bool followRedirects = false);
+    MediaWiki.FullRevisionInfo GetLastRevision(string page, bool followRedirects = false);
     IDictionary<int, string> GetPages(int[] revIds);
     IDictionary<string, MediaWiki.Page> GetPages(string[] pages, bool followRedirects = false);
     IDictionary<string, string[]> GetPagesCategories(string[] pages, bool followRedirects = false);

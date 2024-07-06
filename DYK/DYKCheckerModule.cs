@@ -17,7 +17,7 @@ namespace ChieBot.DYK
             {
                 try
                 {
-                    var page = wiki.GetPageInfo(DidYouKnow.NextIssueName);
+                    var page = wiki.GetLastRevision(DidYouKnow.NextIssueName);
                     var preparation = new NextIssuePreparation(page.Text);
                     if (CheckPreparation(preparation, wiki, commandLine.Contains("-onlyNew")))
                         wiki.Edit(DidYouKnow.NextIssueName, preparation.FullText, "Автоматическое обновление страницы.", revId: page.Id);

@@ -74,7 +74,7 @@ internal class MockWiki : IMediaWiki
 
     string IMediaWiki.GetPage(string page, bool followRedirects) => GetPage(page);
 
-    MediaWiki.PageInfo IMediaWiki.GetPageInfo(string page, bool followRedirects)
+    MediaWiki.FullRevisionInfo IMediaWiki.GetLastRevision(string page, bool followRedirects)
     {
         throw new NotImplementedException();
     }

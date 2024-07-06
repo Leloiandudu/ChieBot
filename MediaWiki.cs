@@ -84,7 +84,7 @@ public class MediaWiki : IMediaWiki
         return revisons.Item2[0].Value<string>("*");
     }
 
-    public PageInfo GetPageInfo(string page, bool followRedirects = false)
+    public FullRevisionInfo GetLastRevision(string page, bool followRedirects = false)
     {
         var revisons = QueryPages("revisions", new Dictionary<string, string>
         {
@@ -94,7 +94,7 @@ public class MediaWiki : IMediaWiki
 
         if (revisons == null || revisons.Item2.Count == 0)
             return null;
-        return revisons.Item2.Single().ToObject<PageInfo>();
+        return revisons.Item2.Single().ToObject<FullRevisionInfo>();
     }
 
     public string GetPage(int revId)
@@ -753,7 +753,7 @@ public class MediaWiki : IMediaWiki
         SysOp,
     }
 
-    public class PageInfo : RevisionInfo
+    public class FullRevisionInfo : RevisionInfo
     {
         [JsonProperty("*")]
         public string Text { get; set; }
