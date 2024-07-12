@@ -108,6 +108,27 @@ public class MediaWiki : IMediaWiki
         return revisons["pages"].Values().Select(x => x["revisions"].Single().Value<string>("*")).SingleOrDefault();
     }
 
+    public Dictionary<string, PageInfo> GetAssociatePageTitle(params string[] titles)
+        => GetAssociatePageTitle(titles, false);
+
+    public Dictionary<string, PageInfo> GetAssociatePageTitle(string[] titles, bool followRedirects = false)
+    {
+        var result = RawQueryPages("info", new Dictionary<string, string>
+        {
+            ["inprop"] = "associatedpage",
+            ["redirects"] = followRedirects ? "" : null,
+        }, titles, false);
+
+        return result.ToDictionary(
+            x => x.Key,
+            x => new PageInfo(GetAssocNs(x.Value.Value<int>("ns")), x.Value.Value<string>("associatedpage")));
+
+        static Namespace GetAssocNs(int pageNs)
+            => (Namespace)(pageNs + 1 - (pageNs % 2) * 2);
+    }
+
+    public record PageInfo(Namespace Namespace, string Title);
+
     public IDictionary<int, string> GetPages(int[] revIds)
     {
         if (revIds.Length == 0)
@@ -427,15 +448,30 @@ public class MediaWiki : IMediaWiki
         ).Distinct().GroupBy(x => x.Item1, x => x.Item2).ToDictionary(x => (Namespace)x.Key, x => x.ToArray());
     }
 
-    private IDictionary<string, Tuple<string, JArray>> QueryPages(string property, IDictionary<string, string> queryArgs, params string[] titles)
+    private Dictionary<string, Tuple<string, JArray>> QueryPages(string property, IDictionary<string, string> queryArgs, params string[] titles)
+        => QueryPages(property, queryArgs, true, titles);
+
+    private Dictionary<string, Tuple<string, JArray>> QueryPages(string property, IDictionary<string, string> queryArgs, bool nullIfMissing = true, params string[] titles)
     {
-        return QueryPages(property, queryArgs, true, titles);
+        return RawQueryPages(property, queryArgs, titles, nullIfMissing).ToDictionary(
+            kv => kv.Key,
+            kv =>
+            {
+                var x = kv.Value;
+                if (x == null)
+                    return null;
+
+                return Tuple.Create(
+                    kv.Value.Value<string>("title"),
+                    kv.Value.Value<JArray>(property) ?? []
+                );
+            });
     }
 
-    private IDictionary<string, Tuple<string, JArray>> QueryPages(string property, IDictionary<string, string> queryArgs, bool nullIfMissing = true, params string[] titles)
+    private Dictionary<string, JToken> RawQueryPages(string property, IDictionary<string, string> queryArgs, string[] titles, bool nullIfMissing = true)
     {
         if (titles.Length == 0)
-            return new Dictionary<string, Tuple<string, JArray>>();
+            return [];
 
         var mergeSettings = new JsonMergeSettings { MergeArrayHandling = MergeArrayHandling.Concat };
         var normalizations = new JObject(titles.Select(t => new JProperty(t, t)));
@@ -474,11 +510,9 @@ public class MediaWiki : IMediaWiki
                 if (nullIfMissing && x["missing"] != null)
                     return null;
 
-                return Tuple.Create(
-                    x.Value<string>("title"),
-                    x.Value<JArray>(property) ?? new JArray()
-                );
-            });
+                return x;
+            }
+        );
     }
 
     private JObject RawQueryPages(string property, IDictionary<string, string> queryArgs, int? limit = null)
@@ -628,7 +662,7 @@ public class MediaWiki : IMediaWiki
         writeLine("");
     }
 
-    private JToken Exec(IDictionary<string, string> args)
+    private JToken Exec(Dictionary<string, string> args)
     {
         var log = "";
         const int MaxRetries = 5;

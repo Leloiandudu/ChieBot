@@ -152,6 +152,16 @@ internal class MockWiki : IMediaWiki
         _stabilization[page] = expiry;
     }
 
+    Dictionary<string, MediaWiki.PageInfo> IMediaWiki.GetAssociatePageTitle(string[] titles, bool followRedirects)
+    {
+        throw new NotImplementedException();
+    }
+
+    Dictionary<string, MediaWiki.PageInfo> IMediaWiki.GetAssociatePageTitle(params string[] titles)
+    {
+        throw new NotImplementedException();
+    }
+
     bool IMediaWiki.BotFlag { get; set; } = true;
 
     bool IMediaWiki.ReadOnly => throw new NotImplementedException();

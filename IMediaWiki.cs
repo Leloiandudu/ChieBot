@@ -30,4 +30,6 @@ public interface IMediaWiki
     IDictionary<string, string> Normalize(params string[] pages);
     void Protect(string page, string reason, Dictionary<MediaWiki.ProtectionType, MediaWiki.ProtectionInfo> protections);
     void Stabilize(string page, string reason, DateTimeOffset? expiry, bool stabilize = true);
+    Dictionary<string, MediaWiki.PageInfo> GetAssociatePageTitle(string[] titles, bool followRedirects = false);
+    Dictionary<string, MediaWiki.PageInfo> GetAssociatePageTitle(params string[] titles);
 }

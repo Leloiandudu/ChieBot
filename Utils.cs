@@ -8,7 +8,7 @@ namespace ChieBot
 {
     public static class Utils
     {
-        public static DateTimeFormatInfo DateTimeFormat { get; private set; }
+        public static DateTimeFormatInfo DateTimeFormat { get; }
 
         static Utils()
         {
@@ -109,5 +109,8 @@ namespace ChieBot
         {
             return DateOnly.FromDateTime(dto.Date);
         }
+
+        public static bool IsTalk(this MediaWiki.Namespace ns)
+            => ((int)ns) % 2 == 1;
     }
 }
