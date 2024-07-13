@@ -102,6 +102,21 @@ public class KeepTests
         _wiki.Verify(w => w.Edit(SomePageTalk, "{{Оставлено|" + TaskDate + "|l1=123}}\n", It.IsAny<string>(), false, null, SomePageTalkRevId));
     }
 
+    [Fact]
+    public void Adds_kept_to_talk_when_doesnt_exist()
+    {
+        _wiki.Setup(w => w.GetLastRevision(SomePage, false))
+            .Returns(new MediaWiki.FullRevisionInfo()
+            {
+                Id = SomePageRevId,
+                Text = "",
+            });
+
+        new KeepModule().Execute(_wiki.Object, []);
+
+        _wiki.Verify(w => w.Edit(SomePageTalk, "{{Оставлено|" + TaskDate + "|l1=123}}\n", It.IsAny<string>(), false, null, null));
+    }
+
     [Theory]
     [InlineData("aaa {{Оставлено|12 мартобря 2000|l1=ccc}} bbb", "aaa {{Оставлено|12 мартобря 2000|" + TaskDate + "|l1=ccc|l2=" + SomePage + "}} bbb")]
     [InlineData("{{Оставлено|" + TaskDate + "}}", "{{Оставлено|" + TaskDate + "|l1=" + SomePage + "}}")]
@@ -114,6 +129,14 @@ public class KeepTests
         new KeepModule().Execute(_wiki.Object, []);
 
         _wiki.Verify(w => w.Edit(SomePageTalk, expected, It.IsAny<string>(), null, null, SomePageTalkRevId));
+    }
+
+    [Fact]
+    public void Does_nothing_if_page_doesnt_exist()
+    {
+        new KeepModule().Execute(_wiki.Object, []);
+
+        _wiki.Verify(w => w.Edit(SomePage, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool?>(), It.IsAny<DateTime?>(), It.IsAny<int?>()), Times.Never);
     }
 
     private void Setup(string page = "", string talk = "")

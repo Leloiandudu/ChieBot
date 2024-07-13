@@ -2,6 +2,8 @@
 using System.Text.RegularExpressions;
 using ChieBot.Modules;
 
+#nullable enable
+
 namespace ChieBot.Keep;
 public partial class KeepModule : IModule
 {
@@ -48,7 +50,7 @@ public partial class KeepModule : IModule
                 // add {{Оставлено}}
 
                 var talk = wiki.GetLastRevision(talkPage.Title);
-                var parsedTalk = parser.FindTemplates(talk.Text, KeptTemplateName);
+                var parsedTalk = parser.FindTemplates(talk?.Text ?? "", KeptTemplateName);
                 var keptTemplate = parsedTalk.FirstOrDefault();
 
                 if (keptTemplate == null)
@@ -56,14 +58,14 @@ public partial class KeepModule : IModule
                     keptTemplate = new() { Name = KeptTemplateName };
                     UpdateKeptTempate(keptTemplate, rfdDate, title);
 
-                    wiki.Edit(talkPage.Title, keptTemplate.ToString() + "\n", Summary, false, revId: talk.Id);
+                    wiki.Edit(talkPage.Title, keptTemplate.ToString() + "\n", Summary, false, revId: talk?.Id);
                 }
                 else
                 {
                     UpdateKeptTempate(keptTemplate, rfdDate, title);
 
                     parsedTalk.Update(keptTemplate, keptTemplate.ToString());
-                    wiki.Edit(talkPage.Title, parsedTalk.Text, Summary, revId: talk.Id);
+                    wiki.Edit(talkPage.Title, parsedTalk.Text, Summary, revId: talk!.Id);
                 }
             });
         }
@@ -79,7 +81,7 @@ public partial class KeepModule : IModule
             .Select((a, i) => new { Date = a.Value, Title = template.Args.FirstOrDefault(x => x.Name == GetArgName(i))?.Value })
             .ToList();
 
-        var newItem = new { Date = date, Title = title };
+        var newItem = new { Date = date, Title = (string?)title };
 
         var index = items.FindIndex(x => x.Date == date);
         if (index == -1)
