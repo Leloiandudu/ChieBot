@@ -4,7 +4,7 @@ using System.Linq;
 
 #nullable enable
 
-namespace ChieBot;
+namespace ChieBot.TemplateTasks;
 
 partial class TemplateBasedTaskExecutor(IMediaWiki _wiki, string _templateName, string _summary)
 {
@@ -29,7 +29,7 @@ partial class TemplateBasedTaskExecutor(IMediaWiki _wiki, string _templateName, 
             var tt = TryParse(template);
             if (tt == null)
             {
-                page.Update(template, string.Format("<span style='color: red'>Ошибка в шаблоне <nowiki>{0}</nowiki>: '''{1}'''</span>", template.ToString(), "неверный формат аргументов"));
+                page.Update(template, $"<span style='color: red'>Ошибка в шаблоне <nowiki>{template}</nowiki>: '''неверный формат аргументов'''</span>");
                 continue;
             }
 
@@ -39,14 +39,14 @@ partial class TemplateBasedTaskExecutor(IMediaWiki _wiki, string _templateName, 
             var section = ParserUtils.GetSectionName(page, template);
             if (section != ClosingSectionName)
             {
-                page.Update(template, string.Format("<span style='color: red'>Шаблон <nowiki>{0}</nowiki> должен находиться в секции '''Итоги'''.</span>", template.ToString()));
+                page.Update(template, $"<span style='color: red'>Шаблон <nowiki>{template}</nowiki> должен находиться в секции '''Итоги'''.</span>");
                 continue;
             }
 
             var user = GetUser(tt.Title, history);
             if (!_powerUsers[user])
             {
-                page.Update(template, string.Format("<span style='color: red'>Шаблон <nowiki>{0}</nowiki> установлен пользователем {{{{u|{1}}}}}, не имеющим флага ПИ/А.</span>", template.ToString(), user));
+                page.Update(template, $"<span style='color: red'>Шаблон <nowiki>{template}</nowiki> установлен пользователем {{{{u|{user}}}}}, не имеющим флага ПИ/А.</span>");
                 continue;
             }
 
@@ -65,10 +65,13 @@ partial class TemplateBasedTaskExecutor(IMediaWiki _wiki, string _templateName, 
         if (template.Args.Count == 0)
             return null;
 
+        if (template.Args[0].Name != null)
+            return null;
+
         if (template.Args.Count == 2 && template.Args[1].Name == null && template.Args[1].Value == DoneArg)
             return new(null!, true);
 
-        if (template.Args.Count == 1 && template.Args[0].Name == null && !string.IsNullOrWhiteSpace(template.Args[0].Value))
+        if (template.Args.Count == 1 && !string.IsNullOrWhiteSpace(template.Args[0].Value))
             return new(template.Args[0].Value, false);
 
         return null;

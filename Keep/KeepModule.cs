@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Text.RegularExpressions;
 using ChieBot.Modules;
+using ChieBot.TemplateTasks;
 
 #nullable enable
 
