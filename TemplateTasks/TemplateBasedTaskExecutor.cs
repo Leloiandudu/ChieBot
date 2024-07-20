@@ -6,19 +6,17 @@ using System.Linq;
 
 namespace ChieBot.TemplateTasks;
 
-partial class TemplateBasedTaskExecutor(IMediaWiki _wiki, string _templateName, string _summary)
+partial class TemplateBasedTaskExecutor<TTaskTemplate>(IMediaWiki _wiki, string _templateName, string _summary, Func<Template, TTaskTemplate> _parseTemplate)
+    where TTaskTemplate : TaskTemplateBase
 {
     private const string ClosingSectionName = "Итог";
     private static readonly string[] IncludeGroups = ["sysop", "closer"];
     private static readonly string[] ExcludeGroups = ["bot"];
-    private const string DoneArg = "сделано";
 
     private readonly Dictionary<string, bool> _powerUsers = [];
     private readonly Lazy<string[]> _allTemplateNames = new(() => _wiki.GetAllPageNames("Template:" + _templateName));
 
-    private record TaskTemplate(string Title, bool IsDone);
-
-    public void Run(string title, Action<string> executeTask)
+    public void Run(string title, Action<TTaskTemplate> executeTask)
     {
         var history = Revision.FromHistory(_wiki.GetHistory(title, DateTimeOffset.MinValue));
         LoadUsers(history);
@@ -50,9 +48,9 @@ partial class TemplateBasedTaskExecutor(IMediaWiki _wiki, string _templateName, 
                 continue;
             }
 
-            executeTask(tt.Title);
+            executeTask(tt);
 
-            template.Args.Add(new() { Value = DoneArg });
+            template.Args.Add(new() { Value = TaskTemplateBase.DoneArg });
             page.Update(template, template.ToString());
         }
 
@@ -60,21 +58,16 @@ partial class TemplateBasedTaskExecutor(IMediaWiki _wiki, string _templateName, 
             _wiki.Edit(title, page.Text, _summary);
     }
 
-    private static TaskTemplate? TryParse(Template template)
+    private TTaskTemplate? TryParse(Template template)
     {
-        if (template.Args.Count == 0)
+        try
+        {
+            return _parseTemplate(template);
+        }
+        catch (FormatException)
+        {
             return null;
-
-        if (template.Args[0].Name != null)
-            return null;
-
-        if (template.Args.Count == 2 && template.Args[1].Name == null && template.Args[1].Value == DoneArg)
-            return new(null!, true);
-
-        if (template.Args.Count == 1 && !string.IsNullOrWhiteSpace(template.Args[0].Value))
-            return new(template.Args[0].Value, false);
-
-        return null;
+        }
     }
 
     private void LoadUsers(Revision[] history)

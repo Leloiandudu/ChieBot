@@ -19,7 +19,7 @@ public partial class KeepModule : IModule
     public void Execute(IMediaWiki wiki, string[] commandLine)
     {
         var parser = new ParserUtils(wiki);
-        var executor = new TemplateBasedTaskExecutor(wiki, TemplateName, Summary);
+        var executor = new TemplateBasedTaskExecutor<SimpleTaskTemplate>(wiki, TemplateName, Summary, t => new SimpleTaskTemplate(t));
 
         foreach (var taskPage in wiki.GetPagesInCategory(CategoryName, MediaWiki.Namespace.Wikipedia))
         {
@@ -30,8 +30,10 @@ public partial class KeepModule : IModule
             if (rfdDate.Contains('/'))
                 continue;
 
-            executor.Run(taskPage, title =>
+            executor.Run(taskPage, taskTemplate =>
             {
+                var title = taskTemplate.Title;
+
                 var page = wiki.GetLastRevision(title);
                 if (page == null)
                     return;

@@ -17,11 +17,13 @@ namespace ChieBot.Dewikify
 
         public void Execute(IMediaWiki wiki, string[] commandLine)
         {
-            var executor = new TemplateBasedTaskExecutor(wiki, TemplateName, Summary);
+            var executor = new TemplateBasedTaskExecutor<SimpleTaskTemplate>(wiki, TemplateName, Summary, t => new SimpleTaskTemplate(t));
             foreach (var taskPage in wiki.GetPagesInCategory(CategoryName, MediaWiki.Namespace.Wikipedia))
             {
-                executor.Run(taskPage, title =>
+                executor.Run(taskPage, taskTemplate =>
                 {
+                    var title = taskTemplate.Title;
+
                     var allTitles = wiki.GetAllPageNames(title);
                     Dewikify(wiki, allTitles, title);
 
