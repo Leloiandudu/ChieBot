@@ -1,4 +1,4 @@
-﻿using ChieBot.Dewikify;
+﻿using ChieBot.TemplateTasks;
 using Moq;
 
 namespace Tests;

@@ -1,11 +1,10 @@
 ﻿using System.Linq;
 using System.Text.RegularExpressions;
 using ChieBot.Modules;
-using ChieBot.TemplateTasks;
 
 #nullable enable
 
-namespace ChieBot.Keep;
+namespace ChieBot.TemplateTasks;
 public partial class KeepModule : IModule
 {
     public const string CategoryName = "Википедия:К удалению:Оставлено";

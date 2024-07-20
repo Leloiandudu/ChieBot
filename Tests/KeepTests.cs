@@ -1,4 +1,4 @@
-﻿using ChieBot.Keep;
+﻿using ChieBot.TemplateTasks;
 using Moq;
 
 namespace Tests;
