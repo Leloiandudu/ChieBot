@@ -214,17 +214,13 @@ namespace ChieBot
             Length = length;
         }
 
-        public int Offset { get; private set; }
-        public int Length { get; private set; }
+        public int Offset { get; }
+        public int Length { get; }
 
-        public bool Contains(int offset)
-        {
-            return Offset <= offset && offset < Offset + Length;
-        }
+        public bool Contains(int offset) =>
+            Offset <= offset && offset < Offset + Length;
 
-        public string Get(string str)
-        {
-            return str.Substring(Offset, Length);
-        }
+        public string Get(string str) =>
+            str.Substring(Offset, Length);
     }
 }

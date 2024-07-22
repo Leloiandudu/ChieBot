@@ -27,6 +27,7 @@ public interface IMediaWiki
     void HideRevisions(int[] ids, bool hideComment, bool hideUser);
     bool IsLoggedIn();
     void Login(string login, string password);
+    void Move(string fromTitle, string toTitle, string reason, bool redirect);
     IDictionary<string, string> Normalize(params string[] pages);
     void Protect(string page, string reason, Dictionary<MediaWiki.ProtectionType, MediaWiki.ProtectionInfo> protections);
     void Stabilize(string page, string reason, DateTimeOffset? expiry, bool stabilize = true);

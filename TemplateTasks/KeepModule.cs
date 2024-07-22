@@ -5,13 +5,12 @@ using ChieBot.Modules;
 #nullable enable
 
 namespace ChieBot.TemplateTasks;
-public partial class KeepModule : IModule
+public class KeepModule : IModule
 {
     public const string CategoryName = "Википедия:К удалению:Оставлено";
     public const string TemplateName = "Итог — оставлено";
     public const string Summary = "Автоматическое оставление статьи.";
 
-    public const string ForDelTemplateName = "К удалению";
     public const string KeptTemplateName = "Оставлено";
     public const string RfdTitlePrefix = "Википедия:К удалению/";
 
@@ -43,11 +42,8 @@ public partial class KeepModule : IModule
 
                 // remove {{К удалению}}
 
-                var parsedPage = parser.FindTemplates(page.Text, ForDelTemplateName);
-                foreach (var template in parsedPage.ToArray())
-                    parsedPage.Update(template, "");
-                if (parsedPage.Any())
-                    wiki.Edit(title, NoIncludeRegex().Replace(parsedPage.Text, ""), Summary, revId: page.Id);
+                if (TemplateTaskUtils.RemoveForDeletionTemplate(parser, page.Text, out var newPageText))
+                    wiki.Edit(title, newPageText, Summary, revId: page.Id);
 
                 // add {{Оставлено}}
 
@@ -73,8 +69,6 @@ public partial class KeepModule : IModule
         }
     }
 
-    [GeneratedRegex(@"<noinclude></noinclude>\n?")]
-    private static partial Regex NoIncludeRegex();
 
     private static void UpdateKeptTempate(Template template, string date, string title)
     {

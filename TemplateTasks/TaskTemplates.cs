@@ -33,7 +33,4 @@ abstract class TaskTemplateBase
     public bool IsDone { get; }
 }
 
-class SimpleTaskTemplate(Template template)
-    : TaskTemplateBase(template)
-{
-}
+class SimpleTaskTemplate(Template template) : TaskTemplateBase(template);

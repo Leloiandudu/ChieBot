@@ -86,15 +86,20 @@ public class MediaWiki : IMediaWiki
 
     public FullRevisionInfo GetLastRevision(string page, bool followRedirects = false)
     {
-        var revisons = QueryPages("revisions", new Dictionary<string, string>
+        var revisions = RawQueryPages("revisions", new Dictionary<string, string>
         {
             { "rvprop", "ids|timestamp|size|content" },
             { "redirects", followRedirects ? "" : null },
-        }, page)[page];
+        }, [page], false)[page];
 
-        if (revisons == null || revisons.Item2.Count == 0)
+        var revision = revisions?.Value<JArray>("revisions")?.FirstOrDefault();
+
+        if (revision == null)
             return null;
-        return revisons.Item2.Single().ToObject<FullRevisionInfo>();
+
+        var result = revision.ToObject<FullRevisionInfo>();
+        result.Namespace = (Namespace)revisions.Value<int>("ns");
+        return result;
     }
 
     public string GetPage(int revId)
@@ -599,6 +604,21 @@ public class MediaWiki : IMediaWiki
             throw new MediaWikiException(code);
     }
 
+    public void Move(string fromTitle, string toTitle, string reason, bool redirect)
+    {
+        ExecWrite(new()
+        {
+            { "action", "move" },
+            { "from", fromTitle },
+            { "to", toTitle },
+            { "reason", reason },
+            { "token", GetCsrfToken() },
+            { "noredirect", redirect ? null : "" },
+            { "movetalk", "" },
+            { "movesubpages", "" },
+        });
+    }
+
     public void Delete(string title, string summary)
     {
         try
@@ -791,6 +811,9 @@ public class MediaWiki : IMediaWiki
     {
         [JsonProperty("*")]
         public string Text { get; set; }
+
+        [JsonIgnore]
+        public Namespace Namespace { get; set; }
     }
 
     public class Page

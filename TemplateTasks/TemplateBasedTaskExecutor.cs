@@ -48,7 +48,15 @@ partial class TemplateBasedTaskExecutor<TTaskTemplate>(IMediaWiki _wiki, string 
                 continue;
             }
 
-            executeTask(tt);
+            try
+            {
+                executeTask(tt);
+            }
+            catch(TempalteTaskException ex)
+            {
+                page.Update(template, $"<span style='color: red'>Ошибка в шаблоне <nowiki>{template}</nowiki>: '''{ex.Message}'''</span>");
+                continue;
+            }
 
             template.Args.Add(new() { Value = TaskTemplateBase.DoneArg });
             page.Update(template, template.ToString());
@@ -87,4 +95,10 @@ partial class TemplateBasedTaskExecutor<TTaskTemplate>(IMediaWiki _wiki, string 
             .Select(t => TryParse(t))
             .Any(t => t?.Title == title)).Info.User;
     }
+}
+
+public class TempalteTaskException : Exception
+{
+    public TempalteTaskException(string message) : base(message) { }
+    public TempalteTaskException(string message, Exception inner) : base(message, inner) { }
 }

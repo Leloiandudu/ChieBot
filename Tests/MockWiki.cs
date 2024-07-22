@@ -162,6 +162,11 @@ internal class MockWiki : IMediaWiki
         throw new NotImplementedException();
     }
 
+    public void Move(string fromTitle, string toTitle, string reason, bool redirect)
+    {
+        throw new NotImplementedException();
+    }
+
     bool IMediaWiki.BotFlag { get; set; } = true;
 
     bool IMediaWiki.ReadOnly => throw new NotImplementedException();

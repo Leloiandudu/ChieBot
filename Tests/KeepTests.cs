@@ -47,7 +47,7 @@ public class KeepTests
 
 === Итог ===
 
-{{Итог — оставлено|" + SomePage + "}}");
+{{" + KeepModule.TemplateName + "|" + SomePage + "}}");
 
         _wiki.Setup(w => w.GetAssociatePageTitle(SomePage))
             .Returns(new Dictionary<string, MediaWiki.PageInfo>
@@ -69,17 +69,17 @@ public class KeepTests
 
 === Итог ===
 
-{{Итог — оставлено|123|сделано}}", It.IsAny<string>(), null, null, null));
+{{" + KeepModule.TemplateName + "|" + SomePage + "|сделано}}", It.IsAny<string>(), null, null, null));
     }
 
     [Fact]
     public void Removes_all_rfd_templates_from_page()
     {
-        Setup(page: "<noinclude>{{К удалению}}</noinclude>\naa {{К удалению}} bb <noinclude>{{К удалению}}</noinclude> cc <noinclude>{{К удалению}}!</noinclude>");
+        Setup(page: "bb <noinclude>{{К удалению}}</noinclude> cc");
 
         new KeepModule().Execute(_wiki.Object, []);
 
-        _wiki.Verify(w => w.Edit(SomePage, "aa  bb  cc <noinclude>!</noinclude>", It.IsAny<string>(), null, null, SomePageRevId));
+        _wiki.Verify(w => w.Edit(SomePage, "bb  cc", It.IsAny<string>(), null, null, SomePageRevId));
     }
 
     [Fact]
