@@ -371,14 +371,14 @@ public class MediaWiki : IMediaWiki
         {
             pars = new JObject(
                 from par in pars.Values()
-                let parts = par.Value<string>().Split(new[] { '=' }, 2)
+                let parts = par.Value<string>().Split(['='], 2)
                 select new JProperty(parts[0], parts[1])
             );
         }
 
         var expiryString = pars.Value<string>("expiry");
         if (expiryString != "infinity" && expiryString != null)
-            expiry = new DateTimeOffset(DateTime.ParseExact(expiryString, "yyyyMMddHHmmss", null, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal)); // DateTimeParse.ParseExact is buggy in mono 3.x
+            expiry = DateTimeOffset.ParseExact(expiryString, "yyyyMMddHHmmss", null, DateTimeStyles.AssumeUniversal);
         return true;
     }
 

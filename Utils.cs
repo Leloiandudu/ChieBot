@@ -8,16 +8,7 @@ namespace ChieBot
 {
     public static class Utils
     {
-        public static DateTimeFormatInfo DateTimeFormat { get; }
-
-        static Utils()
-        {
-            // mono uses nominative months names only :(
-            DateTimeFormat = (DateTimeFormatInfo)CultureInfo.GetCultureInfo("ru-RU").DateTimeFormat.Clone();
-            DateTimeFormat.MonthNames = new[] {
-                "января", "февраля", "марта", "апреля", "мая", "июня",
-                "июля", "августа", "сентября", "октября", "ноября", "декабря", "" };
-        }
+        public static DateTimeFormatInfo DateTimeFormat { get; } = CultureInfo.GetCultureInfo("ru-RU").DateTimeFormat;
 
         public static TV TryGetValue<TK, TV>(this IDictionary<TK, TV> dic, TK key, TV defaultValue = default(TV))
         {
