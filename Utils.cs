@@ -43,7 +43,7 @@ namespace ChieBot
 
         public static string Replace(this Match match, string on, string with)
         {
-            return on.Substring(0, match.Index) + with + on.Substring(match.Index + match.Length);
+            return string.Concat(on.AsSpan(0, match.Index), with, on.AsSpan(match.Index + match.Length));
         }
 
         public static IEnumerable<T[]> Partition<T>(this IEnumerable<T> items, int count)

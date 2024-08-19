@@ -228,4 +228,27 @@ end", It.IsAny<string>(), null, null, null));
 
         _wiki.Verify(w => w.Edit(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool?>(), It.IsAny<DateTime?>(), It.IsAny<int?>()), Times.Never);
     }
+
+    [Fact]
+    public void Skips_ignored()
+    {
+        _wiki.Setup(w => w.GetHistory(SomePage, It.IsAny<DateTimeOffset>(), null, false, false))
+    .Returns([new MediaWiki.RevisionInfo
+    {
+        Id = 1,
+        User = "John",
+    }]);
+
+        _wiki.Setup(w => w.GetPage(1))
+            .Returns(@"== 123 ==
+удалить
+
+=== Итог ===
+
+<nowiki>{{Девикифицировать вхождения}}</nowiki>");
+
+        new DewikifyModule().Execute(_wiki.Object, []);
+
+        _wiki.Verify(w => w.Edit(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool?>(), It.IsAny<DateTime?>(), It.IsAny<int?>()), Times.Never);
+    }
 }

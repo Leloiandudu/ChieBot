@@ -87,8 +87,8 @@ namespace ChieBot
         {
             var items = new List<(int, int, Template)>();
             var regex = new Regex(@"\{\{(?:" + string.Join("|", templateNames.Select(t => "(?:" + GetArticleTitleRegex(t) +")")) + @")[|}\s]");
-            var ignored = skipIgnored ? new TextRegion[0] : GetIgnoredRegions(text).ToArray();
-            for (var i = 0; ; )
+            var ignored = skipIgnored ? GetIgnoredRegions(text).ToArray() : [];
+            for (var i = 0; ;)
             {
                 var match = regex.Match(text, i);
                 if (!match.Success)
