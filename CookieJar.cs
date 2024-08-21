@@ -26,6 +26,7 @@ namespace ChieBot
         public static void Save(CookieContainer cookies)
         {
             using var fs = File.OpenWrite(GetFileName());
+            fs.SetLength(0);
             JsonSerializer.Serialize(fs, cookies.GetAllCookies());
         }
 
