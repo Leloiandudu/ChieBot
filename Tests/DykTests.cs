@@ -192,6 +192,18 @@ public class DykTests
         wiki.VerifyAll();
     }
 
+    [Theory]
+    [InlineData("'''[[one]]''' '''[[two]]''' [[x]] '''[[three]]'''")]
+    [InlineData("'''[[one]]''''''[[two]]''', [[three|'''three''']]")]
+    [InlineData("'''[[one]] [[two]]''' '''[[three]]'''")]
+    [InlineData("'''[[one]] [[two]] [[three]]'''")]
+    [InlineData("'''[[one]] [[two]]''' [[x]] '''[[three]]'''")]
+    public void Finds_all_bold_links(string text)
+    {
+        var links = ParserUtils.FindBoldLinks(text);
+        Assert.Equal(new[] { "one", "two", "three" }, links);
+    }
+
     static class DraftPage
     {
         public const string Before = @"{{shortcut|ПРО:ЗЛВ-Ч|ПРО:ЗЛВЧ}}

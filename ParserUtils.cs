@@ -18,7 +18,7 @@ namespace ChieBot
         /// </summary>
         public static string[] FindBoldLinks(string text)
         {
-            return GetLinks(BoldLinkRegex.Matches(text));
+            return GetLinks(BoldLinkRegex.Matches(text).SelectMany(m => LinkRegex.Matches(m.Value)));
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace ChieBot
                 .ToArray();
         }
 
-        private static string[] GetLinks(MatchCollection matches)
+        private static string[] GetLinks(IEnumerable<Match> matches)
         {
             return matches
                 .Select(m => m.Groups["link"])
@@ -80,13 +80,13 @@ namespace ChieBot
         public static Regex GetArticleTitleRegex(string title)
         {
             var index = title.LastIndexOf(':') + 1;
-            return new Regex(@"[\s_]*" + Regex.Escape(title.Substring(0, index)) +  "[" + char.ToUpper(title[index]) + char.ToLower(title[index]) + "]" + string.Join(@"[\s_]+", Regex.Split(title.Substring(index + 1), "[ _]+").Select(Regex.Escape)) + @"[\s_]*");
+            return new Regex(@"[\s_]*" + Regex.Escape(title.Substring(0, index)) + "[" + char.ToUpper(title[index]) + char.ToLower(title[index]) + "]" + string.Join(@"[\s_]+", Regex.Split(title.Substring(index + 1), "[ _]+").Select(Regex.Escape)) + @"[\s_]*");
         }
 
         private static PartiallyParsedWikiText<Template> FindTemplatesInternal(string text, IEnumerable<string> templateNames, bool skipIgnored)
         {
             var items = new List<(int, int, Template)>();
-            var regex = new Regex(@"\{\{(?:" + string.Join("|", templateNames.Select(t => "(?:" + GetArticleTitleRegex(t) +")")) + @")[|}\s]");
+            var regex = new Regex(@"\{\{(?:" + string.Join("|", templateNames.Select(t => "(?:" + GetArticleTitleRegex(t) + ")")) + @")[|}\s]");
             var ignored = skipIgnored ? GetIgnoredRegions(text).ToArray() : [];
             for (var i = 0; ;)
             {
