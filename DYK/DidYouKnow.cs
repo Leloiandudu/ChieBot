@@ -71,7 +71,7 @@ namespace ChieBot.DYK
 
             var dates = string.Format(Utils.DateTimeFormat, datesFormat, _prevIssueDate, _nextIssueDate);
 
-            var archive = $"{GetArchiveName()}#{GetArchiveTitle()}";
+            var archive = $"{_nextIssueDate:yyyy-MM}#{GetArchiveTitle()}";
             var parser = new IssueParser();
 
             foreach (var (title, text, image) in parser.Parse(issue))
@@ -88,15 +88,15 @@ namespace ChieBot.DYK
                     Args =
                     {
                         { "даты", dates },
-                        { "текст", text },
+                        { "текст", text.TrimEnd() },
                         { "архив", archive },
                     },
                 };
 
                 if (image != null)
-                    template.Args.Add("иллюстрация", image);
+                    template.Args.Add("иллюстрация2", image);
 
-                _wiki.Edit(talkTitle, template.ToString(), "Простановка шаблона проекта [Знаете ли вы](Проект:Знаете ли вы)", false);
+                _wiki.Edit(talkTitle, template.ToString(), "Простановка сообщения проекта «[[Проект:Знаете ли вы|Знаете ли вы]]»", false);
             }
 
             if (parser.Errors == null)
