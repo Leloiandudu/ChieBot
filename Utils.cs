@@ -103,5 +103,43 @@ namespace ChieBot
 
         public static bool IsTalk(this MediaWiki.Namespace ns)
             => ((int)ns) % 2 == 1;
+
+        public static IEnumerable<T[]> SplitWhen<T>(this IEnumerable<T> items, Func<T, bool> split, bool skipEmpty = true, bool includeSplitter = true)
+        {
+            var array = new T[4];
+            var count = 0;
+            foreach (var item in items)
+            {
+                if (split(item))
+                {
+                    if (!skipEmpty || count > 0)
+                        yield return Yield();
+
+                    if (!includeSplitter)
+                        continue;
+                }
+
+                if (array.Length == count)
+                    Array.Resize(ref array, array.Length * 2);
+
+                array[count++] = item;
+            }
+
+            if (!skipEmpty || count > 0)
+                yield return Yield();
+
+            T[] Yield()
+            {
+                if (array.Length != count)
+                    Array.Resize(ref array, count);
+
+                var res = array;
+
+                array = new T[4];
+                count = 0;
+
+                return res;
+            }
+        }
     }
 }

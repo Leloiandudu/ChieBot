@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using static ChieBot.DYK.NextIssuePreparation;
 
 namespace ChieBot.DYK
 {
@@ -29,12 +31,12 @@ namespace ChieBot.DYK
 
         public string GetCurrent()
         {
-            return new Template(_wiki.GetPage(TemplateName)).IssueText;
+            return new DykTemplate(_wiki.GetPage(TemplateName)).IssueText;
         }
 
         public void SetCurrent(string text)
         {
-            var template = new Template(_wiki.GetPage(TemplateName)) { IssueText = text };
+            var template = new DykTemplate(_wiki.GetPage(TemplateName)) { IssueText = text };
             _wiki.Edit(TemplateName, template.FullText, "Автоматическая публикация выпуска.");
         }
 
@@ -49,12 +51,70 @@ namespace ChieBot.DYK
 
         public void ArchiveCurrent()
         {
+            var current = GetCurrent();
             _wiki.Edit(
                 GetArchiveName(),
-                $"== {GetArchiveTitle()} ==\n\n{GetCurrent()}\n\n",
+                $"== {GetArchiveTitle()} ==\n\n{current}\n\n",
                 "Автоматическая архивация прошлого выпуска.",
                 false
             );
+
+            PostHooks(current);
+        }
+
+        private void PostHooks(string issue)
+        {
+            var datesFormat =
+                _prevIssueDate.Year != _nextIssueDate.Year ? "{0:d MMMM yyyy} — {1:d MMMM yyyy}" :
+                _prevIssueDate.Month != _nextIssueDate.Month ? "{0:d MMMM} — {1:d MMMM yyyy}" :
+                "{0:%d}—{1:d MMMM yyyy}";
+
+            var dates = string.Format(Utils.DateTimeFormat, datesFormat, _prevIssueDate, _nextIssueDate);
+
+            var archive = $"{GetArchiveName()}#{GetArchiveTitle()}";
+            var parser = new IssueParser();
+
+            foreach (var (title, text, image) in parser.Parse(issue))
+            {
+                var template = new Template
+                {
+                    Name = "Сообщение ЗЛВ",
+                    Args =
+                    {
+                        { "даты", dates },
+                        { "текст", text },
+                        { "архив", archive },
+                    },
+                };
+
+                if (image != null)
+                    template.Args.Add("иллюстрация", image);
+
+                _wiki.Edit($"Talk:{title}", template.ToString(), "Простановка шаблона проекта [Знаете ли вы](Проект:Знаете ли вы)", false);
+            }
+
+            if (parser.Errors == null)
+                return;
+
+            var errors = $"=== Ошибки архивации ===\n{parser.Errors}\n\nПожалуйста исправьте их врунчную ~~~~";
+            var drafts = new Drafts(_wiki.GetPage(DraftTalkName));
+            var draft = drafts[_nextIssueDate.ToDateOnly()];
+
+            if (draft == null)
+            {
+                draft = new Draft
+                {
+                    Title = $"Выпуск {DYKUtils.FormatIssueDate(_nextIssueDate)}",
+                    Text = errors,
+                };
+                drafts.Add(draft);
+            }
+            else
+            {
+                draft.Text = draft.Text.TrimEnd() + "\n\n" + errors;
+            }
+
+            _wiki.Edit(DraftTalkName, drafts.FullText, "Автоматическая публикация выпуска.");
         }
 
         public string PopDraft()

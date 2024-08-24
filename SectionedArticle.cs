@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -57,6 +58,7 @@ namespace ChieBot
         }
     }
 
+    [DebuggerDisplay("{Title.Trim(),nq}")]
     class Section
     {
         public string Title { get; set; }

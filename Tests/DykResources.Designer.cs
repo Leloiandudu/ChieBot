@@ -67,7 +67,7 @@ namespace Tests {
         ///
         ///[[Файл:Undressed funernal effigy of Catherine de Valois, Queen of England.jpg|right|140px|Деревянная скульптура королевы Англии Екатерины Валуа]]
         ///* Сцена разговора &apos;&apos;&apos;[[Екатерина Валуа|будущей английской королевы]]&apos;&apos;&apos; {{наилл}} с подругой в пьесе «[[Генрих V (пьеса)|Генрих V]]» считается одной из самых [[Обсценная лексика|скабрёзных]] у Шекспира.
-        ///* В международной политике Таиланд пытается усидеть на &apos;&apos;&apos;[[Американо-таиландские отноше [rest of string was truncated]&quot;;.
+        ///* В международной политике Таиланд пытается усидеть на &apos;&apos;&apos;[[Американо-таиландские отношения|дв [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string ArchiveAfter {
             get {
@@ -82,7 +82,7 @@ namespace Tests {
         ///
         ///[[Файл:Baggins residence &apos;Bag End&apos; with party sign.jpg|right|140px|Бэг Энд]]
         ///* Английский журналист считает, что [[Прототип персонажа|прототипом]] Лобелии Саквилль-Бэггинс, желавшей заполучить &apos;&apos;&apos;[[Бэг Энд|жилище Бильбо]]&apos;&apos;&apos; {{наилл}} во «[[Властелин колец|Властелине колец]]», была [[Сэквилл-Уэст, Вита|писательница со схожей фамилией]].
-        ///* &apos;&apos;&apos;[[Аграрии (партия)|Германская аграрная партия]]&apos;&apos;&apos; начала с [[Фритредерство|фритредерства]], а [rest of string was truncated]&quot;;.
+        ///* &apos;&apos;&apos;[[Аграрии (партия)|Германская аграрная партия]]&apos;&apos;&apos; начала с [[Фритредерство|фритредерства]], а закон [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string ArchiveBefore {
             get {
@@ -97,7 +97,7 @@ namespace Tests {
         ///== Выпуск 15 мая (выпускающий Горизонт событий) ==
         ///[[Файл:Николай Михайлович Покровский.png|right|130px|Николай Михайлович Покровский]]
         ///* &apos;&apos;&apos;[[Покровский, Николай Михайлович (врач)|Дядя Булгакова]]&apos;&apos;&apos; {{наилл}} так и не узнал, что является прототипом [[Филипп Филиппович Преображенский|профессора Преображенского]].
-        ///* &apos;&apos;&apos;«[[Горбунов, Александр Павлович|Сверхрек [rest of string was truncated]&quot;;.
+        ///* &apos;&apos;&apos;«[[Горбунов, Александр Павлович|Сверхректор св [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string DraftAfter {
             get {
@@ -111,7 +111,7 @@ namespace Tests {
         ///== Выпуск 6 мая (выпускающий Fordaemdur) ==
         ///* &apos;&apos;&apos;[[Сминате, Надя|Надя Сминате]]&apos;&apos;&apos; {{наилл}} стала первым мэром [[Марокко|марокканского]] происхождения во [[Лондерзел|Фландрии]].
         ///** Традиционно имена используют для анонсов людей, которые всем известны, например, Эйнштейн. А кто такая &quot;Надя Сминате&quot;? Нужно заменить на любое определение. Этническая марокканка. Филолог. [[Лиценциат]]ка.— [[У:Hammunculs|Hammunculs]] ([[ОУ:Hammunculs|обс.]]) 08:38, 5 апреля 2024 (UTC)
-        ///**:Благодарю, исправил! — &apos;&apos;[[Участни [rest of string was truncated]&quot;;.
+        ///**:Благодарю, исправил! — &apos;&apos;[[Участник:For [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string DraftArchiveAfter {
             get {
@@ -125,7 +125,7 @@ namespace Tests {
         ///== Выпуск 6 мая (выпускающий Fordaemdur) ==
         ///* &apos;&apos;&apos;[[Сминате, Надя|Надя Сминате]]&apos;&apos;&apos; {{наилл}} стала первым мэром [[Марокко|марокканского]] происхождения во [[Лондерзел|Фландрии]].
         ///** Традиционно имена используют для анонсов людей, которые всем известны, например, Эйнштейн. А кто такая &quot;Надя Сминате&quot;? Нужно заменить на любое определение. Этническая марокканка. Филолог. [[Лиценциат]]ка.— [[У:Hammunculs|Hammunculs]] ([[ОУ:Hammunculs|обс.]]) 08:38, 5 апреля 2024 (UTC)
-        ///**:Благодарю, исправил! — &apos;&apos;[[Участни [rest of string was truncated]&quot;;.
+        ///**:Благодарю, исправил! — &apos;&apos;[[Участник:For [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string DraftArchiveBefore {
             get {
@@ -140,7 +140,7 @@ namespace Tests {
         ///== Выпуск 15 мая (выпускающий Горизонт событий) ==
         ///[[Файл:Николай Михайлович Покровский.png|right|130px|Николай Михайлович Покровский]]
         ///* &apos;&apos;&apos;[[Покровский, Николай Михайлович (врач)|Дядя Булгакова]]&apos;&apos;&apos; {{наилл}} так и не узнал, что является прототипом [[Филипп Филиппович Преображенский|профессора Преображенского]].
-        ///* &apos;&apos;&apos;«[[Горбунов, Александр Павлович|Сверхрек [rest of string was truncated]&quot;;.
+        ///* &apos;&apos;&apos;«[[Горбунов, Александр Павлович|Сверхректор св [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string DraftBefore {
             get {
@@ -156,7 +156,8 @@ namespace Tests {
         ///
         ///== Выпуск 12 мая (в складчину) ==
         ///* &quot;считал уездный городок с за́мком&quot; - что-то явно пропущено. [[У:Vcohen|Vcohen]] ([[ОУ:Vcohen|обс.]]) 15:17, 17 апреля 2024 (UTC)
-        ///* &quot;селф-мейд женщина&quot; - в русском языке нет прилагательного &quot;селф-мейд&quot;, надо это писать через два дефиса (&quot;селф-мейд-женщина&quot;), но тогда получается полная ерунда. [[У:Vcohen|Vcohen]] ([[ОУ:Vcohen|обс.]]) 15:17, 17 апреля 2024 (UT [rest of string was truncated]&quot;;.
+        ///* &quot;селф-мейд женщина&quot; - в русском языке нет прилагательного &quot;селф-мейд&quot;, надо это писать через два дефиса (&quot;селф-мейд-женщина&quot;), но тогда получается полная ерунда. [[У:Vcohen|Vcohen]] ([[ОУ:Vcohen|обс.]]) 15:17, 17 апреля 2024 (UTC)
+        ///*: В [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string DraftTalkAfter {
             get {
@@ -172,11 +173,25 @@ namespace Tests {
         ///
         ///== Выпуск 12 мая (в складчину) ==
         ///* &quot;считал уездный городок с за́мком&quot; - что-то явно пропущено. [[У:Vcohen|Vcohen]] ([[ОУ:Vcohen|обс.]]) 15:17, 17 апреля 2024 (UTC)
-        ///* &quot;селф-мейд женщина&quot; - в русском языке нет прилагательного &quot;селф-мейд&quot;, надо это писать через два дефиса (&quot;селф-мейд-женщина&quot;), но тогда получается полная ерунда. [[У:Vcohen|Vcohen]] ([[ОУ:Vcohen|обс.]]) 15:17, 17 апреля 2024 (UT [rest of string was truncated]&quot;;.
+        ///* &quot;селф-мейд женщина&quot; - в русском языке нет прилагательного &quot;селф-мейд&quot;, надо это писать через два дефиса (&quot;селф-мейд-женщина&quot;), но тогда получается полная ерунда. [[У:Vcohen|Vcohen]] ([[ОУ:Vcohen|обс.]]) 15:17, 17 апреля 2024 (UTC)
+        ///*: В [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string DraftTalkBefore {
             get {
                 return ResourceManager.GetString("DraftTalkBefore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Екатерина Валуа
+        ///Сцена разговора &apos;&apos;&apos;[[Екатерина Валуа|будущей английской королевы]]&apos;&apos;&apos; {{наилл}} с подругой в пьесе «[[Генрих V (пьеса)|Генрих V]]» считается одной из самых [[Обсценная лексика|скабрёзных]] у Шекспира.!!![[Файл:Undressed funernal effigy of Catherine de Valois, Queen of England.jpg|right|140px|Деревянная скульптура королевы Англии Екатерины Валуа]]
+        ///!!!
+        ///Американо-таиландские отношения
+        ///В международной политике Таиланд пытается усидеть на &apos;&apos;&apos;[[Американо-таиландские отношения|двух]]&apos;&apos;&apos; разных &apos;&apos;&apos;[ [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Hooks {
+            get {
+                return ResourceManager.GetString("Hooks", resourceCulture);
             }
         }
         
@@ -186,7 +201,7 @@ namespace Tests {
         ///
         ///=== {{злв-статус|до=2024-07-03T10:59:14}} [[Сборная Англии по пляжному футболу]] ===
         ///* Средний возраст &apos;&apos;&apos;[[Сборная Англии по пляжному футболу|сборной Англии]]&apos;&apos;&apos; на первом в истории [[Чемпионат мира по пляжному футболу 1995|чемпионате мира по пляжному футболу]] составлял 38 лет. [[У:Mitte27|Mitte27]] ([[ОУ:Mitte27|обс.]]) 12:34, 3 апреля 2024 (UTC)
-        ///** &apos;&apos;Ну или если перефразировать и обыграть...&apos;&apos; На первый [[чемпиона [rest of string was truncated]&quot;;.
+        ///** &apos;&apos;Ну или если перефразировать и обыграть...&apos;&apos; На первый [[чемпионат мир [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string PreparationAfter {
             get {
@@ -200,7 +215,7 @@ namespace Tests {
         ///
         ///=== {{злв-статус|до=2024-07-03T10:59:14}} [[Сборная Англии по пляжному футболу]] ===
         ///* Средний возраст &apos;&apos;&apos;[[Сборная Англии по пляжному футболу|сборной Англии]]&apos;&apos;&apos; на первом в истории [[Чемпионат мира по пляжному футболу 1995|чемпионате мира по пляжному футболу]] составлял 38 лет. [[У:Mitte27|Mitte27]] ([[ОУ:Mitte27|обс.]]) 12:34, 3 апреля 2024 (UTC)
-        ///** &apos;&apos;Ну или если перефразировать и обыграть...&apos;&apos; На первый [[чемпиона [rest of string was truncated]&quot;;.
+        ///** &apos;&apos;Ну или если перефразировать и обыграть...&apos;&apos; На первый [[чемпионат мир [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string PreparationBefore {
             get {
@@ -214,7 +229,7 @@ namespace Tests {
         ///[[Файл:Milky Way, Palau.jpg|right|120px|Гавань на палауском острове Корор]]
         ///* На [[Палау]] {{наилл}} формируется &apos;&apos;&apos;[[Палауский диалект английского языка|собственный диалект английского]]&apos;&apos;&apos;.
         ///* &apos;&apos;&apos;[[Хиллз, Арнолд|Соратник]]&apos;&apos;&apos; [[Махатма Ганди|Махатмы Ганди]] по [[Вегетарианское общество|вегетарианскому кружку]] руководил строительством военного корабля.
-        ///* В 2020-е стало модно в [rest of string was truncated]&quot;;.
+        ///* В 2020-е стало модно вспоми [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string TemplateAfter {
             get {
@@ -227,7 +242,7 @@ namespace Tests {
         ///&lt;!-- BOT — между этими комментариями бот Lê Lợi (bot) вставит из черновика очередной выпуск --&gt;
         ///[[Файл:Undressed funernal effigy of Catherine de Valois, Queen of England.jpg|right|140px|Деревянная скульптура королевы Англии Екатерины Валуа]]
         ///* Сцена разговора &apos;&apos;&apos;[[Екатерина Валуа|будущей английской королевы]]&apos;&apos;&apos; {{наилл}} с подругой в пьесе «[[Генрих V (пьеса)|Генрих V]]» считается одной из самых [[Обсценная лексика|скабрёзных]] у Шекспира.
-        ///* В международной политике Таила [rest of string was truncated]&quot;;.
+        ///* В международной политике Таиланд п [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string TemplateBefore {
             get {
@@ -248,7 +263,7 @@ namespace Tests {
         ///|-
         ///| {{злвч|Sigwald|21 мая|+}} || [[У:Sigwald|Sigwald]] ([[ОУ:Sigwald|обс.]]) 13:00, 9 апреля 2024 (UTC)
         ///|-
-        ///| {{злвч|Oleg4280|24 мая|+ [rest of string was truncated]&quot;;.
+        ///| {{злвч|Oleg4280|24 мая|+}} || [[У:Ol [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string TimetableAfter {
             get {
@@ -267,7 +282,8 @@ namespace Tests {
         ///|-
         ///| {{Злвч|Горизонт событий|15 мая|+}} || [[Участник:Горизонт событий|ʜᴏʀɪᴢᴏɴ]] [[Обсуждение участника:Горизонт событий|[ᴅɪsᴄᴜʀsᴜs]]] [[Служебная:Вклад/Горизонт событий|[ᴄᴏɴᴛʀɪʙs]]] 07:51, 21 апреля 2024 (UTC)
         ///|-
-        ///| {{злвч|Fordaemdur|18 мая|+}} || — &apos;&apos;[[Участник:Fordaemdur|Φορδαεμδύρ]] [[Обсуждение участника:Fordaemdur|✉️]]&apos;&apos; 00:55, 4 апреля 202 [rest of string was truncated]&quot;;.
+        ///| {{злвч|Fordaemdur|18 мая|+}} || — &apos;&apos;[[Участник:Fordaemdur|Φορδαεμδύρ]] [[Обсуждение участника:Fordaemdur|✉️]]&apos;&apos; 00:55, 4 апреля 2024 (UTC)
+        ///|- [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string TimetableBefore {
             get {

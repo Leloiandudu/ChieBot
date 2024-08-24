@@ -55,11 +55,11 @@ public class MoveToUserPageModule : IModule
 
     private static string RemoveCategoriesAndNavTemplates(string page)
     {
-        var lines = SplitIntoLines(new MiniWikiParser().Tokenize(page)).ToArray();
+        var lines = new MiniWikiParser().Tokenize(page).SplitWhen(x => x.Type == TokenType.NewLine, includeSplitter: false).ToArray();
 
         var firstLine = lines
             .Reverse()
-            .TakeWhile(line => line.All(t => t.Type is TokenType.Whitespace or TokenType.Template or TokenType.Comment or TokenType.NewLine || IsCategory(t)))
+            .TakeWhile(line => line.All(t => t.Type is TokenType.Whitespace or TokenType.Template or TokenType.Comment || IsCategory(t)))
             .LastOrDefault();
 
         if (firstLine == null)
@@ -67,7 +67,6 @@ public class MoveToUserPageModule : IModule
 
         firstLine = lines
             .SkipWhile(x => x != firstLine)
-            .SkipWhile(x => x[0].Type == TokenType.NewLine)
             .FirstOrDefault();
 
         var startOfFooter = firstLine[0].Range.Start;
@@ -78,34 +77,14 @@ public class MoveToUserPageModule : IModule
 
         return $"{page[..startOfFooter]}<!--{footer}-->";
 
-        bool IsCategory(Token token)
+        static bool IsCategory(Token token)
         {
             if (token.Type != TokenType.Link)
                 return false;
 
-            var name = page.AsSpan(token.Range)[2..];
+            var name = token.Text[2..].TrimStart();
             return name.StartsWith("К:") || name.StartsWith("Категория:") || name.StartsWith("Category:");
         }
-    }
-
-    private static IEnumerable<IReadOnlyList<MiniWikiParser.Token>> SplitIntoLines(IEnumerable<Token> tokens)
-    {
-        var line = new List<Token>();
-
-        foreach (var token in tokens)
-        {
-            line.Add(token);
-
-            if (token.Type != TokenType.NewLine)
-            {
-                continue;
-            }
-
-            yield return line;
-            line = new();
-        }
-
-        yield return line;
     }
 
     class MoveTaskTemplate(Template template) : TaskTemplateBase(template, 2)

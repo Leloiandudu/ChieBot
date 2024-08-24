@@ -22,5 +22,8 @@ namespace ChieBot.DYK
                 date = date.AddYears(1);
             return true;
         }
+
+        public static string FormatIssueDate(DateTimeOffset date) =>
+            date.ToString("d MMMM", Utils.DateTimeFormat);
     }
 }
