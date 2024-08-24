@@ -200,7 +200,6 @@ namespace ChieBot
                 .LastOrDefault();
         }
 
-
         [GeneratedRegex(@"^=+\s*([^=].*?)\s*=+", RegexOptions.Multiline)]
         private static partial Regex HeaderRegex();
     }

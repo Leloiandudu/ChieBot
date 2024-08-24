@@ -20,6 +20,19 @@ public class DykTests
         const string DraftArchiveName = "Обсуждение проекта:Знаете ли вы/Черновик/Архив/1";
         var futureStblDate = new DateTimeOffset(new DateOnly(2099, 1, 1), default, default);
 
+        Dictionary<string, string> hooks = new(DykResources.Hooks.Split("\n!!!\n").Select(hook =>
+        {
+            var lines = hook.Split("\n", 2);
+            var parts = lines[1].Split("!!!");
+
+            var text = "{{Сообщение ЗЛВ|даты=15—18 мая 2012|текст=" + parts[0] + "|архив=Проект:Знаете ли вы/Архив рубрики/2012-05#15—18 мая";
+            if (parts.Length > 1)
+                text += "|иллюстрация=" + parts[1];
+            text += "}}";
+
+            return new KeyValuePair<string, string>($"Talk:{lines[0]}", text);
+        }));
+
         // arrange
         var wiki = new MockWiki();
         wiki.SetPage(DidYouKnow.DraftName, DykResources.DraftBefore);
@@ -29,6 +42,9 @@ public class DykTests
         wiki.SetPage(DidYouKnow.TemplateName, DykResources.TemplateBefore);
         wiki.SetPage(DidYouKnow.NextIssueNameHeader, DykResources.TimetableBefore);
         wiki.SetPage(DraftArchiveName, DykResources.DraftArchiveBefore);
+
+        foreach (var hook in hooks.Keys)
+            wiki.SetPage(hook, null);
 
         wiki.SetStabilization("frutiger Aero", null);
         wiki.SetStabilization("Мустафа I", futureStblDate);
@@ -47,18 +63,8 @@ public class DykTests
         Assert.Equal(DykResources.TimetableAfter, wiki.GetPage(DidYouKnow.NextIssueNameHeader));
         Assert.Equal(DykResources.DraftArchiveAfter, wiki.GetPage(DraftArchiveName));
 
-        foreach (var hook in DykResources.Hooks.Split("\n!!!\n"))
-        {
-            var lines = hook.Split("\n", 2);
-            var parts = lines[1].Split("!!!");
-
-            var text = "{{Сообщение ЗЛВ|даты=15—18 мая 2012|текст=" + parts[0] + "|архив=Проект:Знаете ли вы/Архив рубрики/2012-05#15—18 мая";
-            if (parts.Length > 1)
-                text += "|иллюстрация=" + parts[1];
-            text += "}}";
-
-            Assert.Equal(text, wiki.GetPage($"Talk:{lines[0]}"));
-        }
+        foreach (var hook in hooks)
+            Assert.Equal(hook.Value, wiki.GetPage(hook.Key));
 
         AssertStabilizationUntil(wiki, "frutiger Aero", null);
         AssertStabilizationUntil(wiki, "Мустафа I", futureStblDate);
@@ -148,10 +154,12 @@ public class DykTests
 
         var wiki = new Mock<IMediaWiki>(MockBehavior.Strict);
         wiki.Setup(w => w.GetPage(DidYouKnow.TemplateName, false)).Returns(TemplatePage.FullText);
-        wiki.Setup(w => w.Edit("Проект:Знаете ли вы/Архив рубрики/2012-05", expectedContents, It.IsAny<string>(), false, null, null));
+        wiki.Setup(w => w.GetPage("Talk:items", false)).Returns<string>(null!);
+        wiki.Setup(w => w.GetPage("Talk:them", false)).Returns("{{Сообщение ЗЛВ}}");
+        wiki.Setup(w => w.GetPage("Talk:one", false)).Returns<string>(null!);
 
+        wiki.Setup(w => w.Edit("Проект:Знаете ли вы/Архив рубрики/2012-05", expectedContents, It.IsAny<string>(), false, null, null));
         wiki.Setup(w => w.Edit("Talk:items", "{{Сообщение ЗЛВ|даты=4—7 мая 2012|текст=A lot more '''[[items]]''' here {{наилл}}|архив=Проект:Знаете ли вы/Архив рубрики/2012-05#4—7 мая|иллюстрация=[[Файл:Some pic.jpg|right|140px|Some pic]]}}", It.IsAny<string>(), false, null, null));
-        wiki.Setup(w => w.Edit("Talk:them", "{{Сообщение ЗЛВ|даты=4—7 мая 2012|текст=Lots of '''[[them]]'''|архив=Проект:Знаете ли вы/Архив рубрики/2012-05#4—7 мая}}", It.IsAny<string>(), false, null, null));
         wiki.Setup(w => w.Edit("Talk:one", "{{Сообщение ЗЛВ|даты=4—7 мая 2012|текст=One last '''[[one]]'''|архив=Проект:Знаете ли вы/Архив рубрики/2012-05#4—7 мая}}", It.IsAny<string>(), false, null, null));
 
         var dyk = new DidYouKnow(wiki.Object, IssueDate.AddDays(3));
@@ -175,6 +183,7 @@ public class DykTests
         var wiki = new Mock<IMediaWiki>(MockBehavior.Strict);
         wiki.Setup(w => w.GetPage(DidYouKnow.TemplateName, false)).Returns(template);
         wiki.Setup(w => w.Edit(It.IsAny<string>(), It.Is<string>(str => str.StartsWith(expectedContents)), It.IsAny<string>(), false, null, null));
+        wiki.Setup(w => w.GetPage(It.IsRegex("^Talk:.*"), false)).Returns<string>(null!);
         wiki.Setup(w => w.Edit(It.IsRegex("^Talk:.*"), It.IsAny<string>(), It.IsAny<string>(), false, null, null));
 
         var dyk = new DidYouKnow(wiki.Object, issueDate.AddDays(3));

@@ -62,7 +62,7 @@ namespace ChieBot.DYK
             PostHooks(current);
         }
 
-        private void PostHooks(string issue)
+        public void PostHooks(string issue)
         {
             var datesFormat =
                 _prevIssueDate.Year != _nextIssueDate.Year ? "{0:d MMMM yyyy} — {1:d MMMM yyyy}" :
@@ -76,6 +76,12 @@ namespace ChieBot.DYK
 
             foreach (var (title, text, image) in parser.Parse(issue))
             {
+                var talkTitle = $"Talk:{title}";
+
+                var page = _wiki.GetPage(talkTitle);
+                if (page != null && page.Contains("{{Сообщение ЗЛВ"))
+                    continue;
+
                 var template = new Template
                 {
                     Name = "Сообщение ЗЛВ",
@@ -90,7 +96,7 @@ namespace ChieBot.DYK
                 if (image != null)
                     template.Args.Add("иллюстрация", image);
 
-                _wiki.Edit($"Talk:{title}", template.ToString(), "Простановка шаблона проекта [Знаете ли вы](Проект:Знаете ли вы)", false);
+                _wiki.Edit(talkTitle, template.ToString(), "Простановка шаблона проекта [Знаете ли вы](Проект:Знаете ли вы)", false);
             }
 
             if (parser.Errors == null)

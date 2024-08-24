@@ -3,16 +3,16 @@
 namespace Tests;
 internal class MockWiki : IMediaWiki
 {
-    private readonly Dictionary<string, string> _pages = [];
+    private readonly Dictionary<string, string?> _pages = [];
 
     private readonly Dictionary<string, DateTimeOffset?> _stabilization = [];
 
-    public void SetPage(string page, string contents)
+    public void SetPage(string page, string? contents)
     {
         _pages.Add(page, contents);
     }
 
-    public string GetPage(string page) => _pages[page];
+    public string? GetPage(string page) => _pages[page];
 
     public void SetStabilization(string page, DateTimeOffset? until)
     {
@@ -72,7 +72,7 @@ internal class MockWiki : IMediaWiki
         throw new NotImplementedException();
     }
 
-    string IMediaWiki.GetPage(string page, bool followRedirects) => GetPage(page);
+    string? IMediaWiki.GetPage(string page, bool followRedirects) => GetPage(page);
 
     MediaWiki.FullRevisionInfo IMediaWiki.GetLastRevision(string page, bool followRedirects)
     {
