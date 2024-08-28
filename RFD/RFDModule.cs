@@ -50,8 +50,8 @@ namespace ChieBot.RFD
                 if (page == null)
                     continue;
 
-                // skip modules for now
-                if (page.Title.StartsWith("Модуль:"))
+                // skip modules & css
+                if (page.Title.StartsWith("Модуль:") || page.Title.EndsWith(".css"))
                     continue;
 
                 var createdBy = history.FindEarliest(wiki, text => GetArticles(text).Contains(link.Key)).Info;
