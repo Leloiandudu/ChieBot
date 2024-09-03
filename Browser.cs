@@ -1,90 +1,59 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Net;
-using System.IO;
+using System.Net.Http;
+using System.Runtime.ExceptionServices;
 
-public class Browser
+public class Browser : HttpClient
 {
-    static Browser()
-    {
-        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-    }
+    private readonly HttpClientHandler _handler;
 
     public Browser()
+        : this(new HttpClientHandler())
     {
-        Cookies = new CookieContainer();
     }
 
-    public CookieContainer Cookies { get; set; }
-
-    public string UserAgent { get; set; }
-
-    public string Get(string url, Dictionary<string, string> args)
+    private Browser(HttpClientHandler handler)
+        : base(handler)
     {
-        return GetStringResponse(GetRequest(string.Format("{0}?{1}", url, ArgsToString(args))));
+        _handler = handler;
+    }
+
+    public CookieContainer Cookies
+    {
+        get => _handler.CookieContainer;
+        set => _handler.CookieContainer = value;
+    }
+
+    public string UserAgent
+    {
+        get => DefaultRequestHeaders.UserAgent.ToString();
+        set
+        {
+            DefaultRequestHeaders.UserAgent.Clear();
+            DefaultRequestHeaders.UserAgent.ParseAdd(value);
+        }
     }
 
     public string Post(string url, IDictionary<string, string> args)
     {
-        var request = GetRequest(url);
-        request.Method = "POST";
-        request.ContentType = "application/x-www-form-urlencoded";
-
-        var data = ArgsToString(args);
-        using (var stream = request.GetRequestStream())
+        try
         {
-            var buf = Encoding.ASCII.GetBytes(data);
-            stream.Write(buf, 0, buf.Length);
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Content = new FormUrlEncodedContent(args.Where(x => x.Value != null));
+            using var resp = SendAsync(req).Result;
+            return resp.EnsureSuccessStatusCode().Content.ReadAsStringAsync().Result;
         }
-
-        return GetStringResponse(request);
-    }
-
-    private HttpWebRequest GetRequest(string url)
-    {
-        var request = (HttpWebRequest)WebRequest.Create(url);
-        request.CookieContainer = Cookies;
-        request.UserAgent = UserAgent;
-        request.ServicePoint.Expect100Continue = false;
-        return request;
-    }
-
-    private static string ArgsToString(IDictionary<string, string> args)
-    {
-        return string.Join("&", (
-            from p in args
-            where p.Value != null
-            select string.Format("{0}={1}", Escape(p.Key), Escape(p.Value))
-        ).ToArray());
-    }
-
-    private static string Escape(string str)
-    {
-        const int maxLength = 32766;
-        var sb = new StringBuilder();
-        for (int i = 0; i < str.Length;)
+        catch (AggregateException aex)
         {
-            var len = Math.Min(str.Length - i, maxLength);
-            while (len >= 0 && str[len - 1] >= 0xD800 && str[len - 1] < 0xDBFF)
-                len--;
+            if (aex.InnerExceptions.Count == 1)
+            {
+                // EDI preserves the original exception's stack trace
+                ExceptionDispatchInfo.Capture(aex.InnerExceptions[0]).Throw();
+            }
 
-            if (len == 0)
-                throw new ArgumentException("Can't find the end of the surrogate at " + i);
-
-            var chunk = str.Substring(i, len);
-            i += len;
-
-            sb.Append(Uri.EscapeDataString(chunk));
+            throw;
         }
-        return sb.ToString();
-    }
-
-    private string GetStringResponse(HttpWebRequest request)
-    {
-        using (var response = (HttpWebResponse)request.GetResponse())
-        using (var sr = new StreamReader(response.GetResponseStream(), Encoding.UTF8))
-            return sr.ReadToEnd();
     }
 }

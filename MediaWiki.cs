@@ -702,13 +702,13 @@ public class MediaWiki : IMediaWiki
                         sleepTime = TimeSpan.FromSeconds(30);
                     throw;
                 }
-                catch (System.Net.WebException wex)
+                catch (System.Net.Http.HttpRequestException hrex)
                 {
                     sleepTime = TimeSpan.FromMinutes(1);
-                    log += $"{DateTime.UtcNow.ToLongTimeString()} Got '{wex.Message}', waiting for {sleepTime}\n";
+                    log += $"{DateTime.UtcNow.ToLongTimeString()} Got '{hrex.Message}', waiting for {sleepTime}\n";
                     throw;
                 }
-                catch (System.IO.IOException)
+                catch (System.Threading.Tasks.TaskCanceledException)
                 {
                     sleepTime = TimeSpan.FromSeconds(5);
                     throw;
