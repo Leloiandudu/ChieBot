@@ -56,6 +56,9 @@ public class IssueParser
 
             if (isItem)
             {
+                if (hasImage)
+                    errors.Add("Иллюстрация внутри элемента списка");
+
                 foreach (var link in boldLinks)
                     yield return new(link, line.TrimStart('*', ' '), prevImage);
             }

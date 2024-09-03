@@ -94,9 +94,9 @@ namespace ChieBot.DYK
                 };
 
                 if (image != null)
-                    template.Args.Add("иллюстрация2", image);
+                    template.Args.Add("иллюстрация2", image.Replace("|right|", "|"));
 
-                _wiki.Edit(talkTitle, template.ToString(), "Простановка сообщения проекта «[[Проект:Знаете ли вы|Знаете ли вы]]»", false);
+                _wiki.Edit(talkTitle, template.ToString() + "\n", "Простановка сообщения проекта «[[Проект:Знаете ли вы|Знаете ли вы]]»", false);
             }
 
             if (parser.Errors == null)

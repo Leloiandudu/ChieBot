@@ -28,7 +28,7 @@ public class DykTests
             var text = "{{Сообщение ЗЛВ|даты=15—18 мая 2012|текст=" + parts[0] + "|архив=2012-05#15—18 мая";
             if (parts.Length > 1)
                 text += "|иллюстрация2=" + parts[1];
-            text += "}}";
+            text += "}}\n";
 
             return new KeyValuePair<string, string>($"Talk:{lines[0]}", text);
         }));
@@ -159,8 +159,8 @@ public class DykTests
         wiki.Setup(w => w.GetPage("Talk:one", false)).Returns<string>(null!);
 
         wiki.Setup(w => w.Edit("Проект:Знаете ли вы/Архив рубрики/2012-05", expectedContents, It.IsAny<string>(), false, null, null));
-        wiki.Setup(w => w.Edit("Talk:items", "{{Сообщение ЗЛВ|даты=4—7 мая 2012|текст=A lot more '''[[items]]''' here {{наилл}}|архив=2012-05#4—7 мая|иллюстрация2=[[Файл:Some pic.jpg|right|140px|Some pic]]}}", It.IsAny<string>(), false, null, null));
-        wiki.Setup(w => w.Edit("Talk:one", "{{Сообщение ЗЛВ|даты=4—7 мая 2012|текст=One last '''[[one]]'''|архив=2012-05#4—7 мая}}", It.IsAny<string>(), false, null, null));
+        wiki.Setup(w => w.Edit("Talk:items", "{{Сообщение ЗЛВ|даты=4—7 мая 2012|текст=A lot more '''[[items]]''' here {{наилл}}|архив=2012-05#4—7 мая|иллюстрация2=[[Файл:Some pic.jpg|140px|Some pic]]}}\n", It.IsAny<string>(), false, null, null));
+        wiki.Setup(w => w.Edit("Talk:one", "{{Сообщение ЗЛВ|даты=4—7 мая 2012|текст=One last '''[[one]]'''|архив=2012-05#4—7 мая}}\n", It.IsAny<string>(), false, null, null));
 
         var dyk = new DidYouKnow(wiki.Object, IssueDate.AddDays(3));
         dyk.ArchiveCurrent();
