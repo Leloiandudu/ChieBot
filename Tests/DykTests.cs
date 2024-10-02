@@ -123,7 +123,7 @@ public class DykTests
         wiki.Setup(w => w.Edit(DidYouKnow.DraftTalkName, DraftPage.FullPageAfter, It.IsAny<string>(), null, null, null));
         wiki.Setup(w => w.Edit(It.Is<string>(s => s.StartsWith(DidYouKnow.DraftTalkName + "/")), "\n\n" + DraftPage.IssueFullText + "\n\n", It.IsAny<string>(), true, null, null));
 
-        var dyk = new DidYouKnow(wiki.Object, IssueDate.AddDays(3));
+        var dyk = new DidYouKnow(wiki.Object, IssueDate.AddDays(DidYouKnow.PeriodInDays * 2));
         var result = dyk.ArchiveDraftTalk();
 
         Assert.True(result);
@@ -162,7 +162,7 @@ public class DykTests
         wiki.Setup(w => w.Edit("Talk:items", "{{Сообщение ЗЛВ|даты=4—7 мая 2012|текст=A lot more '''[[items]]''' here {{наилл}}|архив=2012-05#4—7 мая|иллюстрация2=[[Файл:Some pic.jpg|140px|Some pic]]}}\n", It.IsAny<string>(), false, null, null));
         wiki.Setup(w => w.Edit("Talk:one", "{{Сообщение ЗЛВ|даты=4—7 мая 2012|текст=One last '''[[one]]'''|архив=2012-05#4—7 мая}}\n", It.IsAny<string>(), false, null, null));
 
-        var dyk = new DidYouKnow(wiki.Object, IssueDate.AddDays(3));
+        var dyk = new DidYouKnow(wiki.Object, IssueDate.AddDays(DidYouKnow.PeriodInDays));
         dyk.ArchiveCurrent();
 
         wiki.VerifyAll();
@@ -186,7 +186,7 @@ public class DykTests
         wiki.Setup(w => w.GetPage(It.IsRegex("^Talk:.*"), false)).Returns<string>(null!);
         wiki.Setup(w => w.Edit(It.IsRegex("^Talk:.*"), It.IsAny<string>(), It.IsAny<string>(), false, null, null));
 
-        var dyk = new DidYouKnow(wiki.Object, issueDate.AddDays(3));
+        var dyk = new DidYouKnow(wiki.Object, issueDate.AddDays(DidYouKnow.PeriodInDays));
         dyk.ArchiveCurrent();
 
         wiki.VerifyAll();

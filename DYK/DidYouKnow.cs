@@ -102,15 +102,15 @@ namespace ChieBot.DYK
             if (parser.Errors == null)
                 return;
 
-            var errors = $"=== Ошибки архивации ===\n{parser.Errors}\n\nПожалуйста исправьте их врунчную ~~~~";
+            var errors = $"=== Ошибки архивации ===\n{parser.Errors}\n\nПожалуйста исправьте их вручную ~~~~";
             var drafts = new Drafts(_wiki.GetPage(DraftTalkName));
-            var draft = drafts[_nextIssueDate.ToDateOnly()];
+            var draft = drafts[_prevIssueDate.ToDateOnly()];
 
             if (draft == null)
             {
                 draft = new Draft
                 {
-                    Title = $"Выпуск {DYKUtils.FormatIssueDate(_nextIssueDate)}",
+                    Title = $"Выпуск {DYKUtils.FormatIssueDate(_prevIssueDate)}",
                     Text = errors,
                 };
                 drafts.Add(draft);
@@ -149,7 +149,7 @@ namespace ChieBot.DYK
 
         public bool ArchiveDraftTalk()
         {
-            DateOnly issueDate = _prevIssueDate.ToDateOnly();
+            DateOnly issueDate = _prevIssueDate.AddDays(-PeriodInDays).ToDateOnly();
 
             const string summary = "Автоматическая архивация обсуждения позапрошлого выпуска.";
             var draft = PopDraft(issueDate, DraftTalkName, false, summary);

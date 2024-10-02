@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ChieBot;
-using static System.Net.Mime.MediaTypeNames;
+﻿using ChieBot;
 using static ChieBot.MiniWikiParser;
 
 namespace Tests;
