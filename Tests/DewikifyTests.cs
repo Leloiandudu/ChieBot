@@ -207,6 +207,74 @@ end", It.IsAny<string>(), null, null, null));
     }
 
     [Fact]
+    public void RemovesEmptyRefs()
+    {
+        _wiki.Setup(w => w.GetHistory(SomePage, It.IsAny<DateTimeOffset>(), null, false, false))
+            .Returns([new MediaWiki.RevisionInfo
+            {
+                Id = 1,
+                User = "Jane",
+            }]);
+
+        _wiki.Setup(w => w.GetPage(1))
+            .Returns("""
+                == 123 ==
+                удалить
+
+                === Итог ===
+                {{Девикифицировать вхождения|123}}
+                """);
+
+        _wiki.Setup(w => w.GetAllPageNames("123"))
+            .Returns(["123"]);
+
+        _wiki.Setup(w => w.GetLinksTo(new[] { "123" }, 0))
+            .Returns(new Dictionary<string, string[]>());
+
+        _wiki.Setup(w => w.GetTransclusionsOf(new[] { "123" }, 0))
+            .Returns(new Dictionary<string, string[]>
+            {
+                ["123"] = ["page1"],
+            });
+
+        _wiki.Setup(w => w.GetPages(It.IsAny<string[]>(), false))
+            .Returns(new Dictionary<string, MediaWiki.Page>
+            {
+                ["page1"] = new()
+                {
+                    Title = "page1",
+                    Text = """
+                    <ref>some legit {{123}} ref</ref>
+                    <ref></ref>
+                    <ref name="xxxx"></ref>
+                    <ref>{{123}}</ref>
+                    <ref  >
+                    {{123}}
+
+
+                    </ref>
+                    end
+                    """,
+                },
+            });
+
+        new DewikifyModule().Execute(_wiki.Object, []);
+
+        _wiki.Verify(w => w.Edit(SomePage, """
+                == 123 ==
+                удалить
+
+                === Итог ===
+                {{Девикифицировать вхождения|123|сделано}}
+                """, It.IsAny<string>(), null, null, null));
+        _wiki.Verify(w => w.Edit("page1", """
+                    <ref>some legit  ref</ref>
+                    <ref name="xxxx"></ref>
+                    end
+                    """, It.IsAny<string>(), null, null, null));
+    }
+
+    [Fact]
     public void Skips_done()
     {
         _wiki.Setup(w => w.GetHistory(SomePage, It.IsAny<DateTimeOffset>(), null, false, false))

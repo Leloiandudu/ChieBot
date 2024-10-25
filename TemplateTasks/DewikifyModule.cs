@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace ChieBot.TemplateTasks
 {
-    public class DewikifyModule : Modules.IModule
+    public partial class DewikifyModule : Modules.IModule
     {
         public const string CategoryName = "Википедия:К быстрому удалению:Девикифицировать";
         public const string TemplateName = "Девикифицировать вхождения";
@@ -76,16 +77,30 @@ namespace ChieBot.TemplateTasks
 
         private static string RemoveTransclusionsIn(string pageIn, string templateName, ParserUtils parser)
         {
-            var templates = parser.FindTemplates(pageIn, templateName, false);
-            foreach (var template in templates.ToArray())
-                templates.Update(template, "");
-            var text = templates.Text;
+            // remove templates
+            var text = Remove(parser.FindTemplates(pageIn, templateName, false));
 
-            var emptyLines = templates
-                .Select(t => ParserUtils.GetWholeLineAt(templates, t))
+            // remove empty refs
+            text = Remove(new PartiallyParsedWikiText<object>(text, EmptyRefRegex(), x => new()));
+
+            return text;
+        }
+
+        private static string Remove<T>(PartiallyParsedWikiText<T> parsed)
+            where T : class
+        {
+            foreach (var item in parsed.ToArray())
+                parsed.Update(item, "");
+            var text = parsed.Text;
+
+            var emptyLines = parsed
+                .Select(t => ParserUtils.GetWholeLineAt(parsed, t))
                 .Where(r => r.Get(text).Trim() == "");
 
             return text.Remove(emptyLines);
         }
+
+        [GeneratedRegex(@"<ref\s*>\s*</ref>", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase)]
+        private static partial Regex EmptyRefRegex();
     }
 }
