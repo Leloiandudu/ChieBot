@@ -278,11 +278,11 @@ end", It.IsAny<string>(), null, null, null));
     public void Skips_done()
     {
         _wiki.Setup(w => w.GetHistory(SomePage, It.IsAny<DateTimeOffset>(), null, false, false))
-    .Returns([new MediaWiki.RevisionInfo
-    {
-        Id = 1,
-        User = "John",
-    }]);
+            .Returns([new MediaWiki.RevisionInfo
+            {
+                Id = 1,
+                User = "John",
+            }]);
 
         _wiki.Setup(w => w.GetPage(1))
             .Returns(@"== 123 ==
@@ -301,11 +301,11 @@ end", It.IsAny<string>(), null, null, null));
     public void Skips_ignored()
     {
         _wiki.Setup(w => w.GetHistory(SomePage, It.IsAny<DateTimeOffset>(), null, false, false))
-    .Returns([new MediaWiki.RevisionInfo
-    {
-        Id = 1,
-        User = "John",
-    }]);
+            .Returns([new MediaWiki.RevisionInfo
+            {
+                Id = 1,
+                User = "John",
+            }]);
 
         _wiki.Setup(w => w.GetPage(1))
             .Returns(@"== 123 ==
