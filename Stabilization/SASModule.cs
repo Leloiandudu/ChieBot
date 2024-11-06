@@ -11,7 +11,7 @@ namespace ChieBot.Stabilization
     {
         public void Execute(IMediaWiki wiki, string[] commandLine)
         {
-            Stabilize(wiki, "Википедия:Кандидаты в хорошие статьи/Журнал избраний", new LastDateChecked("sas-lastrev"));
+            Stabilize(wiki, "Проект:Кандидаты в хорошие статьи/Журнал избраний", new LastDateChecked("sas-lastrev"));
         }
 
         private void Stabilize(IMediaWiki wiki, string logTitle, LastDateChecked last)
@@ -27,7 +27,7 @@ namespace ChieBot.Stabilization
 
             var nextDate = lines.Max(l => l.Date);
 
-            // If the last log entry was long enough ago, we can safely move the pointer one 
+            // If the last log entry was long enough ago, we can safely move the pointer one
             // minute forward. This way we won't have to check the same entry next time.
             if (nextDate.AddMinutes(2) < DateTimeOffset.UtcNow)
                 nextDate = nextDate.AddMinutes(1);
