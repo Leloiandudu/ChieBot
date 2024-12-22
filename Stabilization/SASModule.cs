@@ -11,7 +11,7 @@ namespace ChieBot.Stabilization
     {
         public void Execute(IMediaWiki wiki, string[] commandLine)
         {
-            Stabilize(wiki, "Проект:Кандидаты в хорошие статьи/Журнал избраний", new LastDateChecked("sas-lastrev"));
+            Stabilize(wiki, "Проект:Хорошие статьи/Журнал избраний", new LastDateChecked("sas-lastrev"));
         }
 
         private void Stabilize(IMediaWiki wiki, string logTitle, LastDateChecked last)
