@@ -15,7 +15,6 @@ namespace ChieBot.Archiving
             Rule("Ping08", Weekly),
             Rule("The222anonim", Weekly, SimpleArchiveName(2014)),
             Rule("Meiræ", Weekly, d => "Архив"),
-            Rule("Stjn", TriMonthly),
             Rule("Alex parker 1979", Weekly, SimpleArchiveName(2019)),
             Rule("Putnik", Weekly, ageLimitInDays:90),
             Rule("Birulik", TriMonthly, SimpleArchiveName(2017), ageLimitInDays: 90),
