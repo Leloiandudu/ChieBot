@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
 
 namespace Tests;
 internal class MockWiki : IMediaWiki
@@ -162,7 +163,12 @@ internal class MockWiki : IMediaWiki
         throw new NotImplementedException();
     }
 
-    public void Move(string fromTitle, string toTitle, string reason, bool redirect)
+    void IMediaWiki.Move(string fromTitle, string toTitle, string reason, bool redirect)
+    {
+        throw new NotImplementedException();
+    }
+
+    IDictionary<string, JToken> IMediaWiki.GetUsers(string[] users)
     {
         throw new NotImplementedException();
     }

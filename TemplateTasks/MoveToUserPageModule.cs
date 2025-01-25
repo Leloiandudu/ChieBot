@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using ChieBot.Modules;
 using static ChieBot.MiniWikiParser;
@@ -36,6 +35,10 @@ public class MoveToUserPageModule : IModule
 
                 if (page.Namespace.IsTalk())
                     throw new TempalteTaskException("перенос обсуждений не поддерживается");
+
+                var user = wiki.GetUsers(taskTemplate.UserName).TryGetValue(taskTemplate.UserName);
+                if (user == null)
+                    throw new TempalteTaskException("участник не существует");
 
                 // remove {{К удалению}}
                 TemplateTaskUtils.RemoveForDeletionTemplate(parser, page.Text, out var newPageText);

@@ -1,5 +1,6 @@
 ﻿using ChieBot.TemplateTasks;
 using Moq;
+using Newtonsoft.Json.Linq;
 using static MediaWiki;
 
 namespace Tests;
@@ -43,12 +44,20 @@ public class MoveToUserPageTests
             }]);
 
         _wiki.Setup(w => w.GetPage(TaskPageRevId))
-            .Returns("== " + SomePage + @" ==
-удалить
+            .Returns($"""
+            == {SomePage} ==
+            удалить
 
-=== Итог ===
+            === Итог ===
 
-{{" + MoveToUserPageModule.TemplateName  + "|" + SomePage + "|" + SomeUser + "}}");
+            {"{{"}{MoveToUserPageModule.TemplateName}|{SomePage}|{SomeUser}{"}}"}
+            """);
+
+        _wiki.Setup(w => w.GetUsers(SomeUser))
+            .Returns(new Dictionary<string, JToken>
+            {
+                [SomeUser] = new JObject(),
+            });
     }
 
 
@@ -59,12 +68,14 @@ public class MoveToUserPageTests
 
         new MoveToUserPageModule().Execute(_wiki.Object, []);
 
-        _wiki.Verify(w => w.Edit(TaskPage, @"== 123 ==
-удалить
+        _wiki.Verify(w => w.Edit(TaskPage, $"""
+        == {SomePage} ==
+        удалить
 
-=== Итог ===
+        === Итог ===
 
-{{" + MoveToUserPageModule.TemplateName + "|" + SomePage + "|" + SomeUser + "|сделано}}", It.IsAny<string>(), null, null, null));
+        {"{{"}{MoveToUserPageModule.TemplateName}|{SomePage}|{SomeUser}|сделано{"}}"}
+        """, It.IsAny<string>(), null, null, null));
     }
 
     [Fact]
@@ -175,7 +186,7 @@ public class MoveToUserPageTests
         new MoveToUserPageModule().Execute(_wiki.Object, []);
 
         _wiki.Verify(w => w.Edit(TaskPage, It.Is<string>(s => s.StartsWith($"""
-            == 123 ==
+            == {SomePage} ==
             удалить
 
             === Итог ===
@@ -183,6 +194,40 @@ public class MoveToUserPageTests
             <span style='color: red'>Ошибка в шаблоне <nowiki>{"{{"}{MoveToUserPageModule.TemplateName}|{SomePage}|{SomeUser}{"}}"}</nowiki>: '''
             """)), It.IsAny<string>(), null, null, null));
 
+        _wiki.Verify(w => w.Edit(SomePage, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool?>(), It.IsAny<DateTime?>(), It.IsAny<int?>()), Times.Never);
+        _wiki.Verify(w => w.Move(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+    }
+
+    [Fact]
+    public void Does_nothing_if_user_doesnt_exist()
+    {
+        const string nonExistentUser = "nonexistent-user";
+
+        Setup();
+        _wiki.Setup(w => w.GetPage(TaskPageRevId))
+            .Returns($"""
+            == {SomePage} ==
+            удалить
+
+            === Итог ===
+
+            {"{{"}{MoveToUserPageModule.TemplateName}|{SomePage}|{nonExistentUser}{"}}"}
+            """);
+
+        _wiki.Setup(w => w.GetUsers(nonExistentUser)).Returns(new Dictionary<string, JToken>());
+
+        new MoveToUserPageModule().Execute(_wiki.Object, []);
+
+        _wiki.Verify(w => w.Edit(TaskPage, It.Is<string>(s => s.StartsWith($"""
+            == {SomePage} ==
+            удалить
+
+            === Итог ===
+
+            <span style='color: red'>Ошибка в шаблоне <nowiki>{"{{"}{MoveToUserPageModule.TemplateName}|{SomePage}|{nonExistentUser}{"}}"}</nowiki>: '''участник не существует'''</span>
+            """)), It.IsAny<string>(), null, null, null));
+
+        _wiki.Verify(w => w.GetUsers(nonExistentUser));
         _wiki.Verify(w => w.Edit(SomePage, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool?>(), It.IsAny<DateTime?>(), It.IsAny<int?>()), Times.Never);
         _wiki.Verify(w => w.Move(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
     }

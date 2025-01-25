@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 public interface IMediaWiki
 {
@@ -33,4 +34,5 @@ public interface IMediaWiki
     void Stabilize(string page, string reason, DateTimeOffset? expiry, bool stabilize = true);
     Dictionary<string, MediaWiki.PageInfo> GetAssociatePageTitle(string[] titles, bool followRedirects = false);
     Dictionary<string, MediaWiki.PageInfo> GetAssociatePageTitle(params string[] titles);
+    IDictionary<string, JToken> GetUsers(params string[] users);
 }

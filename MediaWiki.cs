@@ -414,18 +414,26 @@ public class MediaWiki : IMediaWiki
 
     public IDictionary<string, string[]> GetUserGroups(string[] users)
     {
+        var result = GetUsers(users);
+        return users.ToDictionary(
+            user => user,
+            user => result.TryGetValue(user)?.Value<JArray>("groups")?.Values<string>().ToArray() ?? []);
+    }
+
+    public IDictionary<string, JToken> GetUsers(string[] users)
+    {
         return Query(new Dictionary<string, string>
         {
             { "list", "users" },
             { "ususers", JoinList(users) },
             { "usprop", "groups" },
-        }).SelectMany(x => x["users"]).ToDictionary(x => x.Value<string>("name"), x =>
-        {
-            var groups = x.Value<JArray>("groups");
-            if (groups == null)
-                return new string[0];
-            return groups.Values<string>().ToArray();
-        });
+        })
+            .SelectMany(x => x["users"])
+            .Where(x => x["missing"] == null)
+            .ToDictionary(x => {
+                var name = x.Value<string>("name");
+                return users.FirstOrDefault(u => TitlesEqual(u, name), name);
+            });
     }
 
     private IDictionary<Namespace, string[]> _namespaces;
