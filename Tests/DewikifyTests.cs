@@ -319,4 +319,67 @@ end", It.IsAny<string>(), null, null, null));
 
         _wiki.Verify(w => w.Edit(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool?>(), It.IsAny<DateTime?>(), It.IsAny<int?>()), Times.Never);
     }
+
+    [Fact]
+    public void Removes_whole_line_in_disambigs()
+    {
+
+        _wiki.Setup(w => w.GetHistory(SomePage, It.IsAny<DateTimeOffset>(), null, false, false))
+            .Returns([new MediaWiki.RevisionInfo
+            {
+                Id = 1,
+                User = "Jane",
+            }]);
+
+        _wiki.Setup(w => w.GetPage(1))
+            .Returns(@"== 123 ==
+удалить
+
+=== Итог ===
+
+{{Девикифицировать вхождения|123}}");
+
+        _wiki.Setup(w => w.GetAllPageNames("123"))
+            .Returns(["123"]);
+
+        _wiki.Setup(w => w.GetLinksTo(new[] { "123" }, 0))
+            .Returns(new Dictionary<string, string[]>
+            {
+                ["123"] = ["page1"],
+            });
+
+        _wiki.Setup(w => w.GetTransclusionsOf(new[] { "123" }, 0))
+            .Returns(new Dictionary<string, string[]>
+            {
+                ["123"] = [],
+            });
+
+        _wiki.Setup(w => w.GetPages(It.IsAny<string[]>(), false))
+            .Returns(new Dictionary<string, MediaWiki.Page>
+            {
+                ["page1"] = new() { Title = "page1", Text = """
+                    '''123'''
+
+                    * [[bla]] - blabla
+                    * [[123]] - is a number, for example: [[123]]
+                    * [[123]] - [[foo]]
+                    {{неоднозначность}}
+                    """ },
+            });
+
+        new DewikifyModule().Execute(_wiki.Object, []);
+
+        _wiki.Verify(w => w.Edit(SomePage, @"== 123 ==
+удалить
+
+=== Итог ===
+
+{{Девикифицировать вхождения|123|сделано}}", It.IsAny<string>(), null, null, null));
+        _wiki.Verify(w => w.Edit("page1", """
+            '''123'''
+
+            * [[bla]] - blabla
+            {{неоднозначность}}
+            """, It.IsAny<string>(), null, null, null));
+    }
 }

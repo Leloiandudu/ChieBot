@@ -205,7 +205,7 @@ namespace ChieBot
     }
 
     [DebuggerDisplay("off: {Offset}, len: {Length}")]
-    public class TextRegion
+    public readonly struct TextRegion
     {
         public TextRegion(int offset, int length)
         {
