@@ -6,22 +6,34 @@ using System.Linq;
 
 namespace ChieBot.TemplateTasks;
 
-partial class TemplateBasedTaskExecutor<TTaskTemplate>(IMediaWiki _wiki, string _templateName, string _summary, Func<Template, TTaskTemplate> _parseTemplate)
-    where TTaskTemplate : TaskTemplateBase
+partial class TemplateBasedTaskExecutor<TTaskTemplate> where TTaskTemplate : TaskTemplateBase
 {
     private const string ClosingSectionName = "Итог";
     private static readonly string[] IncludeGroups = ["sysop", "closer"];
     private static readonly string[] ExcludeGroups = ["bot"];
 
     private readonly Dictionary<string, bool> _powerUsers = [];
-    private readonly Lazy<string[]> _allTemplateNames = new(() => _wiki.GetAllPageNames("Template:" + _templateName));
+    private readonly IMediaWiki _wiki;
+    private readonly string _summary;
+    private readonly Func<Template, TTaskTemplate> _parseTemplate;
+    private readonly ParserUtils _parserUtils;
+    private readonly Lazy<string[]> _allTemplateNames;
+
+    public TemplateBasedTaskExecutor(IMediaWiki wiki, string templateName, string summary, Func<Template, TTaskTemplate> parseTemplate)
+    {
+        _wiki = wiki;
+        _summary = summary;
+        _parseTemplate = parseTemplate;
+        _parserUtils = new(wiki);
+        _allTemplateNames = new(() => _parserUtils.GetAllTemplateNames(templateName));
+    }
 
     public void Run(string title, Action<TTaskTemplate> executeTask)
     {
         var history = Revision.FromHistory(_wiki.GetHistory(title, DateTimeOffset.MinValue));
         LoadUsers(history);
 
-        var page = new ParserUtils(_wiki).FindTemplates(history.First().GetText(_wiki), _allTemplateNames.Value);
+        var page = _parserUtils.FindTemplates(history.First().GetText(_wiki), _allTemplateNames.Value);
         foreach (var template in page.ToArray())
         {
             var tt = TryParse(template);
@@ -91,7 +103,7 @@ partial class TemplateBasedTaskExecutor<TTaskTemplate>(IMediaWiki _wiki, string 
     {
         // looking for the first edit where the template did not exist
 
-        return history.FindEarliest(_wiki, text => new ParserUtils(_wiki).FindTemplates(text, _allTemplateNames.Value)
+        return history.FindEarliest(_wiki, text => _parserUtils.FindTemplates(text, _allTemplateNames.Value)
             .Select(t => TryParse(t))
             .Any(t => t?.Title == title)).Info.User;
     }

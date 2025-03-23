@@ -6,9 +6,10 @@ namespace ChieBot.Archiving
     class ArchiveModule : Modules.IModule
     {
         private const string EditSummary = "Автоматический аркайвинг";
+        private const string NoSignatureTemplate = "нет подписи";
 
-        private readonly ArchiveRule[] _rules = new[]
-        {
+        private readonly ArchiveRule[] _rules =
+        [
             Rule("Ле Лой", Daily, GetLeLoyArchiveName),
             Rule("AnimusVox", Weekly, ageLimitInDays: 14),
             Rule("Lazyhawk", Daily, SimpleArchiveName(2008)),
@@ -19,11 +20,12 @@ namespace ChieBot.Archiving
             Rule("Putnik", Weekly, ageLimitInDays:90),
             Rule("Birulik", TriMonthly, SimpleArchiveName(2017), ageLimitInDays: 90),
             Rule("Megitsune-chan", Daily),
-        };
+        ];
 
         public void Execute(IMediaWiki wiki, string[] commandLine)
         {
             var now = DateTimeOffset.UtcNow;
+            var noSigTemplate = new ParserUtils(wiki).GetAllTemplateNames(NoSignatureTemplate);
 
             foreach (var rule in _rules)
             {
@@ -32,9 +34,12 @@ namespace ChieBot.Archiving
 
                 var talkName = string.Format("Обсуждение участника:{0}", rule.UserName);
 
-                var talks = new Talks(wiki.GetPage(talkName));
+                var talks = new SectionedArticle<Talk>(wiki.GetPage(talkName));
+                foreach (var talk in talks)
+                    talk.Parse(wiki, noSigTemplate);
+
                 var dayX = now.AddDays(-rule.AgeLimitInDays);
-                var removed = new Talks();
+                var removed = new SectionedArticle<Talk>("");
 
                 foreach (var talk in talks.ToArray())
                 {

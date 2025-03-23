@@ -179,9 +179,18 @@ namespace ChieBot
             return results;
         }
 
+        public string[] GetAllTemplateNames(string templateName)
+        {
+            SplitTitle(templateName, out var ns, out var title);
+            if (ns is not ("" or "Template" or "Шаблон" or "Ш"))
+                throw new ArgumentException("Invalid namespace " + ns, nameof(templateName));
+
+            return _wiki.GetAllPageNames($"Template:{title}");
+        }
+
         public PartiallyParsedWikiText<Template> FindTemplates(string text, string templateName, bool skipIgnored = true)
         {
-            return FindTemplates(text, new[] { templateName }, skipIgnored);
+            return FindTemplates(text, [templateName], skipIgnored);
         }
 
         public PartiallyParsedWikiText<Template> FindTemplates(string text, string[] templateNames, bool skipIgnored = true)
