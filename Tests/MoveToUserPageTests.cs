@@ -10,7 +10,7 @@ public class MoveToUserPageTests
     private const string TaskDate = "29 февраля 2024";
     private const string TaskPage = $"Википедия:К удалению/{TaskDate}";
     private const string SomePage = "123";
-    private const string SomeUser= "John 2 14";
+    private const string SomeUser = "John 2 14";
     private const int SomePageRevId = 111;
     private const int TaskPageRevId = 1;
 
@@ -159,6 +159,42 @@ public class MoveToUserPageTests
         new MoveToUserPageModule().Execute(_wiki.Object, []);
 
         _wiki.Verify(w => w.Move(SomePage, $"User:{SomeUser}/{SomePage}", It.IsAny<string>(), false));
+    }
+
+    [Fact]
+    public void Adds_link_to_section()
+    {
+        Setup();
+        _wiki.Setup(w => w.GetPage(TaskPageRevId)).Returns($"""
+            == x <s>[[{SomePage}|bla]] z</s> ==
+            удалить
+
+            === Итог ===
+
+            {"{{"}{MoveToUserPageModule.TemplateName}|{SomePage}|{SomeUser}{"}}"}
+            """);
+
+        new MoveToUserPageModule().Execute(_wiki.Object, []);
+
+        _wiki.Verify(w => w.Move(SomePage, It.IsAny<string>(), $"{MoveToUserPageModule.Summary} [[{TaskPage}#x bla z]]", false));
+    }
+
+    [Fact]
+    public void Adds_link_to_section2()
+    {
+        Setup();
+        _wiki.Setup(w => w.GetPage(TaskPageRevId)).Returns($"""
+            == <s>[[:{SomePage}]]</s> ==
+            удалить
+
+            === Итог ===
+
+            {"{{"}{MoveToUserPageModule.TemplateName}|{SomePage}|{SomeUser}{"}}"}
+            """);
+
+        new MoveToUserPageModule().Execute(_wiki.Object, []);
+
+        _wiki.Verify(w => w.Move(SomePage, It.IsAny<string>(), $"{MoveToUserPageModule.Summary} [[{TaskPage}#{SomePage}]]", false));
     }
 
     [Fact]

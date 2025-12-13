@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
+using static MediaWiki;
 
 namespace ChieBot
 {
@@ -124,14 +125,24 @@ namespace ChieBot
                 from match in LinkRegex.Matches(text)
                 let link = match.Groups["link"]
                 where link.Success && regex.IsMatch(link.Value)
-                let title = match.Groups["title"]
-                select (match.Index, match.Length, new WikiLink
-                {
-                    Link = link.Value,
-                    Text = title.Success ? title.Value : null,
-                })
+                select (match.Index, match.Length, GetWikiLink(match))
             );
         }
+
+        private static WikiLink GetWikiLink(Match match)
+        {
+            var title = match.Groups["title"];
+            return new WikiLink
+            {
+                Link = match.Groups["link"].Value,
+                Text = title.Success ? title.Value : null,
+            };
+        }
+
+        public static PartiallyParsedWikiText<WikiLink> ParseLinks(string text)
+            => new(text, LinkRegex, GetWikiLink);
+
+        public static string StripTags(string text) => TagRegex().Replace(text, "");
 
         public static TextRegion GetWholeLineAt(string text, int atOffset)
         {
@@ -199,18 +210,27 @@ namespace ChieBot
             return FindTemplatesInternal(text, names, skipIgnored);
         }
 
-        public static string GetSectionName<T>(PartiallyParsedWikiText<T> page, T item)
-            where T : class
+        public static string GetSectionName<T>(PartiallyParsedWikiText<T> page, T item) where T : class
+            => GetSection(page.Text, page.GetOffset(item))?.Name;
+
+        public static (string Name, int Level, int Offset)? GetSection(string text, int offset)
         {
-            var offset = page.GetOffset(item);
-            return HeaderRegex().Matches(page.Text)
+            var match = HeaderRegex().Matches(text)
                 .TakeWhile(m => m.Index < offset)
-                .Select(m => m.Groups[1].Value.Trim())
                 .LastOrDefault();
+
+            if (match == null)
+                return null;
+
+            var level = match.Value.TakeWhile(x => x == '=').Count();
+            return (match.Groups[1].Value.Trim(), level, match.Index);
         }
 
         [GeneratedRegex(@"^=+\s*([^=].*?)\s*=+", RegexOptions.Multiline)]
         private static partial Regex HeaderRegex();
+
+        [GeneratedRegex(@"<[^>]+>")]
+        private static partial Regex TagRegex();
     }
 
     [DebuggerDisplay("off: {Offset}, len: {Length}")]

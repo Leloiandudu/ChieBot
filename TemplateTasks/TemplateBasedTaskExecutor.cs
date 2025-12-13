@@ -15,17 +15,22 @@ partial class TemplateBasedTaskExecutor<TTaskTemplate> where TTaskTemplate : Tas
     private readonly Dictionary<string, bool> _powerUsers = [];
     private readonly IMediaWiki _wiki;
     private readonly string _summary;
-    private readonly Func<Template, TTaskTemplate> _parseTemplate;
+    private readonly Func<Template, PartiallyParsedWikiText<Template>, TTaskTemplate> _parseTemplate;
     private readonly ParserUtils _parserUtils;
     private readonly Lazy<string[]> _allTemplateNames;
 
-    public TemplateBasedTaskExecutor(IMediaWiki wiki, string templateName, string summary, Func<Template, TTaskTemplate> parseTemplate)
+    public TemplateBasedTaskExecutor(IMediaWiki wiki, string templateName, string summary, Func<Template, PartiallyParsedWikiText<Template>, TTaskTemplate> parseTemplate)
     {
         _wiki = wiki;
         _summary = summary;
         _parseTemplate = parseTemplate;
         _parserUtils = new(wiki);
         _allTemplateNames = new(() => _parserUtils.GetAllTemplateNames(templateName));
+    }
+
+    public TemplateBasedTaskExecutor(IMediaWiki wiki, string templateName, string summary, Func<Template, TTaskTemplate> parseTemplate)
+        : this(wiki, templateName, summary, (tt, page) => parseTemplate(tt))
+    {
     }
 
     public void Run(string title, Action<TTaskTemplate> executeTask)
@@ -36,7 +41,7 @@ partial class TemplateBasedTaskExecutor<TTaskTemplate> where TTaskTemplate : Tas
         var page = _parserUtils.FindTemplates(history.First().GetText(_wiki), _allTemplateNames.Value);
         foreach (var template in page.ToArray())
         {
-            var tt = TryParse(template);
+            var tt = TryParse(template, page);
             if (tt == null)
             {
                 page.Update(template, $"<span style='color: red'>Ошибка в шаблоне <nowiki>{template}</nowiki>: '''неверный формат аргументов'''</span>");
@@ -53,7 +58,7 @@ partial class TemplateBasedTaskExecutor<TTaskTemplate> where TTaskTemplate : Tas
                 continue;
             }
 
-            var user = GetUser(tt.Title, history);
+            var user = GetUser(tt.Title, history, page);
             if (!_powerUsers[user])
             {
                 page.Update(template, $"<span style='color: red'>Шаблон <nowiki>{template}</nowiki> установлен пользователем {{{{u|{user}}}}}, не имеющим флага ПИ/А.</span>");
@@ -78,11 +83,11 @@ partial class TemplateBasedTaskExecutor<TTaskTemplate> where TTaskTemplate : Tas
             _wiki.Edit(title, page.Text, _summary);
     }
 
-    private TTaskTemplate? TryParse(Template template)
+    private TTaskTemplate? TryParse(Template template, PartiallyParsedWikiText<Template> page)
     {
         try
         {
-            return _parseTemplate(template);
+            return _parseTemplate(template, page);
         }
         catch (FormatException)
         {
@@ -99,12 +104,12 @@ partial class TemplateBasedTaskExecutor<TTaskTemplate> where TTaskTemplate : Tas
         }
     }
 
-    private string GetUser(string title, Revision[] history)
+    private string GetUser(string title, Revision[] history, PartiallyParsedWikiText<Template> page)
     {
         // looking for the first edit where the template did not exist
 
         return history.FindEarliest(_wiki, text => _parserUtils.FindTemplates(text, _allTemplateNames.Value)
-            .Select(t => TryParse(t))
+            .Select(t => TryParse(t, page))
             .Any(t => t?.Title == title)).Info.User;
     }
 }

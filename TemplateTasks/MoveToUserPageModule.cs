@@ -17,7 +17,7 @@ public class MoveToUserPageModule : IModule
     public void Execute(IMediaWiki wiki, string[] commandLine)
     {
         var parser = new ParserUtils(wiki);
-        var executor = new TemplateBasedTaskExecutor<MoveTaskTemplate>(wiki, TemplateName, Summary, t => new MoveTaskTemplate(t));
+        var executor = new TemplateBasedTaskExecutor<MoveTaskTemplate>(wiki, TemplateName, Summary, (t, p) => new MoveTaskTemplate(t, p));
 
         foreach (var taskPage in wiki.GetPagesInCategory(CategoryName, MediaWiki.Namespace.Wikipedia))
         {
@@ -51,9 +51,18 @@ public class MoveToUserPageModule : IModule
 
                 wiki.Edit(taskTemplate.Title, newPageText, Summary, revId: page.Id);
 
-                wiki.Move(taskTemplate.Title, $"User:{taskTemplate.UserName}/{taskTemplate.Title}", Summary, false);
+                var hash = RemoveLinks(ParserUtils.StripTags(taskTemplate.GetSection()));
+                wiki.Move(taskTemplate.Title, $"User:{taskTemplate.UserName}/{taskTemplate.Title}", $"{Summary} [[{taskPage}#{hash}]]", false);
             });
         }
+    }
+
+    private static string RemoveLinks(string text)
+    {
+        var parsed = ParserUtils.ParseLinks(text);
+        foreach (var link in parsed.ToList())
+            parsed.Update(link, link.Text ?? link.Link);
+        return parsed.Text;
     }
 
     private static string RemoveCategoriesAndNavTemplates(string page)
@@ -90,8 +99,29 @@ public class MoveToUserPageModule : IModule
         }
     }
 
-    class MoveTaskTemplate(Template template) : TaskTemplateBase(template, 2)
+    class MoveTaskTemplate(Template template, PartiallyParsedWikiText<Template> page) : TaskTemplateBase(template, 2)
     {
         public string UserName => Args[1].Value;
+
+        public string GetSection()
+        {
+            var offset = page.GetOffset(template);
+
+            var section = ParserUtils.GetSection(page.Text, offset);
+            if (section == null)
+                return null;
+            offset = section.Value.Offset - 1;
+            var level = section.Value.Level;
+
+            for(; ; )
+            {
+                section = ParserUtils.GetSection(page.Text, offset);
+                if (section == null)
+                   return null;
+
+                if (section.Value.Level < level)
+                    return section.Value.Name;
+            }
+        }
     }
 }
