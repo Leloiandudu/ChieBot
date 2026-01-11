@@ -20,6 +20,8 @@ namespace ChieBot.DYK
 
             if (date < ReferenceDate.AddDays(-MaxDaysInThePast)) // in case of announces for next year
                 date = date.AddYears(1);
+            else if (date > ReferenceDate.AddDays(MaxDaysInThePast))
+                date = date.AddYears(-1);
             return true;
         }
 

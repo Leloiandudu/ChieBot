@@ -204,6 +204,27 @@ public class DykTests
         Assert.Equal(new[] { "one", "two", "three" }, links);
     }
 
+    [Theory]
+    [InlineData("2024-12-20")]
+    [InlineData("2024-12-30")]
+    [InlineData("2025-01-01")]
+    [InlineData("2025-01-04")]
+    public void Drafts_ParsesLastNextYear(string now)
+    {
+        DYKUtils.ReferenceDate = DateOnly.ParseExact(now, "yyyy-MM-dd");
+        var text = """
+            == 29 декабря ==
+            123
+
+            == 2 января ==
+            456
+            """;
+
+        var parsed = new Drafts(text);
+        Assert.Equal(new(2024, 12, 29), parsed[0].Date);
+        Assert.Equal(new(2025, 1, 2), parsed[1].Date);
+    }
+
     static class DraftPage
     {
         public const string Before = @"{{shortcut|ПРО:ЗЛВ-Ч|ПРО:ЗЛВЧ}}

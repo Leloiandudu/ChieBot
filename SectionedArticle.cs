@@ -8,7 +8,7 @@ namespace ChieBot
     /// <summary>
     /// Article divided in 2nd-level sections
     /// </summary>
-    class SectionedArticle<TSection> : List<TSection>
+    public class SectionedArticle<TSection> : List<TSection>
         where TSection : Section, new()
     {
         public int Level { get; private set; }
@@ -57,7 +57,7 @@ namespace ChieBot
     }
 
     [DebuggerDisplay("{Title.Trim(),nq}")]
-    class Section
+    public class Section
     {
         public string Title { get; set; }
         public string Text { get; set; }

@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace ChieBot.DYK
 {
-    class Draft : Section
+    public class Draft : Section
     {
         private static readonly Regex LineStartedWithSmall = new Regex(@"^\s*<small\b.*$", RegexOptions.Compiled | RegexOptions.Multiline);
 
@@ -20,7 +20,7 @@ namespace ChieBot.DYK
         }
     }
 
-    class Drafts : SectionedArticle<Draft>
+    public class Drafts : SectionedArticle<Draft>
     {
         private static readonly Regex DraftHeader = new Regex(@"^==\s*(Выпуск\s+(от\s+)?)?(?<date>\d+ \w+)", RegexOptions.Compiled);
 
