@@ -51,7 +51,7 @@ namespace ChieBot.RFD
                     continue;
 
                 // skip modules & css
-                if (page.Title.StartsWith("Модуль:") || page.Title.EndsWith(".css"))
+                if (page.Title.StartsWith("Модуль:") || page.Title.EndsWith(".css") || page.Title.EndsWith(".js"))
                     continue;
 
                 var createdBy = history.FindEarliest(wiki, text => GetArticles(text).Contains(link.Key)).Info;
