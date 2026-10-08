@@ -5,7 +5,7 @@ namespace ChieBot.DYK
 {
     class NextIssuePreparationHeader : PartiallyParsedWikiText<NextIssuePreparationHeader.Item>
     {
-        private static readonly Regex TimetableItem = new Regex(@"^\s*\|\s*\{\{злвч\|.*?\|\s*(?<date>\d+ \w+)\s*\|\+\}\}.*?\n\s*\|-\s*\n", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase);
+        private static readonly Regex TimetableItem = new Regex(@"^\s*\|\s*\{\{злвч\|.*?\|\s*(?<date>\d+\s+\w+)\s*\|\+\}\}.*?\n\s*\|-\s*\n", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase);
 
         public NextIssuePreparationHeader(string text)
             : base(text, TimetableItem, x => new Item(x))
